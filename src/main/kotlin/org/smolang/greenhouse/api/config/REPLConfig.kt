@@ -1,4 +1,4 @@
-package no.uio.org.smolang.greenhouse.api.config
+package org.smolang.greenhouse.api.config
 
 import jakarta.annotation.PostConstruct
 import no.uio.microobject.main.Settings
