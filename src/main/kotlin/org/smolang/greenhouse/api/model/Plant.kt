@@ -1,0 +1,8 @@
+package org.smolang.greenhouse.api.model
+
+class Plant (
+    val plantId: String,
+    val idealMoisture: Double,
+    val healthState: String
+) {
+}
