@@ -7,6 +7,7 @@ import no.uio.microobject.runtime.REPL
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Lazy
+import java.io.File
 
 @Configuration
 open class REPLConfig {
@@ -42,11 +43,12 @@ open class REPLConfig {
             reasoner
         )
 
-        val smolPath = System.getenv("SMOL_PATH") ?: "Bedreflyt.smol"
+        val smolPath = System.getenv("SMOL_PATH") ?: "GreenHouse.smol"
+        // get all file in SMOL_PATH
+
         repl = REPL(settings)
         repl.command("verbose", "true")
-        repl.command("read", smolPath)
-        repl.command("auto", "")
+        repl.command("multiread", smolPath)
     }
 
     @Bean
