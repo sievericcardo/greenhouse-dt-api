@@ -28,6 +28,14 @@ open class REPLConfig {
         val domainPrefixUri = System.getenv("DOMAIN_PREFIX_URI") ?: ""
         val reasoner = ReasonerMode.off
 
+        if (System.getenv("EXTRA_PREFIXES") != null) {
+            val prefixes = System.getenv("EXTRA_PREFIXES")!!.split(";")
+            for (prefix in prefixes) {
+                val parts = prefix.split(",")
+                extraPrefixes.putAll(mapOf(parts[0] to parts[1]))
+            }
+        }
+
         val settings = Settings(
             verbose,
             materialize,
@@ -49,6 +57,7 @@ open class REPLConfig {
         repl = REPL(settings)
         repl.command("verbose", "true")
         repl.command("multiread", smolPath)
+        repl.command("auto", "")
     }
 
     @Bean
