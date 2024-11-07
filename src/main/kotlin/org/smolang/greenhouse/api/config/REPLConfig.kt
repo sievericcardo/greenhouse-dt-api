@@ -26,7 +26,7 @@ open class REPLConfig {
         val useQueryType = false
         val triplestoreUrl = System.getenv("TRIPLESTORE_URL") ?: "http://localhost:3030/ds"
         val domainPrefixUri = System.getenv("DOMAIN_PREFIX_URI") ?: ""
-        val reasoner = ReasonerMode.off
+        val reasoner = ReasonerMode.owl
 
         if (System.getenv("EXTRA_PREFIXES") != null) {
             val prefixes = System.getenv("EXTRA_PREFIXES")!!.split(";")
