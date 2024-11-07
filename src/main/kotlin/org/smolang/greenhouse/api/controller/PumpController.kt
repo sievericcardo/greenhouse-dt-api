@@ -54,7 +54,7 @@ class PumpController (
             val pumpId = solution.get("?pumpId").asLiteral().toString()
             val waterPressure = solution.get("?waterPressure").asLiteral().toString().split("^^")[0].toDouble()
 
-            pumpsList.add(Pump(pumpGpioPin, pumpId, waterPressure, "none"))
+            pumpsList.add(Pump(pumpGpioPin, pumpId, waterPressure, PumpState.Unknown))
         }
 
         val operatingPumps =
@@ -75,7 +75,7 @@ class PumpController (
             val pumpId = solution.get("?pumpId").asLiteral().toString()
             val waterPressure = solution.get("?waterPressure").asLiteral().toString().split("^^")[0].toDouble()
 
-            pumpsList.add(Pump(pumpGpioPin, pumpId, waterPressure, "operational"))
+            pumpsList.add(Pump(pumpGpioPin, pumpId, waterPressure, PumpState.Operational))
         }
 
         val maintenancePumps =
@@ -96,7 +96,7 @@ class PumpController (
             val pumpId = solution.get("?pumpId").asLiteral().toString()
             val waterPressure = solution.get("?waterPressure").asLiteral().toString().split("^^")[0].toDouble()
 
-            pumpsList.add(Pump(pumpGpioPin, pumpId, waterPressure, "maintenance"))
+            pumpsList.add(Pump(pumpGpioPin, pumpId, waterPressure, PumpState.Maintenance))
         }
 
         log.info("Pumps: $pumpsList")
@@ -136,7 +136,7 @@ class PumpController (
             val pumpId = solution.get("?pumpId").asLiteral().toString()
             val waterPressure = solution.get("?waterPressure").asLiteral().toString().split("^^")[0].toDouble()
 
-            pumpsList.add(Pump(pumpGpioPin, pumpId, waterPressure, "operational"))
+            pumpsList.add(Pump(pumpGpioPin, pumpId, waterPressure, PumpState.Operational))
         }
 
         log.info("Pumps: $pumpsList")
@@ -176,7 +176,7 @@ class PumpController (
             val pumpId = solution.get("?pumpId").asLiteral().toString()
             val waterPressure = solution.get("?waterPressure").asLiteral().toString().split("^^")[0].toDouble()
 
-            pumpsList.add(Pump(pumpGpioPin, pumpId, waterPressure, "maintenance"))
+            pumpsList.add(Pump(pumpGpioPin, pumpId, waterPressure, PumpState.Maintenance))
         }
 
         log.info("Pumps: $pumpsList")
