@@ -34,18 +34,19 @@ class PumpController (
         log.info("Getting all pumps")
 
         val repl: REPL = replConfig.repl()
+        val pumpsList = mutableListOf<Pump>()
 
         val pumps =
             """
              SELECT * WHERE {
-                ?obj a prog:Pump ;
-                    prog:Pump_pumpGpioPin ?pumpGpioPin ;
-                    prog: pumpId: ? pumpId: ;
-                    prog:Pump_waterPressure?waterPressure  .
+                ?obj a prog:OperatingPump ;
+                    prog:OperatingPump_pumpGpioPin ?pumpGpioPin ;
+                    prog:OperatingPump_pumpId ?pumpId ;
+                    domain:models ?x .
+                        ?x domain:waterPressure ?waterPressure .
              }"""
 
         val result: ResultSet = repl.interpreter!!.query(pumps)!!
-        val pumpsList = mutableListOf<Pump>()
 
         while (result.hasNext()) {
             val solution: QuerySolution = result.next()
@@ -53,7 +54,129 @@ class PumpController (
             val pumpId = solution.get("?pumpId").asLiteral().toString()
             val waterPressure = solution.get("?waterPressure").asLiteral().toString().split("^^")[0].toDouble()
 
-            pumpsList.add(Pump(pumpGpioPin, pumpId, waterPressure))
+            pumpsList.add(Pump(pumpGpioPin, pumpId, waterPressure, "none"))
+        }
+
+        val operatingPumps =
+            """
+             SELECT * WHERE {
+                ?obj a prog:OperatingPump ;
+                    prog:OperatingPump_pumpGpioPin ?pumpGpioPin ;
+                    prog:OperatingPump_pumpId ?pumpId ;
+                    domain:models ?x .
+                        ?x domain:waterPressure ?waterPressure .
+             }"""
+
+        val opertingResult: ResultSet = repl.interpreter!!.query(operatingPumps)!!
+
+        while (opertingResult.hasNext()) {
+            val solution: QuerySolution = opertingResult.next()
+            val pumpGpioPin = solution.get("?pumpGpioPin").asLiteral().toString().split("^^")[0].toInt()
+            val pumpId = solution.get("?pumpId").asLiteral().toString()
+            val waterPressure = solution.get("?waterPressure").asLiteral().toString().split("^^")[0].toDouble()
+
+            pumpsList.add(Pump(pumpGpioPin, pumpId, waterPressure, "operational"))
+        }
+
+        val maintenancePumps =
+            """
+             SELECT * WHERE {
+                ?obj a prog:OperatingPump ;
+                    prog:OperatingPump_pumpGpioPin ?pumpGpioPin ;
+                    prog:OperatingPump_pumpId ?pumpId ;
+                    domain:models ?x .
+                        ?x domain:waterPressure ?waterPressure .
+             }"""
+
+        val maintenanceResult: ResultSet = repl.interpreter!!.query(maintenancePumps)!!
+
+        while (maintenanceResult.hasNext()) {
+            val solution: QuerySolution = maintenanceResult.next()
+            val pumpGpioPin = solution.get("?pumpGpioPin").asLiteral().toString().split("^^")[0].toInt()
+            val pumpId = solution.get("?pumpId").asLiteral().toString()
+            val waterPressure = solution.get("?waterPressure").asLiteral().toString().split("^^")[0].toDouble()
+
+            pumpsList.add(Pump(pumpGpioPin, pumpId, waterPressure, "maintenance"))
+        }
+
+        log.info("Pumps: $pumpsList")
+
+        return ResponseEntity.ok(pumpsList)
+    }
+
+    @Operation(summary = "Retrieve the pump that are operational")
+    @ApiResponses(value = [
+        ApiResponse(responseCode = "200", description = "Successfully retrieved the operational pumps"),
+        ApiResponse(responseCode = "401", description = "You are not authorized to view the resource"),
+        ApiResponse(responseCode = "403", description = "Accessing the resource you were trying to reach is forbidden"),
+        ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
+    ])
+    @GetMapping("/operational")
+    fun getOperationalPumps() : ResponseEntity<List<Pump>> {
+        log.info("Getting all operational pumps")
+
+        val repl: REPL = replConfig.repl()
+        val pumpsList = mutableListOf<Pump>()
+
+        val pumps =
+            """
+             SELECT * WHERE {
+                ?obj a prog:OperatingPump ;
+                    prog:OperatingPump_pumpGpioPin ?pumpGpioPin ;
+                    prog:OperatingPump_pumpId ?pumpId ;
+                    domain:models ?x .
+                        ?x domain:waterPressure ?waterPressure .
+             }"""
+
+        val result: ResultSet = repl.interpreter!!.query(pumps)!!
+
+        while (result.hasNext()) {
+            val solution: QuerySolution = result.next()
+            val pumpGpioPin = solution.get("?pumpGpioPin").asLiteral().toString().split("^^")[0].toInt()
+            val pumpId = solution.get("?pumpId").asLiteral().toString()
+            val waterPressure = solution.get("?waterPressure").asLiteral().toString().split("^^")[0].toDouble()
+
+            pumpsList.add(Pump(pumpGpioPin, pumpId, waterPressure, "operational"))
+        }
+
+        log.info("Pumps: $pumpsList")
+
+        return ResponseEntity.ok(pumpsList)
+    }
+
+    @Operation(summary = "Retrieve the pump that are in maintenance")
+    @ApiResponses(value = [
+        ApiResponse(responseCode = "200", description = "Successfully retrieved the pumps in maintenance"),
+        ApiResponse(responseCode = "401", description = "You are not authorized to view the resource"),
+        ApiResponse(responseCode = "403", description = "Accessing the resource you were trying to reach is forbidden"),
+        ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
+    ])
+    @GetMapping("/maintenance")
+    fun getMaintenancePumps() : ResponseEntity<List<Pump>> {
+        log.info("Getting all pumps in maintenance")
+
+        val repl: REPL = replConfig.repl()
+        val pumpsList = mutableListOf<Pump>()
+
+        val pumps =
+            """
+             SELECT * WHERE {
+                ?obj a prog:MaintenancePump ;
+                    prog:MaintenancePump_pumpGpioPin ?pumpGpioPin ;
+                    prog:MaintenancePump_pumpId ?pumpId ;
+                    domain:models ?x .
+                        ?x domain:waterPressure ?waterPressure .
+             }"""
+
+        val result: ResultSet = repl.interpreter!!.query(pumps)!!
+
+        while (result.hasNext()) {
+            val solution: QuerySolution = result.next()
+            val pumpGpioPin = solution.get("?pumpGpioPin").asLiteral().toString().split("^^")[0].toInt()
+            val pumpId = solution.get("?pumpId").asLiteral().toString()
+            val waterPressure = solution.get("?waterPressure").asLiteral().toString().split("^^")[0].toDouble()
+
+            pumpsList.add(Pump(pumpGpioPin, pumpId, waterPressure, "maintenance"))
         }
 
         log.info("Pumps: $pumpsList")
