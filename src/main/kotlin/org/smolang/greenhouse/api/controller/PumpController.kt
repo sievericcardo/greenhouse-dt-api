@@ -39,9 +39,9 @@ class PumpController (
         val pumps =
             """
              SELECT * WHERE {
-                ?obj a prog:OperatingPump ;
-                    prog:OperatingPump_pumpGpioPin ?pumpGpioPin ;
-                    prog:OperatingPump_pumpId ?pumpId ;
+                ?obj a prog:Pump ;
+                    prog:Pump_pumpGpioPin ?pumpGpioPin ;
+                    prog:Pump_pumpId ?pumpId ;
                     domain:models ?x .
                         ?x domain:waterPressure ?waterPressure .
              }"""
@@ -81,9 +81,9 @@ class PumpController (
         val maintenancePumps =
             """
              SELECT * WHERE {
-                ?obj a prog:OperatingPump ;
-                    prog:OperatingPump_pumpGpioPin ?pumpGpioPin ;
-                    prog:OperatingPump_pumpId ?pumpId ;
+                ?obj a prog:MaintenancePump ;
+                    prog:MaintenancePump_pumpGpioPin ?pumpGpioPin ;
+                    prog:MaintenancePump_pumpId ?pumpId ;
                     domain:models ?x .
                         ?x domain:waterPressure ?waterPressure .
              }"""
