@@ -41,6 +41,7 @@ class PlantController (
                 ?obj a prog:Plant ;
                     prog:Plant_plantId ?plantId ;
                     prog:Plant_idealMoisture ?idealMoisture ;
+                    prog:Plant_moisture ?moisture ;
                     prog:Plant_healthState ?healthState .
              }"""
 
@@ -51,9 +52,10 @@ class PlantController (
             val solution : QuerySolution = result.next()
             val plantId = solution.get("?plantId").asLiteral().toString()
             val idealMoisture = solution.get("?idealMoisture").asLiteral().toString().split("^^")[0].toDouble()
+            val moisture = solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble()
             val healthState = solution.get("?healthState").asLiteral().toString()
 
-            plantsList.add(Plant(plantId, idealMoisture, healthState))
+            plantsList.add(Plant(plantId, idealMoisture, moisture, healthState))
         }
 
         log.info("Plants: $plantsList")
