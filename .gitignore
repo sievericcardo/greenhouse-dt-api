@@ -1,6 +1,7 @@
 # Created by https://www.toptal.com/developers/gitignore/api/kotlin,intellij
 # Edit at https://www.toptal.com/developers/gitignore?templates=kotlin,intellij
 .DS_Store
+config_local.yml
 
 ### Intellij ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio, WebStorm and Rider
