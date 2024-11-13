@@ -215,7 +215,7 @@ class PumpController (
                 ?pump ast:waterPressure ?oldWaterPressure .
             }
             INSERT {
-                ?pump ast:waterPressure ${updatedPump.waterPressure} .
+                ?pump ast:waterPressure ${updatedPump.waterPressure}^^xsd:double .
             }
             WHERE {
                 ?pump a ast:Pump ;
