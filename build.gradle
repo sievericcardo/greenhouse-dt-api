@@ -72,6 +72,7 @@ dependencies {
     // DevTools
     runtimeOnly("org.springframework.boot:spring-boot-devtools:${springBootVersion}")
     implementation("org.bouncycastle:bcprov-jdk18on:1.78.1")
+    implementation("io.projectreactor:reactor-core:3.6.11")
     // Swagger
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:${springDocVersion}")
     // Lombok
