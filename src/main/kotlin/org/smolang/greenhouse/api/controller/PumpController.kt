@@ -209,13 +209,14 @@ class PumpController (
         val updatedPump = Pump(pumpRequest.pumpGpioPin, pumpRequest.pumpId, pumpRequest.waterPressure, PumpState.Unknown)
 
         val updateQuery = """
+            PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
             PREFIX ast: <$prefix>
             
             DELETE {
                 ?pump ast:waterPressure ?oldWaterPressure .
             }
             INSERT {
-                ?pump ast:waterPressure ${updatedPump.waterPressure}^^xsd:double .
+                ?pump ast:waterPressure "${updatedPump.waterPressure}"^^xsd:double .
             }
             WHERE {
                 ?pump a ast:Pump ;
