@@ -46,12 +46,42 @@ class AssetModel extends Twin (List<Decision> decisions, AssetController ctrl, L
         print("RECONFIG> Reconfiguring DONE...");
     end
 
+    Unit reconfigureSingleModel(String mod)
+        print("RECONFIG> Reconfiguring the asset model...");
+
+        List<KindModel> ms = this.mods;
+        while ms != null do
+            if ms.content.name == mod then
+                print("RECONFIG> Reconfiguring " ++ ms.content.name);
+                ms.content.adaptModel();
+            end
+            ms = ms.next;
+        end
+
+        print("RECONFIG> Reconfiguring DONE...");
+    end
+
     Unit reclassify()
         print("ADAPT> Adapting the asset model...");
 
         List<KindModel> ms = this.mods;
         while ms != null do
             ms.content.adaptState();
+            ms = ms.next;
+        end
+
+        print("ADAPT> Adapting DONE...");
+    end
+
+    Unit reclassifySingleModel(String mod)
+        print("ADAPT> Adapting the asset model...");
+
+        List<KindModel> ms = this.mods;
+        while ms != null do
+            if ms.content.name == mod then
+                print("ADAPT> Adapting " ++ ms.content.name);
+                ms.content.adaptState();
+            end
             ms = ms.next;
         end
 
@@ -80,7 +110,7 @@ main
     assetModel.register(m1);
     assetModel.register(m2);
     assetModel.register(m3);
-    // assetModel.register(m4);
+    assetModel.register(m4);
 
     //NDVI START
     HealthModel m5 = new HealthModel("health states");
