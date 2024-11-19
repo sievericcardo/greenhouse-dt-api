@@ -3,7 +3,10 @@ package org.smolang.greenhouse.api.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
+import no.uio.microobject.ast.expr.LiteralExpr
 import no.uio.microobject.runtime.REPL
+import no.uio.microobject.type.BaseType
+import no.uio.microobject.type.STRINGTYPE
 import org.apache.jena.query.QuerySolution
 import org.apache.jena.query.ResultSet
 import org.apache.jena.rdfconnection.RDFConnectionFactory
@@ -46,7 +49,7 @@ class PumpController (
 
         val pumps =
             """
-             SELECT * WHERE {
+             SELECT DISTINCT ?pumpGpioPin ?pumpId ?waterPressure WHERE {
                 ?obj a prog:Pump ;
                     prog:Pump_pumpGpioPin ?pumpGpioPin ;
                     prog:Pump_pumpId ?pumpId ;
@@ -67,7 +70,7 @@ class PumpController (
 
         val operatingPumps =
             """
-             SELECT * WHERE {
+             SELECT DISTINCT ?pumpGpioPin ?pumpId ?waterPressure WHERE {
                 ?obj a prog:OperatingPump ;
                     prog:OperatingPump_pumpGpioPin ?pumpGpioPin ;
                     prog:OperatingPump_pumpId ?pumpId ;
@@ -88,7 +91,7 @@ class PumpController (
 
         val maintenancePumps =
             """
-             SELECT * WHERE {
+             SELECT DISTINCT ?pumpGpioPin ?pumpId ?waterPressure WHERE {
                 ?obj a prog:MaintenancePump ;
                     prog:MaintenancePump_pumpGpioPin ?pumpGpioPin ;
                     prog:MaintenancePump_pumpId ?pumpId ;
@@ -128,7 +131,7 @@ class PumpController (
 
         val pumps =
             """
-             SELECT * WHERE {
+             SELECT DISTINCT ?pumpGpioPin ?pumpId ?waterPressure WHERE {
                 ?obj a prog:OperatingPump ;
                     prog:OperatingPump_pumpGpioPin ?pumpGpioPin ;
                     prog:OperatingPump_pumpId ?pumpId ;
@@ -168,7 +171,7 @@ class PumpController (
 
         val pumps =
             """
-             SELECT * WHERE {
+             SELECT DISTINCT ?pumpGpioPin ?pumpId ?waterPressure WHERE {
                 ?obj a prog:MaintenancePump ;
                     prog:MaintenancePump_pumpGpioPin ?pumpGpioPin ;
                     prog:MaintenancePump_pumpId ?pumpId ;
@@ -239,13 +242,15 @@ class PumpController (
         val repl: REPL = replConfig.repl()
         repl.interpreter!!.tripleManager.regenerateTripleStoreModel()
         repl.interpreter!!.evalCall(
-            repl.interpreter!!.getObjectNames("AssetModel").get(0),
+            repl.interpreter!!.getObjectNames("AssetModel")[0],
             "AssetModel",
-            "reconfigure")
+            "reconfigureSingleModel",
+            mapOf("mod" to LiteralExpr("\"pumps\"", STRINGTYPE)))
         repl.interpreter!!.evalCall(
-            repl.interpreter!!.getObjectNames("AssetModel").get(0),
+            repl.interpreter!!.getObjectNames("AssetModel")[0],
             "AssetModel",
-            "reclassify")
+            "reclassifySingleModel",
+            mapOf("mod" to LiteralExpr("\"pumps\"", STRINGTYPE)))
 
         return ResponseEntity.ok("Pump pressure updated")
     }
