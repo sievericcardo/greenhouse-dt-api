@@ -39,7 +39,7 @@ class MeasurementsController {
 
         val fluxQuery = """
             from(bucket: "${influxBucket}")
-              |> range(start: -24h)
+              |> range(start: -1h)
               |> filter(fn: (r) => r["_measurement"] == "ast:pot")
               |> filter(fn: (r) => r["_field"] == "moisture")
               |> yield(name: "mean")
