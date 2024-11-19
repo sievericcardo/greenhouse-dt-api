@@ -37,7 +37,7 @@ class ShelfController (
 
         val shelves =
             """
-             SELECT * WHERE {
+             SELECT DISTINCT ?shelfFloor WHERE {
                 ?obj a prog:Shelf ;
                     prog:Shelf_shelfFloor ?shelfFloor  .
              }"""

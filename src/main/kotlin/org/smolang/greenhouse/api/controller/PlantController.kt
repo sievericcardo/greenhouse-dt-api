@@ -37,7 +37,7 @@ class PlantController (
 
         val plants =
             """
-             SELECT * WHERE {
+             SELECT DISTINCT ?plantId ?idealMoisture ?moisture ?healthState WHERE {
                 ?obj a prog:Plant ;
                     prog:Plant_plantId ?plantId ;
                     prog:Plant_idealMoisture ?idealMoisture ;

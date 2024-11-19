@@ -37,7 +37,7 @@ class PotController (
 
         val pots =
             """
-             SELECT * WHERE {
+             SELECT DISTINCT ?shelfFloor ?potPosition ?pumpId ?plantId WHERE {
                 ?obj a prog:Pot ;
                     prog:Pot_shelfFloor ?shelfFloor ;
                     prog:Pot_potPosition ?potPosition ;
