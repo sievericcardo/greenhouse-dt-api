@@ -41,7 +41,15 @@ dependencies {
     implementation("org.slf4j:slf4j-api:${sl4jVersion}")
     implementation("org.slf4j:slf4j-simple:${sl4jVersion}")
     // SMOL
-    implementation("com.github.sievericcardo:SemanticObjects:reclassification-SNAPSHOT")
+    implementation("com.github.sievericcardo:SemanticObjects:reclassification-SNAPSHOT") {
+        exclude group: 'org.slf4j', module: 'slf4j-simple'
+        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-reflect'
+        exclude group: 'com.fasterxml.jackson.module', module: 'jackson-module-kotlin'
+        exclude group: 'org.jetbrains.kotlinx', module: 'kotlinx-coroutines-core'
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-core'
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-annotations'
+    }
     // Spring Boot
     testImplementation("org.springframework.boot:spring-boot-starter-test:${springBootVersion}") {
         exclude group: "ch.qos.logback", module: "logback-classic"
@@ -72,7 +80,6 @@ dependencies {
     // DevTools
     runtimeOnly("org.springframework.boot:spring-boot-devtools:${springBootVersion}")
     implementation("org.bouncycastle:bcprov-jdk18on:1.78.1")
-    implementation("io.projectreactor:reactor-core:3.6.11")
     // Swagger
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:${springDocVersion}")
     // Lombok
