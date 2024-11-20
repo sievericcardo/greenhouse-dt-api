@@ -38,6 +38,12 @@ class PumpModel extends KindModel()
 
     /* Add pumps that are not in the asset model */
     override Unit adaptRemoval()
+        this.adaptRemovalPumps();
+        this.adaptRemovalOperatingPumps();
+        this.adaptRemovalMaintenancePumps();
+    end
+
+    Unit adaptRemovalPumps()
         List<Pump> wrongPumps = access("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
             SELECT DISTINCT ?obj {
@@ -68,6 +74,67 @@ class PumpModel extends KindModel()
         end
     end
 
+    Unit adaptRemovalOperatingPumps()
+        List<OperatingPump> wrongPumps = access("
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
+            SELECT DISTINCT ?obj {
+                ?obj a prog:OperatingPump;
+                     prog:OperatingPump_pumpId ?pumpId .
+                FILTER NOT EXISTS {
+                    ?x a ast:Pump;
+                       ast:pumpId ?pumpId .
+                }
+            }");
+
+        if wrongPumps != null then
+            print("RECONFIG> Misconfigured Pump(s) detected: repairing the model");
+
+            while wrongPumps != null do
+                OperatingPump wrongPump = wrongPumps.content;
+                List<OperatingPump> lx = wrongPumps;
+                wrongPumps = wrongPumps.next;
+
+                print("RECONFIG> Misconfigured pump to remove: " ++ wrongPump.pumpId);
+                destroy(wrongPump);
+                destroy(lx);
+            end
+
+            destroy(wrongPumps);
+
+            print("RECONFIG> Pump(s) removed");
+        end
+    end
+
+    Unit adaptRemovalMaintenancePumps()
+        List<MaintenancePump> wrongPumps = access("
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
+            SELECT DISTINCT ?obj {
+                ?obj a prog:MaintenancePump;
+                     prog:MaintenancePump_pumpId ?pumpId .
+                FILTER NOT EXISTS {
+                    ?x a ast:Pump;
+                       ast:pumpId ?pumpId .
+                }
+            }");
+
+        if wrongPumps != null then
+            print("RECONFIG> Misconfigured Pump(s) detected: repairing the model");
+
+            while wrongPumps != null do
+                MaintenancePump wrongPump = wrongPumps.content;
+                List<MaintenancePump> lx = wrongPumps;
+                wrongPumps = wrongPumps.next;
+
+                print("RECONFIG> Misconfigured pump to remove: " ++ wrongPump.pumpId);
+                destroy(wrongPump);
+                destroy(lx);
+            end
+
+            destroy(wrongPumps);
+
+            print("RECONFIG> Pump(s) removed");
+        end
+    end
 
     /* Check for defects in the pumps. */
     override Unit adaptDefect()
@@ -106,6 +173,12 @@ class PumpModel extends KindModel()
     end
 
     override Unit adaptBehaviour()
+        this.adaptBehaviourPump();
+        this.adaptBehaviourOperatingPump();
+        this.adaptBehaviourMaintenancePump();
+    end
+
+    Unit adaptBehaviourPump()
         List<Pump> pumps = access("
             SELECT DISTINCT ?obj {
                 ?obj a prog:Pump .
@@ -122,6 +195,52 @@ class PumpModel extends KindModel()
                 adapt(pump);
 
                 List<Pump> oldList = pumps;
+                pumps = pumps.next;
+                destroy(oldList);
+            end
+        end
+    end
+
+    Unit adaptBehaviourOperatingPump()
+        List<OperatingPump> pumps = access("
+            SELECT DISTINCT ?obj {
+                ?obj a prog:OperatingPump .
+            }");
+
+        if pumps == null then print("ADAPT> No pumps"); else
+            print("ADAPT> Pumps found check behaviour");
+
+            while pumps != null do
+                OperatingPump pump = pumps.content;
+
+                print("ADAPT> Adapting pump " ++ pump.pumpId ++ ", " ++ intToString(pump.pumpGpioPin) ++ ", " ++ doubleToString(pump.waterPressure));
+
+                adapt(pump);
+
+                List<OperatingPump> oldList = pumps;
+                pumps = pumps.next;
+                destroy(oldList);
+            end
+        end
+    end
+
+    Unit adaptBehaviourMaintenancePump()
+        List<MaintenancePump> pumps = access("
+            SELECT DISTINCT ?obj {
+                ?obj a prog:MaintenancePump .
+            }");
+
+        if pumps == null then print("ADAPT> No pumps"); else
+            print("ADAPT> Pumps found check behaviour");
+
+            while pumps != null do
+                MaintenancePump pump = pumps.content;
+
+                print("ADAPT> Adapting pump " ++ pump.pumpId ++ ", " ++ intToString(pump.pumpGpioPin) ++ ", " ++ doubleToString(pump.waterPressure));
+
+                adapt(pump);
+
+                List<MaintenancePump> oldList = pumps;
                 pumps = pumps.next;
                 destroy(oldList);
             end
