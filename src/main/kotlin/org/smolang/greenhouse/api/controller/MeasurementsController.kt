@@ -39,18 +39,12 @@ class MeasurementsController (
     fun getPlantsMeasurements() : ResponseEntity<Map<String, List<Pair<Instant, Double>>>> = runBlocking {
         log.info("Getting all plants measurements")
 
-//        val influxHost = System.getenv().getOrDefault("INFLUX_URL", "localhost")
-//        val influxUrl = "http://$influxHost:8086"
-//        val influxToken = System.getenv().getOrDefault("INFLUX_TOKEN", "my-token")
-//        val influxBucket = System.getenv().getOrDefault("INFLUX_BUCKET", "GreenHouse")
-//        val influxOrg = System.getenv().getOrDefault("INFLUX_ORG", "UiO")
         val influxHost = environment.getOrDefault("INFLUX_URL", "localhost")
         val influxUrl = "http://$influxHost:8086"
         val influxToken = environment.getOrDefault("INFLUX_TOKEN", "my-token")
         val influxBucket = environment.getOrDefault("INFLUX_BUCKET", "GreenHouse")
         val influxOrg = environment.getOrDefault("INFLUX_ORG", "UiO")
 
-//        val demoVar = System.getenv().getOrDefault("DEMO", "false")
         val demoVar = environment.getOrDefault("DEMO", "false")
         val demo: Boolean = demoVar.equals("true", ignoreCase = true)
 
@@ -105,11 +99,6 @@ class MeasurementsController (
     fun injectDemoData() : ResponseEntity<String> = runBlocking {
         // Insert all the data from the csv file
         val filePath = "src/main/resources/demo-data.csv"
-//        val influxHost = System.getenv().getOrDefault("INFLUX_URL", "localhost")
-//        val influxUrl = "http://$influxHost:8086"
-//        val influxToken = System.getenv().getOrDefault("INFLUX_TOKEN", "my-token")
-//        val influxBucket = System.getenv().getOrDefault("INFLUX_BUCKET", "GreenHouse")
-//        val influxOrg = System.getenv().getOrDefault("INFLUX_ORG", "UiO")
         val influxHost = environment.getOrDefault("INFLUX_URL", "localhost")
         val influxUrl = "http://$influxHost:8086"
         val influxToken = environment.getOrDefault("INFLUX_TOKEN", "my-token")
