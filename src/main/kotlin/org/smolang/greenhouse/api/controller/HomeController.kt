@@ -31,9 +31,12 @@ class HomeController (
     ])
     @PostMapping("/set-demo")
     fun setDemoMode(): ResponseEntity<String> {
-        log.info("Setting the application in demo mode")
         val currentDemoMode = environment.getOrDefault("DEMO", "false").toBoolean()
+        val value = if (currentDemoMode) "demo" else "live"
+        val newValue = if (!currentDemoMode) "live" else "demo"
+        log.info("Setting the application in ${value} mode")
+
         environment.set("DEMO", (!currentDemoMode).toString())
-        return ResponseEntity.ok("Application is now in ${(!currentDemoMode).toString()} mode")
+        return ResponseEntity.ok("Application is now in ${newValue} mode")
     }
 }
