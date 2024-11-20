@@ -210,6 +210,7 @@ class PumpController (
         val prefix = System.getenv().getOrDefault("BASE_PREFIX_URI", "http://www.smolang.org/greenhouseDT#")
 
         val updatedPump = Pump(pumpRequest.pumpGpioPin, pumpRequest.pumpId, pumpRequest.waterPressure, PumpState.Unknown)
+        log.info("Updated pump: $updatedPump")
 
         val updateQuery = """
             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
