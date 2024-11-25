@@ -26,6 +26,11 @@ class MeasurementsController (
 ) {
 
     private val log: Logger = Logger.getLogger(MeasurementsController::class.java.name)
+    private val influxHost = environment.getOrDefault("INFLUX_URL", "localhost")
+    private val influxUrl = "http://$influxHost:8086"
+    private val influxToken = environment.getOrDefault("INFLUX_TOKEN", "my-token")
+    private val influxBucket = environment.getOrDefault("INFLUX_BUCKET", "GreenHouse")
+    private val influxOrg = environment.getOrDefault("INFLUX_ORG", "UiO")
 
     @OptIn(ExperimentalCoroutinesApi::class)
     @Operation(summary = "Retrieve the measurements for the plants")
@@ -38,12 +43,6 @@ class MeasurementsController (
     @GetMapping("/plants")
     fun getPlantsMeasurements() : ResponseEntity<Map<String, List<Pair<Instant, Double>>>> = runBlocking {
         log.info("Getting all plants measurements")
-
-        val influxHost = environment.getOrDefault("INFLUX_URL", "localhost")
-        val influxUrl = "http://$influxHost:8086"
-        val influxToken = environment.getOrDefault("INFLUX_TOKEN", "my-token")
-        val influxBucket = environment.getOrDefault("INFLUX_BUCKET", "GreenHouse")
-        val influxOrg = environment.getOrDefault("INFLUX_ORG", "UiO")
 
         val demoVar = environment.getOrDefault("DEMO", "false")
         val demo: Boolean = demoVar.equals("true", ignoreCase = true)
@@ -86,6 +85,65 @@ class MeasurementsController (
         log.info("Plants measurements: $plantsMeasurements")
 
         return@runBlocking ResponseEntity.ok(plantsMeasurements)
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Operation(summary = "Retrieve the measurements for the shelf")
+    @ApiResponses(value = [
+        ApiResponse(responseCode = "200", description = "Successfully retrieved the measurements"),
+        ApiResponse(responseCode = "401", description = "You are not authorized to view the resource"),
+        ApiResponse(responseCode = "403", description = "Accessing the resource you were trying to reach is forbidden"),
+        ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
+    ])
+    @GetMapping("/shelves")
+    fun getShelfMeasurements() : ResponseEntity<Map<String, Map<String, List<Pair<Instant, Double>>>>> = runBlocking {
+        log.info("Getting all plants measurements")
+
+        val demoVar = environment.getOrDefault("DEMO", "false")
+        val demo: Boolean = demoVar.equals("true", ignoreCase = true)
+
+        var fluxQuery = ""
+        if (!demo) {
+            fluxQuery = """
+                from(bucket: "${influxBucket}")
+                  |> range(start: -1h)
+                  |> filter(fn: (r) => r["_measurement"] == "ast:shelf")
+                  |> filter(fn: (r) => r["_field"] == "humidity" or r["_field"] == "temperature")
+                  |> yield(name: "mean")
+                  |> keep(columns: ["_time", "_value", "_field", "shelf_floor"])
+            """
+        } else {
+            fluxQuery = """
+                from(bucket: "${influxBucket}")
+                  |> range(start: 2024-10-28T21:00:00Z, stop: 2024-10-28T22:00:00Z)
+                  |> filter(fn: (r) => r["_measurement"] == "ast:shelf")
+                  |> filter(fn: (r) => r["_field"] == "humidity" or r["_field"] == "temperature")
+                  |> yield(name: "mean")
+                  |> keep(columns: ["_time", "_value", "_field", "shelf_floor"])
+               """
+        }
+
+        val influxDBClient = InfluxDBClientKotlinFactory
+            .create(influxUrl, influxToken.toCharArray(), influxOrg)
+
+        val results = influxDBClient.getQueryKotlinApi().query(fluxQuery)
+        val shelfMeasurements = mutableMapOf<String, Map<String, List<Pair<Instant, Double>>>>()
+        val singleMeasurements = mutableMapOf<String, List<Pair<Instant, Double>>>()
+
+        results.consumeEach { record ->
+            val measurementTime = record.getValueByKey("_time") as Instant
+            val shelfId = record.getValueByKey("shelf_floor") as String
+            val measurementType = record.getValueByKey("_field") as String
+            val moisture = record.getValueByKey("_value") as Double
+            singleMeasurements[measurementType] = singleMeasurements.getOrDefault(measurementType, listOf()) + listOf(Pair(measurementTime, moisture)
+            )
+            shelfMeasurements[shelfId] = singleMeasurements
+        }
+
+        influxDBClient.close()
+        log.info("Plants measurements: $shelfMeasurements")
+
+        return@runBlocking ResponseEntity.ok(shelfMeasurements)
     }
 
     @Operation(summary = "Inject the demo measurements for the plants")
