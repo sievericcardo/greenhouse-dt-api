@@ -58,9 +58,17 @@ class MeasurementsController (
                   |> keep(columns: ["_time", "_value", "plant_id"])
             """
         } else {
+//            fluxQuery = """
+//                from(bucket: "${influxBucket}")
+//                  |> range(start: 2024-10-28T21:00:00Z, stop: 2024-10-28T22:00:00Z)
+//                  |> filter(fn: (r) => r["_measurement"] == "ast:pot")
+//                  |> filter(fn: (r) => r["_field"] == "moisture")
+//                  |> yield(name: "mean")
+//                  |> keep(columns: ["_time", "_value", "plant_id"])
+//               """
             fluxQuery = """
                 from(bucket: "${influxBucket}")
-                  |> range(start: 2024-10-28T21:00:00Z, stop: 2024-10-28T22:00:00Z)
+                  |> range(start: 2024-11-12T17:00:00Z, stop: 2024-11-12T18:00:00Z)
                   |> filter(fn: (r) => r["_measurement"] == "ast:pot")
                   |> filter(fn: (r) => r["_field"] == "moisture")
                   |> yield(name: "mean")
@@ -72,19 +80,26 @@ class MeasurementsController (
             .create(influxUrl, influxToken.toCharArray(), influxOrg)
 
         val results = influxDBClient.getQueryKotlinApi().query(fluxQuery)
-        val plantsMeasurements = mutableMapOf<String, List<Pair<Instant, Double>>>()
+        val plantsMeasurements = mutableMapOf<String, MutableList<Pair<Instant, Double>>>()
 
         results.consumeEach { record ->
-            val measurementTime = record.getValueByKey("_time") as Instant
-            val plantId = record.getValueByKey("plant_id") as String
-            val moisture = record.getValueByKey("_value") as Double
-            plantsMeasurements[plantId] = plantsMeasurements.getOrDefault(plantId, listOf()) + listOf(Pair(measurementTime, moisture))
+            val measurementTime = Instant.parse(record.getValueByKey("_time").toString())
+            val plantId = record.getValueByKey("plant_id").toString()
+            val moisture = record.getValueByKey("_value").toString().toDouble()
+            val measurement = Pair(measurementTime, moisture)
+
+            plantsMeasurements.computeIfAbsent(plantId) { mutableListOf() }.apply {
+                if (!contains(measurement)) add(measurement)
+            }
         }
+
+        // Convert the lists before returning the response
+        val plantsMeasurementsList = plantsMeasurements.mapValues { it.value.toList() }
 
         influxDBClient.close()
         log.info("Plants measurements: $plantsMeasurements")
 
-        return@runBlocking ResponseEntity.ok(plantsMeasurements)
+        return@runBlocking ResponseEntity.ok(plantsMeasurementsList)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -113,9 +128,17 @@ class MeasurementsController (
                   |> keep(columns: ["_time", "_value", "_field", "shelf_floor"])
             """
         } else {
+//            fluxQuery = """
+//                from(bucket: "${influxBucket}")
+//                  |> range(start: 2024-10-28T21:00:00Z, stop: 2024-10-28T22:00:00Z)
+//                  |> filter(fn: (r) => r["_measurement"] == "ast:shelf")
+//                  |> filter(fn: (r) => r["_field"] == "humidity" or r["_field"] == "temperature")
+//                  |> yield(name: "mean")
+//                  |> keep(columns: ["_time", "_value", "_field", "shelf_floor"])
+//               """
             fluxQuery = """
                 from(bucket: "${influxBucket}")
-                  |> range(start: 2024-10-28T21:00:00Z, stop: 2024-10-28T22:00:00Z)
+                  |> range(start: 2024-11-12T17:00:00Z, stop: 2024-11-12T18:00:00Z)
                   |> filter(fn: (r) => r["_measurement"] == "ast:shelf")
                   |> filter(fn: (r) => r["_field"] == "humidity" or r["_field"] == "temperature")
                   |> yield(name: "mean")
