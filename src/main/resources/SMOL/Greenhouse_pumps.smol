@@ -14,6 +14,14 @@ class PumpModel extends KindModel()
                     ?y a prog:Pump ;
                        prog:Pump_pumpId ?pumpId .
                 }
+                FILTER NOT EXISTS {
+                    ?y a prog:OperatingPump ;
+                       prog:OperatingPump_pumpId ?pumpId .
+                }
+                FILTER NOT EXISTS {
+                    ?y a prog:MaintenancePump ;
+                       prog:MaintenancePump_pumpId ?pumpId .
+                }
             }");
 
         if newPumps != null then
@@ -28,6 +36,8 @@ class PumpModel extends KindModel()
                 print("          Pump Id: " ++ newPump.pumpId);
                 print("          Pump Gpio Pin: " ++ intToString(newPump.pumpGpioPin));
                 print("          Pump Water Pressure: " ++ doubleToString(newPump.waterPressure));
+
+                newPump.waterPressureOut = newPump.waterPressure;
 
                 destroy(lx);
             end
@@ -143,12 +153,10 @@ class PumpModel extends KindModel()
             SELECT ?obj ?pumpGpioPinNew {
                 ?obj a prog:Pump ;
                     prog:Pump_pumpId ?pumpId ;
-                    prog:Pump_pumpGpioPin ?pumpGpioPin ;
-                    prog:Pump_waterPressure ?waterPressure .
+                    prog:Pump_pumpGpioPin ?pumpGpioPin .
                 ?y a ast:Pump ;
                     ast:pumpId ?pumpId ;
-                    ast:pumpGpioPin ?pumpGpioPinNew ;
-                    ast:waterPressure ?waterPressure .
+                    ast:pumpGpioPin ?pumpGpioPinNew .
                 FILTER(?pumpGpioPin != ?pumpGpioPinNew)
             }");
 
@@ -170,12 +178,124 @@ class PumpModel extends KindModel()
 
             print("RECONFIG> Pump(s) changed");
         end
+
+        this.adaptDefectPumps();
+        this.adaptDefectOperatingPumps();
+        this.adaptDefectMaintenancePump();
+    end
+
+    Unit adaptDefectPumps()
+        List<PumpDefectWater> changedPumps = construct("
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
+            SELECT ?obj ?waterPressureNew {
+                ?obj a prog:Pump ;
+                    prog:Pump_pumpId ?pumpId ;
+                    prog:Pump_pumpGpioPin ?pumpGpioPin ;
+                    prog:Pump_waterPressureOut ?waterPressure .
+                ?y a ast:Pump ;
+                    ast:pumpId ?pumpId ;
+                    ast:pumpGpioPin ?pumpGpioPin ;
+                    ast:waterPressure ?waterPressureNew .
+                FILTER(?waterPressure != ?waterPressureNew)
+            }");
+
+        if changedPumps != null then
+            print("RECONFIG> Changed Pump(s) detected: repairing the model");
+
+            while changedPumps != null do
+                PumpDefectWater rpump = changedPumps.content;
+                List<PumpDefectWater> lx = changedPumps;
+                changedPumps = changedPumps.next;
+
+                print("RECONFIG> Changed pump to adjust: " ++ rpump.obj.pumpId);
+                print("          Old water pressure: " ++ doubleToString(rpump.obj.waterPressureOut));
+                print("          New water pressure: " ++ doubleToString(rpump.waterPressureNew));
+
+                rpump.obj.waterPressure = rpump.waterPressureNew;
+                rpump.obj.waterPressureOut = rpump.waterPressureNew;
+                destroy(lx);
+            end
+
+            print("RECONFIG> Pump(s) changed");
+        end
+    end
+
+    Unit adaptDefectOperatingPumps()
+        List<OperatingPumpDefectWater> changedPumps = construct("
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
+            SELECT ?obj ?waterPressureNew {
+                ?obj a prog:OperatingPump ;
+                    prog:OperatingPump_pumpId ?pumpId ;
+                    prog:OperatingPump_pumpGpioPin ?pumpGpioPin ;
+                    prog:OperatingPump_waterPressureOut ?waterPressure .
+                ?y a ast:Pump ;
+                    ast:pumpId ?pumpId ;
+                    ast:pumpGpioPin ?pumpGpioPin ;
+                    ast:waterPressure ?waterPressureNew .
+                FILTER(?waterPressure != ?waterPressureNew)
+            }");
+
+        if changedPumps != null then
+            print("RECONFIG> Changed Pump(s) detected: repairing the model");
+
+            while changedPumps != null do
+                OperatingPumpDefectWater rpump = changedPumps.content;
+                List<OperatingPumpDefectWater> lx = changedPumps;
+                changedPumps = changedPumps.next;
+
+                print("RECONFIG> Changed pump to adjust: " ++ rpump.obj.pumpId);
+                print("          Old water pressure: " ++ doubleToString(rpump.obj.waterPressureOut));
+                print("          New water pressure: " ++ doubleToString(rpump.waterPressureNew));
+
+                rpump.obj.waterPressureOut = rpump.waterPressureNew;
+                rpump.obj.waterPressure = rpump.waterPressureNew;
+                destroy(lx);
+            end
+
+            print("RECONFIG> Pump(s) changed");
+        end
+    end
+
+    Unit adaptDefectMaintenancePump()
+        List<MaintenancePumpDefectWater> changedPumps = construct("
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
+            SELECT ?obj ?waterPressureNew {
+                ?obj a prog:MaintenancePump ;
+                    prog:MaintenancePump_pumpId ?pumpId ;
+                    prog:MaintenancePump_pumpGpioPin ?pumpGpioPin ;
+                    prog:MaintenancePump_waterPressureOut ?waterPressure .
+                ?y a ast:Pump ;
+                    ast:pumpId ?pumpId ;
+                    ast:pumpGpioPin ?pumpGpioPin ;
+                    ast:waterPressure ?waterPressureNew .
+                FILTER(?waterPressure != ?waterPressureNew)
+            }");
+
+        if changedPumps != null then
+            print("RECONFIG> Changed Pump(s) detected: repairing the model");
+
+            while changedPumps != null do
+                MaintenancePumpDefectWater rpump = changedPumps.content;
+                List<MaintenancePumpDefectWater> lx = changedPumps;
+                changedPumps = changedPumps.next;
+
+                print("RECONFIG> Changed pump to adjust: " ++ rpump.pumpId);
+                print("          Old water pressure: " ++ doubleToString(rpump.obj.waterPressureOut));
+                print("          New water pressure: " ++ doubleToString(rpump.waterPressureNew));
+
+                rpump.obj.waterPressureOut = rpump.waterPressureNew;
+                rpump.obj.waterPressure = rpump.waterPressureNew;
+                destroy(lx);
+            end
+
+            print("RECONFIG> Pump(s) changed");
+        end
     end
 
     override Unit adaptBehaviour()
         this.adaptBehaviourPump();
-        this.adaptBehaviourOperatingPump();
-        this.adaptBehaviourMaintenancePump();
+        // this.adaptBehaviourOperatingPump();
+        // this.adaptBehaviourMaintenancePump();
     end
 
     Unit adaptBehaviourPump()

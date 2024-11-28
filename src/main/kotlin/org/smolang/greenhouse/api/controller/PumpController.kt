@@ -47,35 +47,13 @@ class PumpController (
         val repl: REPL = replConfig.repl()
         val pumpsList = mutableListOf<Pump>()
 
-        val pumps =
-            """
-             SELECT DISTINCT ?pumpGpioPin ?pumpId ?waterPressure WHERE {
-                ?obj a prog:Pump ;
-                    prog:Pump_pumpGpioPin ?pumpGpioPin ;
-                    prog:Pump_pumpId ?pumpId ;
-                    domain:models ?x .
-                        ?x domain:waterPressure ?waterPressure .
-             }"""
-
-        val result: ResultSet = repl.interpreter!!.query(pumps)!!
-
-        while (result.hasNext()) {
-            val solution: QuerySolution = result.next()
-            val pumpGpioPin = solution.get("?pumpGpioPin").asLiteral().toString().split("^^")[0].toInt()
-            val pumpId = solution.get("?pumpId").asLiteral().toString()
-            val waterPressure = solution.get("?waterPressure").asLiteral().toString().split("^^")[0].toDouble()
-
-            pumpsList.add(Pump(pumpGpioPin, pumpId, waterPressure, PumpState.Unknown))
-        }
-
         val operatingPumps =
             """
              SELECT DISTINCT ?pumpGpioPin ?pumpId ?waterPressure WHERE {
                 ?obj a prog:OperatingPump ;
                     prog:OperatingPump_pumpGpioPin ?pumpGpioPin ;
                     prog:OperatingPump_pumpId ?pumpId ;
-                    domain:models ?x .
-                        ?x domain:waterPressure ?waterPressure .
+                    prog:OperatingPump_waterPressureOut ?waterPressure .
              }"""
 
         val opertingResult: ResultSet = repl.interpreter!!.query(operatingPumps)!!
@@ -95,8 +73,7 @@ class PumpController (
                 ?obj a prog:MaintenancePump ;
                     prog:MaintenancePump_pumpGpioPin ?pumpGpioPin ;
                     prog:MaintenancePump_pumpId ?pumpId ;
-                    domain:models ?x .
-                        ?x domain:waterPressure ?waterPressure .
+                    prog:MaintenancePump_waterPressureOut ?waterPressure .
              }"""
 
         val maintenanceResult: ResultSet = repl.interpreter!!.query(maintenancePumps)!!
