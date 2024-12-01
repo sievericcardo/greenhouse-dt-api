@@ -33,10 +33,10 @@ class HomeController (
     fun setDemoMode(): ResponseEntity<String> {
         val currentDemoMode = environment.getOrDefault("DEMO", "false").toBoolean()
         val value = if (currentDemoMode) "demo" else "live"
-        val newValue = if (!currentDemoMode) "live" else "demo"
-        log.info("Setting the application in ${value} mode")
+        val newValue = if (value == "demo") "live" else "demo"
+        log.info("Setting the application in $newValue mode")
 
         environment.set("DEMO", (!currentDemoMode).toString())
-        return ResponseEntity.ok("Application is now in ${newValue} mode")
+        return ResponseEntity.ok("Application is now in $newValue mode")
     }
 }
