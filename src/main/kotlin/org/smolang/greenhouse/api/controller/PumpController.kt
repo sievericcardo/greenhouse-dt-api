@@ -183,7 +183,9 @@ class PumpController (
     fun updatePumpPressure(@SwaggerRequestBody(description = "Pump to be updated") @RequestBody pumpRequest: PumpRequest) : ResponseEntity<String> {
         log.info("Updating pump pressure")
 
-        val tripleStore =System.getenv().getOrDefault("TRIPLESTORE_URL", "http://localhost:3030/ds")
+        val tripleStoreHost = System.getenv("TRIPLESTORE_URL") ?: "localhost"
+        val tripleStoreDataset = System.getenv("TRIPLESTORE_DATASET") ?: "ds"
+        val tripleStore = "http://$tripleStoreHost:3030/$tripleStoreDataset"
         val prefix = System.getenv().getOrDefault("BASE_PREFIX_URI", "http://www.smolang.org/greenhouseDT#")
 
         val updatedPump = Pump(pumpRequest.pumpGpioPin, pumpRequest.pumpId, pumpRequest.waterPressure, PumpState.Unknown)

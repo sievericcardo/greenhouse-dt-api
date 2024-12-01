@@ -24,7 +24,9 @@ open class REPLConfig {
         val langPrefix = "https://github.com/Edkamb/SemanticObjects#"
         val extraPrefixes = HashMap<String, String>()
         val useQueryType = false
-        val triplestoreUrl = System.getenv("TRIPLESTORE_URL") ?: "http://localhost:3030/ds"
+        val tripleStoreHost = System.getenv("TRIPLESTORE_URL") ?: "localhost"
+        val tripleStoreDataset = System.getenv("TRIPLESTORE_DATASET") ?: "ds"
+        val triplestoreUrl = "http://$tripleStoreHost:3030/$tripleStoreDataset"
         val domainPrefixUri = System.getenv("DOMAIN_PREFIX_URI") ?: ""
         val reasoner = ReasonerMode.owl
 
