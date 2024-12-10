@@ -221,8 +221,8 @@ ast:shelfFloor rdf:type owl:DatatypeProperty ;
                           ] .
 
 
-###  http://www.smolang.org/greenhouseDT#waterPressure
-ast:waterPressure rdf:type owl:DatatypeProperty ;
+###  http://www.smolang.org/greenhouseDT#temperature
+ast:temperature rdf:type owl:DatatypeProperty ;
                   rdfs:domain ast:Pump ;
                   rdfs:range xsd:double .
 
@@ -265,7 +265,7 @@ ast:HealthState rdf:type owl:Class .
 ast:Maintenance rdf:type owl:Class ;
                 owl:equivalentClass [ owl:intersectionOf ( ast:Pump
                                                            [ rdf:type owl:Restriction ;
-                                                             owl:onProperty ast:waterPressure ;
+                                                             owl:onProperty ast:temperature ;
                                                              owl:someValuesFrom [ rdf:type rdfs:Datatype ;
                                                                                   owl:onDatatype xsd:double ;
                                                                                   owl:withRestrictions ( [ xsd:maxExclusive "60.0"^^xsd:double
@@ -284,7 +284,7 @@ ast:Maintenance rdf:type owl:Class ;
 ast:Operational rdf:type owl:Class ;
                 owl:equivalentClass [ owl:intersectionOf ( ast:Pump
                                                            [ rdf:type owl:Restriction ;
-                                                             owl:onProperty ast:waterPressure ;
+                                                             owl:onProperty ast:temperature ;
                                                              owl:someValuesFrom [ rdf:type rdfs:Datatype ;
                                                                                   owl:onDatatype xsd:double ;
                                                                                   owl:withRestrictions ( [ xsd:minInclusive "60.0"^^xsd:double
@@ -462,7 +462,7 @@ ast:pump1 rdf:type owl:NamedIndividual ,
                    ast:Pump ;
           ast:pumpGpioPin 18 ;
           ast:pumpId "1" ;
-          ast:waterPressure "55.0"^^xsd:double .
+          ast:temperature "55.0"^^xsd:double .
 
 
 ###  http://www.smolang.org/greenhouseDT#pump2
@@ -470,7 +470,7 @@ ast:pump2 rdf:type owl:NamedIndividual ,
                    ast:Pump ;
           ast:pumpGpioPin 18 ;
           ast:pumpId "2" ;
-          ast:waterPressure "80.0"^^xsd:double .
+          ast:temperature "80.0"^^xsd:double .
 
 
 ###  http://www.smolang.org/greenhouseDT#pump3
@@ -478,7 +478,7 @@ ast:pump3 rdf:type owl:NamedIndividual ,
                    ast:Pump ;
           ast:pumpGpioPin 18 ;
           ast:pumpId "3" ;
-          ast:waterPressure "94.0"^^xsd:double .
+          ast:temperature "94.0"^^xsd:double .
 
 
 ###  http://www.smolang.org/greenhouseDT#pump4
@@ -486,7 +486,7 @@ ast:pump4 rdf:type owl:NamedIndividual ,
                    ast:Pump ;
           ast:pumpGpioPin 18 ;
           ast:pumpId "4" ;
-          ast:waterPressure "43.0"^^xsd:double .
+          ast:temperature "43.0"^^xsd:double .
 
 
 ###  http://www.smolang.org/greenhouseDT#shelf1

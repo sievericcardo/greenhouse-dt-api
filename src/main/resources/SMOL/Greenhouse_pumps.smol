@@ -5,11 +5,11 @@ class PumpModel extends KindModel()
 
         List<Pump> newPumps = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
-            SELECT ?pumpGpioPin ?pumpId ?waterPressure {
+            SELECT ?pumpGpioPin ?pumpId ?temperature {
                 ?pump a ast:Pump ;
                       ast:pumpGpioPin ?pumpGpioPin ;
                       ast:pumpId ?pumpId ;
-                      ast:waterPressure ?waterPressure .
+                      ast:temperature ?temperature .
                 FILTER NOT EXISTS {
                     ?y a prog:Pump ;
                        prog:Pump_pumpId ?pumpId .
@@ -35,9 +35,9 @@ class PumpModel extends KindModel()
                 print("RECONFIG> New pump detected: ");
                 print("          Pump Id: " ++ newPump.pumpId);
                 print("          Pump Gpio Pin: " ++ intToString(newPump.pumpGpioPin));
-                print("          Pump Water Pressure: " ++ doubleToString(newPump.waterPressure));
+                print("          Pump Water Pressure: " ++ doubleToString(newPump.temperature));
 
-                newPump.waterPressureOut = newPump.waterPressure;
+                newPump.temperatureOut = newPump.temperature;
 
                 destroy(lx);
             end
@@ -187,16 +187,16 @@ class PumpModel extends KindModel()
     Unit adaptDefectPumps()
         List<PumpDefectWater> changedPumps = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
-            SELECT ?obj ?waterPressureNew {
+            SELECT ?obj ?temperatureNew {
                 ?obj a prog:Pump ;
                     prog:Pump_pumpId ?pumpId ;
                     prog:Pump_pumpGpioPin ?pumpGpioPin ;
-                    prog:Pump_waterPressureOut ?waterPressure .
+                    prog:Pump_temperatureOut ?temperature .
                 ?y a ast:Pump ;
                     ast:pumpId ?pumpId ;
                     ast:pumpGpioPin ?pumpGpioPin ;
-                    ast:waterPressure ?waterPressureNew .
-                FILTER(?waterPressure != ?waterPressureNew)
+                    ast:temperature ?temperatureNew .
+                FILTER(?temperature != ?temperatureNew)
             }");
 
         if changedPumps != null then
@@ -208,11 +208,11 @@ class PumpModel extends KindModel()
                 changedPumps = changedPumps.next;
 
                 print("RECONFIG> Changed pump to adjust: " ++ rpump.obj.pumpId);
-                print("          Old water pressure: " ++ doubleToString(rpump.obj.waterPressureOut));
-                print("          New water pressure: " ++ doubleToString(rpump.waterPressureNew));
+                print("          Old water pressure: " ++ doubleToString(rpump.obj.temperatureOut));
+                print("          New water pressure: " ++ doubleToString(rpump.temperatureNew));
 
-                rpump.obj.waterPressure = rpump.waterPressureNew;
-                rpump.obj.waterPressureOut = rpump.waterPressureNew;
+                rpump.obj.temperature = rpump.temperatureNew;
+                rpump.obj.temperatureOut = rpump.temperatureNew;
                 destroy(lx);
             end
 
@@ -223,16 +223,16 @@ class PumpModel extends KindModel()
     Unit adaptDefectOperatingPumps()
         List<OperatingPumpDefectWater> changedPumps = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
-            SELECT ?obj ?waterPressureNew {
+            SELECT ?obj ?temperatureNew {
                 ?obj a prog:OperatingPump ;
                     prog:OperatingPump_pumpId ?pumpId ;
                     prog:OperatingPump_pumpGpioPin ?pumpGpioPin ;
-                    prog:OperatingPump_waterPressureOut ?waterPressure .
+                    prog:OperatingPump_temperatureOut ?temperature .
                 ?y a ast:Pump ;
                     ast:pumpId ?pumpId ;
                     ast:pumpGpioPin ?pumpGpioPin ;
-                    ast:waterPressure ?waterPressureNew .
-                FILTER(?waterPressure != ?waterPressureNew)
+                    ast:temperature ?temperatureNew .
+                FILTER(?temperature != ?temperatureNew)
             }");
 
         if changedPumps != null then
@@ -244,11 +244,11 @@ class PumpModel extends KindModel()
                 changedPumps = changedPumps.next;
 
                 print("RECONFIG> Changed pump to adjust: " ++ rpump.obj.pumpId);
-                print("          Old water pressure: " ++ doubleToString(rpump.obj.waterPressureOut));
-                print("          New water pressure: " ++ doubleToString(rpump.waterPressureNew));
+                print("          Old water pressure: " ++ doubleToString(rpump.obj.temperatureOut));
+                print("          New water pressure: " ++ doubleToString(rpump.temperatureNew));
 
-                rpump.obj.waterPressureOut = rpump.waterPressureNew;
-                rpump.obj.waterPressure = rpump.waterPressureNew;
+                rpump.obj.temperatureOut = rpump.temperatureNew;
+                rpump.obj.temperature = rpump.temperatureNew;
                 destroy(lx);
             end
 
@@ -259,16 +259,16 @@ class PumpModel extends KindModel()
     Unit adaptDefectMaintenancePump()
         List<MaintenancePumpDefectWater> changedPumps = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
-            SELECT ?obj ?waterPressureNew {
+            SELECT ?obj ?temperatureNew {
                 ?obj a prog:MaintenancePump ;
                     prog:MaintenancePump_pumpId ?pumpId ;
                     prog:MaintenancePump_pumpGpioPin ?pumpGpioPin ;
-                    prog:MaintenancePump_waterPressureOut ?waterPressure .
+                    prog:MaintenancePump_temperatureOut ?temperature .
                 ?y a ast:Pump ;
                     ast:pumpId ?pumpId ;
                     ast:pumpGpioPin ?pumpGpioPin ;
-                    ast:waterPressure ?waterPressureNew .
-                FILTER(?waterPressure != ?waterPressureNew)
+                    ast:temperature ?temperatureNew .
+                FILTER(?temperature != ?temperatureNew)
             }");
 
         if changedPumps != null then
@@ -280,11 +280,11 @@ class PumpModel extends KindModel()
                 changedPumps = changedPumps.next;
 
                 print("RECONFIG> Changed pump to adjust: " ++ rpump.pumpId);
-                print("          Old water pressure: " ++ doubleToString(rpump.obj.waterPressureOut));
-                print("          New water pressure: " ++ doubleToString(rpump.waterPressureNew));
+                print("          Old water pressure: " ++ doubleToString(rpump.obj.temperatureOut));
+                print("          New water pressure: " ++ doubleToString(rpump.temperatureNew));
 
-                rpump.obj.waterPressureOut = rpump.waterPressureNew;
-                rpump.obj.waterPressure = rpump.waterPressureNew;
+                rpump.obj.temperatureOut = rpump.temperatureNew;
+                rpump.obj.temperature = rpump.temperatureNew;
                 destroy(lx);
             end
 
@@ -310,7 +310,7 @@ class PumpModel extends KindModel()
             while pumps != null do
                 Pump pump = pumps.content;
 
-                print("ADAPT> Adapting pump " ++ pump.pumpId ++ ", " ++ intToString(pump.pumpGpioPin) ++ ", " ++ doubleToString(pump.waterPressure));
+                print("ADAPT> Adapting pump " ++ pump.pumpId ++ ", " ++ intToString(pump.pumpGpioPin) ++ ", " ++ doubleToString(pump.temperature));
 
                 adapt(pump);
 
@@ -333,7 +333,7 @@ class PumpModel extends KindModel()
             while pumps != null do
                 OperatingPump pump = pumps.content;
 
-                print("ADAPT> Adapting pump " ++ pump.pumpId ++ ", " ++ intToString(pump.pumpGpioPin) ++ ", " ++ doubleToString(pump.waterPressure));
+                print("ADAPT> Adapting pump " ++ pump.pumpId ++ ", " ++ intToString(pump.pumpGpioPin) ++ ", " ++ doubleToString(pump.temperature));
 
                 adapt(pump);
 
@@ -356,7 +356,7 @@ class PumpModel extends KindModel()
             while pumps != null do
                 MaintenancePump pump = pumps.content;
 
-                print("ADAPT> Adapting pump " ++ pump.pumpId ++ ", " ++ intToString(pump.pumpGpioPin) ++ ", " ++ doubleToString(pump.waterPressure));
+                print("ADAPT> Adapting pump " ++ pump.pumpId ++ ", " ++ intToString(pump.pumpGpioPin) ++ ", " ++ doubleToString(pump.temperature));
 
                 adapt(pump);
 

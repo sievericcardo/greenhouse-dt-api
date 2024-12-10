@@ -63,8 +63,8 @@ class Pot extends Twin (String shelfFloor, String potPosition, String pumpId, St
 class Shelf extends Twin (String shelfFloor) end
 
 /*  Models a physical pump. It is initially retrieved by the asset model. */
-class Pump extends Twin (Int pumpGpioPin, String pumpId, Double waterPressure, hidden Double waterPressureOut)
-models "a ast:Pump ; domain:waterPressure %waterPressure";
+class Pump extends Twin (Int pumpGpioPin, String pumpId, domain Double temperature, hidden Double temperatureOut)
+models "a ast:Pump ; domain:temperature %temperature";
 end
 
 class OperatingPump extends Pump ()
@@ -83,9 +83,9 @@ class HealthState extends Twin (String name, Double minNdvi, Double maxNdvi) end
 
 /* The following classes are used to store results of CONSTRUCT queries */
 class PumpDefect (Pump obj, Int pumpGpioPinNew) end
-class PumpDefectWater (Pump obj, Double waterPressureNew) end
-class OperatingPumpDefectWater (OperatingPump obj, Double waterPressureNew) end
-class MaintenancePumpDefectWater (MaintenancePump obj, Double waterPressureNew) end
+class PumpDefectWater (Pump obj, Double temperatureNew) end
+class OperatingPumpDefectWater (OperatingPump obj, Double temperatureNew) end
+class MaintenancePumpDefectWater (MaintenancePump obj, Double temperatureNew) end
 class PlantDefect (Plant obj, Double idealMoistureNew) end
 class PotDefectShelf (Pot obj, String shelfFloorNew) end
 class PotDefectPosition (Pot obj, String potPositionNew) end

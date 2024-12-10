@@ -22,7 +22,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBod
 data class PumpRequest (
     val pumpGpioPin: Int,
     val pumpId: String,
-    val waterPressure: Double
+    val temperature: Double
 )
 
 @RestController
@@ -49,11 +49,11 @@ class PumpController (
 
         val operatingPumps =
             """
-             SELECT DISTINCT ?pumpGpioPin ?pumpId ?waterPressure WHERE {
+             SELECT DISTINCT ?pumpGpioPin ?pumpId ?temperature WHERE {
                 ?obj a prog:OperatingPump ;
                     prog:OperatingPump_pumpGpioPin ?pumpGpioPin ;
                     prog:OperatingPump_pumpId ?pumpId ;
-                    prog:OperatingPump_waterPressureOut ?waterPressure .
+                    prog:OperatingPump_temperatureOut ?temperature .
              }"""
 
         val opertingResult: ResultSet = repl.interpreter!!.query(operatingPumps)!!
@@ -62,18 +62,18 @@ class PumpController (
             val solution: QuerySolution = opertingResult.next()
             val pumpGpioPin = solution.get("?pumpGpioPin").asLiteral().toString().split("^^")[0].toInt()
             val pumpId = solution.get("?pumpId").asLiteral().toString()
-            val waterPressure = solution.get("?waterPressure").asLiteral().toString().split("^^")[0].toDouble()
+            val temperature = solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble()
 
-            pumpsList.add(Pump(pumpGpioPin, pumpId, waterPressure, PumpState.Operational))
+            pumpsList.add(Pump(pumpGpioPin, pumpId, temperature, PumpState.Operational))
         }
 
         val maintenancePumps =
             """
-             SELECT DISTINCT ?pumpGpioPin ?pumpId ?waterPressure WHERE {
+             SELECT DISTINCT ?pumpGpioPin ?pumpId ?temperature WHERE {
                 ?obj a prog:MaintenancePump ;
                     prog:MaintenancePump_pumpGpioPin ?pumpGpioPin ;
                     prog:MaintenancePump_pumpId ?pumpId ;
-                    prog:MaintenancePump_waterPressureOut ?waterPressure .
+                    prog:MaintenancePump_temperatureOut ?temperature .
              }"""
 
         val maintenanceResult: ResultSet = repl.interpreter!!.query(maintenancePumps)!!
@@ -82,9 +82,9 @@ class PumpController (
             val solution: QuerySolution = maintenanceResult.next()
             val pumpGpioPin = solution.get("?pumpGpioPin").asLiteral().toString().split("^^")[0].toInt()
             val pumpId = solution.get("?pumpId").asLiteral().toString()
-            val waterPressure = solution.get("?waterPressure").asLiteral().toString().split("^^")[0].toDouble()
+            val temperature = solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble()
 
-            pumpsList.add(Pump(pumpGpioPin, pumpId, waterPressure, PumpState.Maintenance))
+            pumpsList.add(Pump(pumpGpioPin, pumpId, temperature, PumpState.Maintenance))
         }
 
         log.info("Pumps: $pumpsList")
@@ -108,12 +108,12 @@ class PumpController (
 
         val pumps =
             """
-             SELECT DISTINCT ?pumpGpioPin ?pumpId ?waterPressure WHERE {
+             SELECT DISTINCT ?pumpGpioPin ?pumpId ?temperature WHERE {
                 ?obj a prog:OperatingPump ;
                     prog:OperatingPump_pumpGpioPin ?pumpGpioPin ;
                     prog:OperatingPump_pumpId ?pumpId ;
                     domain:models ?x .
-                        ?x domain:waterPressure ?waterPressure .
+                        ?x domain:temperature ?temperature .
              }"""
 
         val result: ResultSet = repl.interpreter!!.query(pumps)!!
@@ -122,9 +122,9 @@ class PumpController (
             val solution: QuerySolution = result.next()
             val pumpGpioPin = solution.get("?pumpGpioPin").asLiteral().toString().split("^^")[0].toInt()
             val pumpId = solution.get("?pumpId").asLiteral().toString()
-            val waterPressure = solution.get("?waterPressure").asLiteral().toString().split("^^")[0].toDouble()
+            val temperature = solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble()
 
-            pumpsList.add(Pump(pumpGpioPin, pumpId, waterPressure, PumpState.Operational))
+            pumpsList.add(Pump(pumpGpioPin, pumpId, temperature, PumpState.Operational))
         }
 
         log.info("Pumps: $pumpsList")
@@ -148,12 +148,12 @@ class PumpController (
 
         val pumps =
             """
-             SELECT DISTINCT ?pumpGpioPin ?pumpId ?waterPressure WHERE {
+             SELECT DISTINCT ?pumpGpioPin ?pumpId ?temperature WHERE {
                 ?obj a prog:MaintenancePump ;
                     prog:MaintenancePump_pumpGpioPin ?pumpGpioPin ;
                     prog:MaintenancePump_pumpId ?pumpId ;
                     domain:models ?x .
-                        ?x domain:waterPressure ?waterPressure .
+                        ?x domain:temperature ?temperature .
              }"""
 
         val result: ResultSet = repl.interpreter!!.query(pumps)!!
@@ -162,9 +162,9 @@ class PumpController (
             val solution: QuerySolution = result.next()
             val pumpGpioPin = solution.get("?pumpGpioPin").asLiteral().toString().split("^^")[0].toInt()
             val pumpId = solution.get("?pumpId").asLiteral().toString()
-            val waterPressure = solution.get("?waterPressure").asLiteral().toString().split("^^")[0].toDouble()
+            val temperature = solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble()
 
-            pumpsList.add(Pump(pumpGpioPin, pumpId, waterPressure, PumpState.Maintenance))
+            pumpsList.add(Pump(pumpGpioPin, pumpId, temperature, PumpState.Maintenance))
         }
 
         log.info("Pumps: $pumpsList")
@@ -188,7 +188,7 @@ class PumpController (
         val tripleStore = "http://$tripleStoreHost:3030/$tripleStoreDataset"
         val prefix = System.getenv().getOrDefault("BASE_PREFIX_URI", "http://www.smolang.org/greenhouseDT#")
 
-        val updatedPump = Pump(pumpRequest.pumpGpioPin, pumpRequest.pumpId, pumpRequest.waterPressure, PumpState.Unknown)
+        val updatedPump = Pump(pumpRequest.pumpGpioPin, pumpRequest.pumpId, pumpRequest.temperature, PumpState.Unknown)
         log.info("Updated pump: $updatedPump")
 
         val updateQuery = """
@@ -196,16 +196,16 @@ class PumpController (
             PREFIX ast: <$prefix>
             
             DELETE {
-                ?pump ast:waterPressure ?oldWaterPressure .
+                ?pump ast:temperature ?oldTemperature .
             }
             INSERT {
-                ?pump ast:waterPressure "${updatedPump.waterPressure}"^^xsd:double .
+                ?pump ast:temperature "${updatedPump.temperature}"^^xsd:double .
             }
             WHERE {
                 ?pump a ast:Pump ;
                     ast:pumpGpioPin ${updatedPump.pumpGpioPin} ;
                     ast:pumpId "${updatedPump.pumpId}" ;
-                    ast:waterPressure ?oldWaterPressure .
+                    ast:temperature ?oldTemperature .
             }
         """
 
