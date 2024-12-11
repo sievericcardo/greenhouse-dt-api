@@ -223,8 +223,8 @@ ast:shelfFloor rdf:type owl:DatatypeProperty ;
 
 ###  http://www.smolang.org/greenhouseDT#temperature
 ast:temperature rdf:type owl:DatatypeProperty ;
-                  rdfs:domain ast:Pump ;
-                  rdfs:range xsd:double .
+                rdfs:domain ast:Pump ;
+                rdfs:range xsd:double .
 
 
 #################################################################
@@ -264,14 +264,26 @@ ast:HealthState rdf:type owl:Class .
 ###  http://www.smolang.org/greenhouseDT#Maintenance
 ast:Maintenance rdf:type owl:Class ;
                 owl:equivalentClass [ owl:intersectionOf ( ast:Pump
-                                                           [ rdf:type owl:Restriction ;
-                                                             owl:onProperty ast:temperature ;
-                                                             owl:someValuesFrom [ rdf:type rdfs:Datatype ;
-                                                                                  owl:onDatatype xsd:double ;
-                                                                                  owl:withRestrictions ( [ xsd:maxExclusive "60.0"^^xsd:double
-                                                                                                         ]
-                                                                                                       )
-                                                                                ]
+                                                           [ rdf:type owl:Class ;
+                                                             owl:unionOf ( [ rdf:type owl:Restriction ;
+                                                                             owl:onProperty ast:temperature ;
+                                                                             owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                                  owl:onDatatype xsd:double ;
+                                                                                                  owl:withRestrictions ( [ xsd:minExclusive "70.0"^^xsd:double
+                                                                                                                         ]
+                                                                                                                       )
+                                                                                                ]
+                                                                           ]
+                                                                           [ rdf:type owl:Restriction ;
+                                                                             owl:onProperty ast:temperature ;
+                                                                             owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                                  owl:onDatatype xsd:double ;
+                                                                                                  owl:withRestrictions ( [ xsd:maxExclusive "20.0"^^xsd:double
+                                                                                                                         ]
+                                                                                                                       )
+                                                                                                ]
+                                                                           ]
+                                                                         )
                                                            ]
                                                          ) ;
                                       rdf:type owl:Class
@@ -287,7 +299,16 @@ ast:Operational rdf:type owl:Class ;
                                                              owl:onProperty ast:temperature ;
                                                              owl:someValuesFrom [ rdf:type rdfs:Datatype ;
                                                                                   owl:onDatatype xsd:double ;
-                                                                                  owl:withRestrictions ( [ xsd:minInclusive "60.0"^^xsd:double
+                                                                                  owl:withRestrictions ( [ xsd:minInclusive "20.0"^^xsd:double
+                                                                                                         ]
+                                                                                                       )
+                                                                                ]
+                                                           ]
+                                                           [ rdf:type owl:Restriction ;
+                                                             owl:onProperty ast:temperature ;
+                                                             owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                  owl:onDatatype xsd:double ;
+                                                                                  owl:withRestrictions ( [ xsd:maxInclusive "70.0"^^xsd:double
                                                                                                          ]
                                                                                                        )
                                                                                 ]
