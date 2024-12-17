@@ -1,0 +1,70 @@
+
+class ShelfModel extends KindModel()
+
+    override Unit adaptAddition()
+        List<Shelf> newShelves = construct("
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
+            SELECT ?shelfFloor {
+                ?x a ast:Shelf ;
+                    ast:shelfFloor ?shelfFloor .
+                FILTER NOT EXISTS {
+                    ?y a prog:Shelf ;
+                        prog:Shelf_shelfFloor ?shelfFloor .
+                }
+            }");
+
+        if newShelves != null then
+            print("RECONFIG> New Shelf(s) detected: repairing the model");
+
+            while newShelves != null do
+                Shelf newShelf = newShelves.content;
+
+                List<Shelf> lx = newShelves;
+                newShelves = newShelves.next;
+                print("RECONFIG> New shelf detected: ");
+                print("          Shelf Floor: " ++ newShelf.shelfFloor);
+
+                destroy(lx);
+            end
+
+            print("RECONFIG> Shelf(ves) added");
+        end
+    end
+
+
+    override Unit adaptRemoval()
+        List<Shelf> wrongShelves = access("
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
+            SELECT DISTINCT ?obj {
+                ?obj a prog:Shelf ;
+                    prog:Shelf_shelfFloor ?shelfFloor .
+                FILTER NOT EXISTS {
+                    ?y a ast:Shelf ;
+                        ast:shelfFloor ?shelfFloor  .
+                }
+            }");
+
+        if wrongShelves != null then
+            print("RECONFIG> Misconfigured Shelf(ves) detected: repairing the model");
+
+            while wrongShelves != null do
+                Shelf wrongShelf = wrongShelves.content;
+                List<Shelf> lx = wrongShelves;
+                wrongShelves = wrongShelves.next;
+
+                print("RECONFIG> Misconfigured shelf to remove: ");
+                print("          ShelfFloor: " ++ wrongShelf.shelfFloor);
+
+                destroy(wrongShelf);
+                destroy(lx);
+            end
+
+            print("RECONFIG> Shelf(ves) removed");
+        end
+    end
+
+
+    override Unit adaptDefect() skip; end
+
+    override Unit adaptBehaviour() skip; end
+end
