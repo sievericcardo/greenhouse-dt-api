@@ -1,5 +1,5 @@
 
-class PotModel extends KindModel()
+class PotModel extends BaseModel()
     override Unit adaptAddition()
         List<Pot> newPots = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>

@@ -1,4 +1,4 @@
-class PumpModel extends KindModel()
+class PumpModel extends BaseModel()
 
     /* Add pumps that are not in the program model */
     override Unit adaptAddition()

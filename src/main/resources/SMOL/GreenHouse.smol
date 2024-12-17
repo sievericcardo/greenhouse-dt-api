@@ -1,4 +1,4 @@
-abstract class KindModel (String name)
+abstract class BaseModel (String name)
     Unit adaptModel()
         print("RECONFIG> Reconfiguring the "++ this.name);
         this.adaptDefect();
@@ -24,20 +24,20 @@ end
  *
  *  Field this.decisions contains the control decision made by the last cycle.
  */
-class AssetModel extends Twin (List<Decision> decisions, AssetController ctrl, List<KindModel> mods)
+class AssetModel extends Twin (List<Decision> decisions, AssetController ctrl, List<BaseModel> mods)
 
     Unit decision()
         this.ctrl.decision();
     end
 
-    Unit register(KindModel m)
-        this.mods = new List<KindModel>(m, this.mods);
+    Unit register(BaseModel m)
+        this.mods = new List<BaseModel>(m, this.mods);
     end
 
     Unit reconfigure()
         print("RECONFIG> Reconfiguring the asset model...");
 
-        List<KindModel> ms = this.mods;
+        List<BaseModel> ms = this.mods;
         while ms != null do
             ms.content.adaptModel();
             ms = ms.next;
@@ -49,7 +49,7 @@ class AssetModel extends Twin (List<Decision> decisions, AssetController ctrl, L
     Unit reconfigureSingleModel(String mod)
         print("RECONFIG> Reconfiguring the asset model...");
 
-        List<KindModel> ms = this.mods;
+        List<BaseModel> ms = this.mods;
         while ms != null do
             if ms.content.name == mod then
                 print("RECONFIG> Reconfiguring " ++ ms.content.name);
@@ -64,7 +64,7 @@ class AssetModel extends Twin (List<Decision> decisions, AssetController ctrl, L
     Unit reclassify()
         print("ADAPT> Adapting the asset model...");
 
-        List<KindModel> ms = this.mods;
+        List<BaseModel> ms = this.mods;
         while ms != null do
             ms.content.adaptState();
             ms = ms.next;
@@ -76,7 +76,7 @@ class AssetModel extends Twin (List<Decision> decisions, AssetController ctrl, L
     Unit reclassifySingleModel(String mod)
         print("ADAPT> Adapting the asset model...");
 
-        List<KindModel> ms = this.mods;
+        List<BaseModel> ms = this.mods;
         while ms != null do
             if ms.content.name == mod then
                 print("ADAPT> Adapting " ++ ms.content.name);

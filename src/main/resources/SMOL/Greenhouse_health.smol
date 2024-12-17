@@ -1,5 +1,5 @@
 //NDVI START
-class HealthModel extends KindModel()
+class HealthModel extends BaseModel()
     override Unit adaptAddition()
             List<HealthState> newHealthStates = construct("
                 PREFIX ast: <http://www.smolang.org/greenhouseDT#>

@@ -1,4 +1,4 @@
-class PlantModel extends KindModel()
+class PlantModel extends BaseModel()
 
     override Unit adaptAddition()
         List<Plant> newPlants = construct("

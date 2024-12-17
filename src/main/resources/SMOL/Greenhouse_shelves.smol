@@ -1,5 +1,5 @@
 
-class ShelfModel extends KindModel()
+class ShelfModel extends BaseModel()
 
     override Unit adaptAddition()
         List<Shelf> newShelves = construct("
