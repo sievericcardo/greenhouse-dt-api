@@ -3,14 +3,7 @@ package org.smolang.greenhouse.api.controller
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
-import no.uio.microobject.ast.expr.LiteralExpr
 import no.uio.microobject.runtime.REPL
-import no.uio.microobject.type.BaseType
-import no.uio.microobject.type.STRINGTYPE
-import org.apache.jena.query.QuerySolution
-import org.apache.jena.query.ResultSet
-import org.apache.jena.rdfconnection.RDFConnectionFactory
-import org.apache.jena.update.*
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.model.Pump
 import org.smolang.greenhouse.api.service.PumpService
@@ -153,54 +146,12 @@ class PumpController (
     fun updatePumpPressure(@SwaggerRequestBody(description = "Pump to be updated") @RequestBody pumpRequest: PumpRequest) : ResponseEntity<String> {
         log.info("Updating pump pressure")
 
-        val tripleStoreHost = System.getenv("TRIPLESTORE_URL") ?: "localhost"
-        val tripleStoreDataset = System.getenv("TRIPLESTORE_DATASET") ?: "ds"
-        val tripleStore = "http://$tripleStoreHost:3030/$tripleStoreDataset"
-        val prefix = System.getenv().getOrDefault("BASE_PREFIX_URI", "http://www.smolang.org/greenhouseDT#")
-
         val updatedPump = Pump(pumpRequest.pumpGpioPin, pumpRequest.pumpId, pumpRequest.modelName, pumpRequest.lifeTime, pumpRequest.temperature, PumpState.Unknown)
         log.info("Updated pump: $updatedPump")
 
-        val updateQuery = """
-            PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-            PREFIX ast: <$prefix>
-            
-            DELETE {
-                ?pump ast:temperature ?oldTemperature .
-            }
-            INSERT {
-                ?pump ast:temperature "${updatedPump.temperature}"^^xsd:double .
-            }
-            WHERE {
-                ?pump a ast:Pump ;
-                    ast:pumpGpioPin ${updatedPump.pumpGpioPin} ;
-                    ast:pumpId "${updatedPump.pumpId}" ;
-                    ast:temperature ?oldTemperature .
-            }
-        """
-
-        val updateRequest: UpdateRequest = UpdateFactory.create(updateQuery)
-        val fusekiEndpoint = tripleStore + "/update"
-        val updateProcessor: UpdateProcessor = UpdateExecutionFactory.createRemote(updateRequest, fusekiEndpoint)
-
-        try {
-            updateProcessor.execute()
-        } catch (e: Exception) {
-            return ResponseEntity.badRequest().body("Error: the update query could not be executed.")
+        if (!pumpService.updatePump(updatedPump)) {
+            return ResponseEntity.badRequest().body("Failed to update pump pressure")
         }
-
-        val repl: REPL = replConfig.repl()
-        repl.interpreter!!.tripleManager.regenerateTripleStoreModel()
-        repl.interpreter!!.evalCall(
-            repl.interpreter!!.getObjectNames("AssetModel")[0],
-            "AssetModel",
-            "reconfigureSingleModel",
-            mapOf("mod" to LiteralExpr("\"pumps\"", STRINGTYPE)))
-        repl.interpreter!!.evalCall(
-            repl.interpreter!!.getObjectNames("AssetModel")[0],
-            "AssetModel",
-            "reclassifySingleModel",
-            mapOf("mod" to LiteralExpr("\"pumps\"", STRINGTYPE)))
 
         return ResponseEntity.ok("Pump pressure updated")
     }

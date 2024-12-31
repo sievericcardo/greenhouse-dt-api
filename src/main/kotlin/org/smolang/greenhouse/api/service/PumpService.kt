@@ -1,11 +1,19 @@
 package org.smolang.greenhouse.api.service
 
+import no.uio.microobject.ast.expr.LiteralExpr
+import no.uio.microobject.runtime.REPL
+import no.uio.microobject.type.STRINGTYPE
 import org.apache.jena.query.QuerySolution
 import org.apache.jena.query.ResultSet
+import org.apache.jena.update.UpdateExecutionFactory
+import org.apache.jena.update.UpdateFactory
+import org.apache.jena.update.UpdateProcessor
+import org.apache.jena.update.UpdateRequest
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
 import org.smolang.greenhouse.api.controller.PumpState
 import org.smolang.greenhouse.api.model.Pump
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 
 @Service
@@ -133,5 +141,53 @@ class PumpService (
         }
 
         return pumpsList
+    }
+
+    fun updatePump(updatedPump: Pump) : Boolean {
+        val updateQuery = """
+            PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+            PREFIX ast: <$prefix>
+            
+            DELETE {
+                ?pump ast:temperature ?oldTemperature .
+                ?pump ast:pumpLifeTime ?oldLifeTime .
+            }
+            INSERT {
+                ?pump ast:temperature "${updatedPump.temperature}"^^xsd:double .
+                ?pump ast:pumpLifeTime ${updatedPump.lifeTime} .
+            }
+            WHERE {
+                ?pump a ast:Pump ;
+                    ast:pumpGpioPin ${updatedPump.pumpGpioPin} ;
+                    ast:pumpId "${updatedPump.pumpId}" ;
+                    ast:temperature ?oldTemperature ;
+                    ast:pumpLifeTime ?oldLifeTime .
+            }
+        """
+
+        val updateRequest: UpdateRequest = UpdateFactory.create(updateQuery)
+        val fusekiEndpoint = tripleStore + "/update"
+        val updateProcessor: UpdateProcessor = UpdateExecutionFactory.createRemote(updateRequest, fusekiEndpoint)
+
+        try {
+            updateProcessor.execute()
+        } catch (e: Exception) {
+            return false
+        }
+
+        val repl: REPL = replConfig.repl()
+        repl.interpreter!!.tripleManager.regenerateTripleStoreModel()
+        repl.interpreter!!.evalCall(
+            repl.interpreter!!.getObjectNames("AssetModel")[0],
+            "AssetModel",
+            "reconfigureSingleModel",
+            mapOf("mod" to LiteralExpr("\"pumps\"", STRINGTYPE)))
+        repl.interpreter!!.evalCall(
+            repl.interpreter!!.getObjectNames("AssetModel")[0],
+            "AssetModel",
+            "reclassifySingleModel",
+            mapOf("mod" to LiteralExpr("\"pumps\"", STRINGTYPE)))
+
+        return true
     }
 }
