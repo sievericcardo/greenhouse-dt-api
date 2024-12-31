@@ -856,7 +856,7 @@ ast:pump1 rdf:type owl:NamedIndividual ,
           ast:pumpGpioPin 18 ;
           ast:pumpId "1" ;
           ast:pumpLifeTime 0 ;
-          ast:temperature "35.0"^^xsd:double .
+          ast:temperature "5.0"^^xsd:double .
 
 
 ###  http://www.smolang.org/greenhouseDT#pump2
