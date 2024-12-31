@@ -196,12 +196,6 @@ ast:potPosition rdf:type owl:DatatypeProperty ;
                            ] .
 
 
-###  http://www.smolang.org/greenhouseDT#pumpLifeTime
-ast:pumpLifeTime rdf:type owl:DatatypeProperty ;
-            rdfs:domain ast:Pump ;
-            rdfs:range xsd:integer .
-
-
 ###  http://www.smolang.org/greenhouseDT#pumpGpioPin
 ast:pumpGpioPin rdf:type owl:DatatypeProperty ;
                 rdfs:subPropertyOf owl:topDataProperty ;
@@ -212,6 +206,12 @@ ast:pumpGpioPin rdf:type owl:DatatypeProperty ;
 ###  http://www.smolang.org/greenhouseDT#pumpId
 ast:pumpId rdf:type owl:DatatypeProperty ;
            rdfs:subPropertyOf owl:topDataProperty .
+
+
+###  http://www.smolang.org/greenhouseDT#pumpLifeTime
+ast:pumpLifeTime rdf:type owl:DatatypeProperty ;
+                 rdfs:domain ast:Pump ;
+                 rdfs:range xsd:integer .
 
 
 ###  http://www.smolang.org/greenhouseDT#shelfFloor
@@ -853,19 +853,19 @@ ast:pot4 rdf:type owl:NamedIndividual ,
 ast:pump1 rdf:type owl:NamedIndividual ,
                    ast:Pump ;
           ast:modelName "R385" ;
-          ast:pumpLifeTime 0 ;
           ast:pumpGpioPin 18 ;
           ast:pumpId "1" ;
-          ast:temperature "55.0"^^xsd:double .
+          ast:pumpLifeTime 0 ;
+          ast:temperature "35.0"^^xsd:double .
 
 
 ###  http://www.smolang.org/greenhouseDT#pump2
 ast:pump2 rdf:type owl:NamedIndividual ,
                    ast:Pump ;
           ast:modelName "WPS27" ;
-          ast:pumpLifeTime 30 ;
           ast:pumpGpioPin 18 ;
           ast:pumpId "2" ;
+          ast:pumpLifeTime 30 ;
           ast:temperature "80.0"^^xsd:double .
 
 
@@ -873,9 +873,9 @@ ast:pump2 rdf:type owl:NamedIndividual ,
 ast:pump3 rdf:type owl:NamedIndividual ,
                    ast:Pump ;
           ast:modelName "R365" ;
-          ast:pumpLifeTime 3000 ;
           ast:pumpGpioPin 18 ;
           ast:pumpId "3" ;
+          ast:pumpLifeTime 3000 ;
           ast:temperature "94.0"^^xsd:double .
 
 
