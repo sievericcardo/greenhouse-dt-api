@@ -63,8 +63,16 @@ class Pot extends Twin (String shelfFloor, String potPosition, String pumpId, St
 class Shelf extends Twin (String shelfFloor) end
 
 /*  Models a physical pump. It is initially retrieved by the asset model. */
-class Pump extends Twin (Int pumpGpioPin, String pumpId, domain Double temperature, hidden Double temperatureOut)
-models "a ast:Pump ; domain:temperature %temperature";
+class Pump extends Twin (
+    Int pumpGpioPin,
+    String pumpId,
+    domain String modelName,
+    hidden String modelNameOut,
+    domain Int pumpLifeTime,
+    hidden Int pumpLifeTimeOut,
+    domain Double temperature, 
+    hidden Double temperatureOut)
+models "a ast:Pump ; domain:temperature %temperature ; domain:pumpLifeTime %pumpLifeTime ; domain:modelName %modelName";
 end
 
 class OperatingPump extends Pump ()
@@ -73,6 +81,14 @@ end
 
 class MaintenancePump extends Pump ()
 classifies "<ast:Maintenance>";
+end
+
+class OverheatingPump extends Pump ()
+classifies "<ast:Overheating>";
+end
+
+class UnderheatingPump extends Pump ()
+classifies "<ast:Underheating>";
 end
 
 
@@ -86,6 +102,13 @@ class PumpDefect (Pump obj, Int pumpGpioPinNew) end
 class PumpDefectWater (Pump obj, Double temperatureNew) end
 class OperatingPumpDefectWater (OperatingPump obj, Double temperatureNew) end
 class MaintenancePumpDefectWater (MaintenancePump obj, Double temperatureNew) end
+class OverheatingPumpDefectWater (OverheatingPump obj, Double temperatureNew) end
+class UnderheatingPumpDefectWater (UnderheatingPump obj, Double temperatureNew) end
+class PumpDefectLifeTime (Pump obj, Int pumpLifeTimeNew) end
+class OperatingPumpDefectLifeTime (OperatingPump obj, Int pumpLifeTimeNew) end
+class MaintenancePumpDefectLifeTime (MaintenancePump obj, Int pumpLifeTimeNew) end
+class OverheatingPumpDefectLifeTime (OverheatingPump obj, Int pumpLifeTimeNew) end
+class UnderheatingPumpDefectLifeTime (UnderheatingPump obj, Int pumpLifeTimeNew) end
 class PlantDefect (Plant obj, Double idealMoistureNew) end
 class PotDefectShelf (Pot obj, String shelfFloorNew) end
 class PotDefectPosition (Pot obj, String potPositionNew) end
