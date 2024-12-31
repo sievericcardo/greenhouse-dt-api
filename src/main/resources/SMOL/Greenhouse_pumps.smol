@@ -551,8 +551,6 @@ class PumpModel extends BaseModel()
 
     override Unit adaptBehaviour()
         this.adaptBehaviourPump();
-        // this.adaptBehaviourOperatingPump();
-        // this.adaptBehaviourMaintenancePump();
     end
 
     Unit adaptBehaviourPump()
@@ -572,52 +570,6 @@ class PumpModel extends BaseModel()
                 adapt(pump);
 
                 List<Pump> oldList = pumps;
-                pumps = pumps.next;
-                destroy(oldList);
-            end
-        end
-    end
-
-    Unit adaptBehaviourOperatingPump()
-        List<OperatingPump> pumps = access("
-            SELECT DISTINCT ?obj {
-                ?obj a prog:OperatingPump .
-            }");
-
-        if pumps == null then print("ADAPT> No pumps"); else
-            print("ADAPT> Pumps found check behaviour");
-
-            while pumps != null do
-                OperatingPump pump = pumps.content;
-
-                print("ADAPT> Adapting pump " ++ pump.pumpId ++ ", " ++ intToString(pump.pumpGpioPin) ++ ", " ++ doubleToString(pump.temperature));
-
-                adapt(pump);
-
-                List<OperatingPump> oldList = pumps;
-                pumps = pumps.next;
-                destroy(oldList);
-            end
-        end
-    end
-
-    Unit adaptBehaviourMaintenancePump()
-        List<MaintenancePump> pumps = access("
-            SELECT DISTINCT ?obj {
-                ?obj a prog:MaintenancePump .
-            }");
-
-        if pumps == null then print("ADAPT> No pumps"); else
-            print("ADAPT> Pumps found check behaviour");
-
-            while pumps != null do
-                MaintenancePump pump = pumps.content;
-
-                print("ADAPT> Adapting pump " ++ pump.pumpId ++ ", " ++ intToString(pump.pumpGpioPin) ++ ", " ++ doubleToString(pump.temperature));
-
-                adapt(pump);
-
-                List<MaintenancePump> oldList = pumps;
                 pumps = pumps.next;
                 destroy(oldList);
             end
