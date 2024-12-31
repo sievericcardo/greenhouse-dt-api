@@ -13,6 +13,7 @@ import org.apache.jena.rdfconnection.RDFConnectionFactory
 import org.apache.jena.update.*
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.model.Pump
+import org.smolang.greenhouse.api.service.PumpService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.logging.Logger
@@ -22,13 +23,16 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBod
 data class PumpRequest (
     val pumpGpioPin: Int,
     val pumpId: String,
+    val modelName: String,
+    val lifeTime: Int,
     val temperature: Double
 )
 
 @RestController
 @RequestMapping("/api/pumps")
 class PumpController (
-    private val replConfig: REPLConfig
+    private val replConfig: REPLConfig,
+    private val pumpService: PumpService
 ) {
 
     private val log: Logger = Logger.getLogger(PumpController::class.java.name)
@@ -47,45 +51,15 @@ class PumpController (
         val repl: REPL = replConfig.repl()
         val pumpsList = mutableListOf<Pump>()
 
-        val operatingPumps =
-            """
-             SELECT DISTINCT ?pumpGpioPin ?pumpId ?temperature WHERE {
-                ?obj a prog:OperatingPump ;
-                    prog:OperatingPump_pumpGpioPin ?pumpGpioPin ;
-                    prog:OperatingPump_pumpId ?pumpId ;
-                    prog:OperatingPump_temperatureOut ?temperature .
-             }"""
+        val operatingPumps = pumpService.getOperatingPumps()
+        val maintenancePumps = pumpService.getMaintenancePumps()
+        val overheatingPumps = pumpService.getOverheatingPumps()
+        val underheatingPumps = pumpService.getUnderheatingPumps()
 
-        val opertingResult: ResultSet = repl.interpreter!!.query(operatingPumps)!!
-
-        while (opertingResult.hasNext()) {
-            val solution: QuerySolution = opertingResult.next()
-            val pumpGpioPin = solution.get("?pumpGpioPin").asLiteral().toString().split("^^")[0].toInt()
-            val pumpId = solution.get("?pumpId").asLiteral().toString()
-            val temperature = solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble()
-
-            pumpsList.add(Pump(pumpGpioPin, pumpId, temperature, PumpState.Operational))
-        }
-
-        val maintenancePumps =
-            """
-             SELECT DISTINCT ?pumpGpioPin ?pumpId ?temperature WHERE {
-                ?obj a prog:MaintenancePump ;
-                    prog:MaintenancePump_pumpGpioPin ?pumpGpioPin ;
-                    prog:MaintenancePump_pumpId ?pumpId ;
-                    prog:MaintenancePump_temperatureOut ?temperature .
-             }"""
-
-        val maintenanceResult: ResultSet = repl.interpreter!!.query(maintenancePumps)!!
-
-        while (maintenanceResult.hasNext()) {
-            val solution: QuerySolution = maintenanceResult.next()
-            val pumpGpioPin = solution.get("?pumpGpioPin").asLiteral().toString().split("^^")[0].toInt()
-            val pumpId = solution.get("?pumpId").asLiteral().toString()
-            val temperature = solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble()
-
-            pumpsList.add(Pump(pumpGpioPin, pumpId, temperature, PumpState.Maintenance))
-        }
+        pumpsList.addAll(operatingPumps)
+        pumpsList.addAll(maintenancePumps)
+        pumpsList.addAll(overheatingPumps)
+        pumpsList.addAll(underheatingPumps)
 
         log.info("Pumps: $pumpsList")
 
@@ -104,28 +78,7 @@ class PumpController (
         log.info("Getting all operational pumps")
 
         val repl: REPL = replConfig.repl()
-        val pumpsList = mutableListOf<Pump>()
-
-        val pumps =
-            """
-             SELECT DISTINCT ?pumpGpioPin ?pumpId ?temperature WHERE {
-                ?obj a prog:OperatingPump ;
-                    prog:OperatingPump_pumpGpioPin ?pumpGpioPin ;
-                    prog:OperatingPump_pumpId ?pumpId ;
-                    domain:models ?x .
-                        ?x domain:temperature ?temperature .
-             }"""
-
-        val result: ResultSet = repl.interpreter!!.query(pumps)!!
-
-        while (result.hasNext()) {
-            val solution: QuerySolution = result.next()
-            val pumpGpioPin = solution.get("?pumpGpioPin").asLiteral().toString().split("^^")[0].toInt()
-            val pumpId = solution.get("?pumpId").asLiteral().toString()
-            val temperature = solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble()
-
-            pumpsList.add(Pump(pumpGpioPin, pumpId, temperature, PumpState.Operational))
-        }
+        val pumpsList = pumpService.getOperatingPumps()
 
         log.info("Pumps: $pumpsList")
 
@@ -144,28 +97,45 @@ class PumpController (
         log.info("Getting all pumps in maintenance")
 
         val repl: REPL = replConfig.repl()
-        val pumpsList = mutableListOf<Pump>()
+        val pumpsList = pumpService.getMaintenancePumps()
 
-        val pumps =
-            """
-             SELECT DISTINCT ?pumpGpioPin ?pumpId ?temperature WHERE {
-                ?obj a prog:MaintenancePump ;
-                    prog:MaintenancePump_pumpGpioPin ?pumpGpioPin ;
-                    prog:MaintenancePump_pumpId ?pumpId ;
-                    domain:models ?x .
-                        ?x domain:temperature ?temperature .
-             }"""
+        log.info("Pumps: $pumpsList")
 
-        val result: ResultSet = repl.interpreter!!.query(pumps)!!
+        return ResponseEntity.ok(pumpsList)
+    }
 
-        while (result.hasNext()) {
-            val solution: QuerySolution = result.next()
-            val pumpGpioPin = solution.get("?pumpGpioPin").asLiteral().toString().split("^^")[0].toInt()
-            val pumpId = solution.get("?pumpId").asLiteral().toString()
-            val temperature = solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble()
+    @Operation(summary = "Retrieve the pump that are overheating")
+    @ApiResponses(value = [
+        ApiResponse(responseCode = "200", description = "Successfully retrieved the overheating pumps"),
+        ApiResponse(responseCode = "401", description = "You are not authorized to view the resource"),
+        ApiResponse(responseCode = "403", description = "Accessing the resource you were trying to reach is forbidden"),
+        ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
+    ])
+    @GetMapping("/overheating")
+    fun getOverheatingPumps() : ResponseEntity<List<Pump>> {
+        log.info("Getting all overheating pumps")
 
-            pumpsList.add(Pump(pumpGpioPin, pumpId, temperature, PumpState.Maintenance))
-        }
+        val repl: REPL = replConfig.repl()
+        val pumpsList = pumpService.getOverheatingPumps()
+
+        log.info("Pumps: $pumpsList")
+
+        return ResponseEntity.ok(pumpsList)
+    }
+
+    @Operation(summary = "Retrieve the pump that are underheating")
+    @ApiResponses(value = [
+        ApiResponse(responseCode = "200", description = "Successfully retrieved the underheating pumps"),
+        ApiResponse(responseCode = "401", description = "You are not authorized to view the resource"),
+        ApiResponse(responseCode = "403", description = "Accessing the resource you were trying to reach is forbidden"),
+        ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
+    ])
+    @GetMapping("/underheating")
+    fun getUnderheatingPumps() : ResponseEntity<List<Pump>> {
+        log.info("Getting all underheating pumps")
+
+        val repl: REPL = replConfig.repl()
+        val pumpsList = pumpService.getUnderheatingPumps()
 
         log.info("Pumps: $pumpsList")
 
@@ -188,7 +158,7 @@ class PumpController (
         val tripleStore = "http://$tripleStoreHost:3030/$tripleStoreDataset"
         val prefix = System.getenv().getOrDefault("BASE_PREFIX_URI", "http://www.smolang.org/greenhouseDT#")
 
-        val updatedPump = Pump(pumpRequest.pumpGpioPin, pumpRequest.pumpId, pumpRequest.temperature, PumpState.Unknown)
+        val updatedPump = Pump(pumpRequest.pumpGpioPin, pumpRequest.pumpId, pumpRequest.modelName, pumpRequest.lifeTime, pumpRequest.temperature, PumpState.Unknown)
         log.info("Updated pump: $updatedPump")
 
         val updateQuery = """
