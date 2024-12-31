@@ -567,7 +567,7 @@ class PumpModel extends BaseModel()
             while pumps != null do
                 Pump pump = pumps.content;
 
-                print("ADAPT> Adapting pump " ++ pump.pumpId ++ ", " ++ intToString(pump.pumpGpioPin) ++ ", " ++ doubleToString(pump.temperature));
+                print("ADAPT> Adapting pump " ++ pump.pumpId ++ ", " ++ intToString(pump.pumpGpioPin) ++ ", " ++ doubleToString(pump.temperature) ++ ", " ++ intToString(pump.pumpLifeTime) ++ ", " ++ pump.modelName);
 
                 adapt(pump);
 
