@@ -568,6 +568,7 @@ class PumpModel extends BaseModel()
                 print("ADAPT> Adapting pump " ++ pump.pumpId ++ ", " ++ intToString(pump.pumpGpioPin) ++ ", " ++ doubleToString(pump.temperature) ++ ", " ++ intToString(pump.pumpLifeTime) ++ ", " ++ pump.modelName);
 
                 adapt(pump);
+                pump.printInfo();
 
                 List<Pump> oldList = pumps;
                 pumps = pumps.next;
