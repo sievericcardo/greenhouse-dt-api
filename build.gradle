@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'org.smolang'
-version = '1.0-SNAPSHOT'
+version = '0.2'
 base {
     archivesName = 'greenhouse_api'
 }

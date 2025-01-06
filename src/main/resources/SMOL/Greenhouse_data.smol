@@ -83,8 +83,8 @@ classifies "<ast:Operational>";
 end
 
 class MaintenancePump extends Pump (Int powerOutput)
-classifies "<ast:Maintenance>", 
-"SELECT DISTINCT ?powerOutput WHERE {
+classifies "<ast:Maintenance>";
+retrieves "SELECT DISTINCT ?powerOutput WHERE {
   %this a prog:Pump ;
     domain:models ?x .
   ?x domain:modelName ?modelName .
