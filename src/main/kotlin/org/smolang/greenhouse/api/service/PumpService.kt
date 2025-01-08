@@ -175,19 +175,6 @@ class PumpService (
             return false
         }
 
-        val repl: REPL = replConfig.repl()
-        repl.interpreter!!.tripleManager.regenerateTripleStoreModel()
-        repl.interpreter!!.evalCall(
-            repl.interpreter!!.getObjectNames("AssetModel")[0],
-            "AssetModel",
-            "reconfigureSingleModel",
-            mapOf("mod" to LiteralExpr("\"pumps\"", STRINGTYPE)))
-        repl.interpreter!!.evalCall(
-            repl.interpreter!!.getObjectNames("AssetModel")[0],
-            "AssetModel",
-            "reclassifySingleModel",
-            mapOf("mod" to LiteralExpr("\"pumps\"", STRINGTYPE)))
-
         return true
     }
 }
