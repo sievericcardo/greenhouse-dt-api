@@ -143,16 +143,43 @@ class PumpController (
         ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
     ])
     @PostMapping("/update")
-    fun updatePumpPressure(@SwaggerRequestBody(description = "Pump to be updated") @RequestBody pumpRequest: PumpRequest) : ResponseEntity<String> {
+    fun updatePump(@SwaggerRequestBody(description = "Pump to be updated") @RequestBody pumpRequest: PumpRequest) : ResponseEntity<String> {
         log.info("Updating pump pressure")
 
         val updatedPump = Pump(pumpRequest.pumpGpioPin, pumpRequest.pumpId, pumpRequest.modelName, pumpRequest.lifeTime, pumpRequest.temperature, PumpState.Unknown)
         log.info("Updated pump: $updatedPump")
 
         if (!pumpService.updatePump(updatedPump)) {
-            return ResponseEntity.badRequest().body("Failed to update pump pressure")
+            return ResponseEntity.badRequest().body("Failed to update pump")
         }
 
-        return ResponseEntity.ok("Pump pressure updated")
+        replConfig.regenerateSingleModel().invoke("pumps")
+
+        return ResponseEntity.ok("Pump updated")
+    }
+
+    @Operation(summary = "Update pressure to multiple pumps")
+    @ApiResponses(value = [
+        ApiResponse(responseCode = "200", description = "Successfully updated the pumps pressure"),
+        ApiResponse(responseCode = "401", description = "You are not authorized to view the resource"),
+        ApiResponse(responseCode = "403", description = "Accessing the resource you were trying to reach is forbidden"),
+        ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
+    ])
+    @PostMapping("/update-multil")
+    fun updateMultiplePumps(@SwaggerRequestBody(description = "Pumps to be updated") @RequestBody pumpRequests: List<PumpRequest>) : ResponseEntity<String> {
+        log.info("Updating pumps pressure")
+
+        val updatedPumps = pumpRequests.map { Pump(it.pumpGpioPin, it.pumpId, it.modelName, it.lifeTime, it.temperature, PumpState.Unknown) }
+        log.info("Updated pumps: $updatedPumps")
+
+        updatedPumps.forEach() {
+            if (!pumpService.updatePump(it)) {
+                return ResponseEntity.badRequest().body("Failed to update pump")
+            }
+        }
+
+        replConfig.regenerateSingleModel().invoke("pumps")
+
+        return ResponseEntity.ok("Pumps updated")
     }
 }
