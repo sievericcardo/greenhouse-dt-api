@@ -11,15 +11,9 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.logging.Logger
 import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBody
-
-
-data class PumpRequest (
-    val pumpGpioPin: Int,
-    val pumpId: String,
-    val modelName: String,
-    val lifeTime: Int,
-    val temperature: Double
-)
+import org.smolang.greenhouse.api.types.CreatePumpRequest
+import org.smolang.greenhouse.api.types.UpdatePumpRequest
+import org.smolang.greenhouse.api.types.DeletePumpRequest
 
 @RestController
 @RequestMapping("/api/pumps")
@@ -30,6 +24,29 @@ class PumpController (
 
     private val log: Logger = Logger.getLogger(PumpController::class.java.name)
 
+    @Operation(summary = "Create a new pump")
+    @ApiResponses(value = [
+        ApiResponse(responseCode = "200", description = "Successfully created the pump"),
+        ApiResponse(responseCode = "401", description = "You are not authorized to view the resource"),
+        ApiResponse(responseCode = "403", description = "Accessing the resource you were trying to reach is forbidden"),
+        ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
+    ])
+    @PostMapping("/create")
+    fun createPump(@SwaggerRequestBody(description = "Pump to be created") @RequestBody pumpRequest: CreatePumpRequest) : ResponseEntity<String> {
+        log.info("Creating a new pump")
+
+        val newPump = Pump(pumpRequest.pumpGpioPin, pumpRequest.pumpId, pumpRequest.modelName, pumpRequest.lifeTime, pumpRequest.temperature, PumpState.Unknown)
+        log.info("New pump: $newPump")
+
+        if (!pumpService.createPump(newPump)) {
+            return ResponseEntity.badRequest().body("Failed to create pump")
+        }
+
+        replConfig.regenerateSingleModel().invoke("pumps")
+
+        return ResponseEntity.ok("Pump created")
+    }
+
     @Operation(summary = "Retrieve the pumps")
     @ApiResponses(value = [
         ApiResponse(responseCode = "200", description = "Successfully retrieved the pumps"),
@@ -37,7 +54,7 @@ class PumpController (
         ApiResponse(responseCode = "403", description = "Accessing the resource you were trying to reach is forbidden"),
         ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
     ])
-    @GetMapping("/all")
+    @GetMapping("/retrieve")
     fun getPumps() : ResponseEntity<List<Pump>> {
         log.info("Getting all pumps")
 
@@ -49,10 +66,14 @@ class PumpController (
         val overheatingPumps = pumpService.getOverheatingPumps()
         val underheatingPumps = pumpService.getUnderheatingPumps()
 
-        pumpsList.addAll(operatingPumps)
-        pumpsList.addAll(maintenancePumps)
-        pumpsList.addAll(overheatingPumps)
-        pumpsList.addAll(underheatingPumps)
+        operatingPumps?.let { pumpsList.addAll(it) }
+        maintenancePumps?.let { pumpsList.addAll(it) }
+        overheatingPumps?.let { pumpsList.addAll(it) }
+        underheatingPumps?.let { pumpsList.addAll(it) }
+
+        if (pumpsList.isEmpty()) {
+            return ResponseEntity.notFound().build()
+        }
 
         log.info("Pumps: $pumpsList")
 
@@ -71,7 +92,7 @@ class PumpController (
         log.info("Getting all operational pumps")
 
         val repl: REPL = replConfig.repl()
-        val pumpsList = pumpService.getOperatingPumps()
+        val pumpsList = pumpService.getOperatingPumps() ?: return ResponseEntity.notFound().build()
 
         log.info("Pumps: $pumpsList")
 
@@ -90,7 +111,7 @@ class PumpController (
         log.info("Getting all pumps in maintenance")
 
         val repl: REPL = replConfig.repl()
-        val pumpsList = pumpService.getMaintenancePumps()
+        val pumpsList = pumpService.getMaintenancePumps() ?: return ResponseEntity.notFound().build()
 
         log.info("Pumps: $pumpsList")
 
@@ -109,7 +130,7 @@ class PumpController (
         log.info("Getting all overheating pumps")
 
         val repl: REPL = replConfig.repl()
-        val pumpsList = pumpService.getOverheatingPumps()
+        val pumpsList = pumpService.getOverheatingPumps() ?: return ResponseEntity.notFound().build()
 
         log.info("Pumps: $pumpsList")
 
@@ -128,7 +149,7 @@ class PumpController (
         log.info("Getting all underheating pumps")
 
         val repl: REPL = replConfig.repl()
-        val pumpsList = pumpService.getUnderheatingPumps()
+        val pumpsList = pumpService.getUnderheatingPumps() ?: return ResponseEntity.notFound().build()
 
         log.info("Pumps: $pumpsList")
 
@@ -143,7 +164,7 @@ class PumpController (
         ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
     ])
     @PostMapping("/update")
-    fun updatePump(@SwaggerRequestBody(description = "Pump to be updated") @RequestBody pumpRequest: PumpRequest) : ResponseEntity<String> {
+    fun updatePump(@SwaggerRequestBody(description = "Pump to be updated") @RequestBody pumpRequest: UpdatePumpRequest) : ResponseEntity<String> {
         log.info("Updating pump pressure")
 
         val updatedPump = Pump(pumpRequest.pumpGpioPin, pumpRequest.pumpId, pumpRequest.modelName, pumpRequest.lifeTime, pumpRequest.temperature, PumpState.Unknown)
@@ -166,7 +187,7 @@ class PumpController (
         ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
     ])
     @PostMapping("/update-multil")
-    fun updateMultiplePumps(@SwaggerRequestBody(description = "Pumps to be updated") @RequestBody pumpRequests: List<PumpRequest>) : ResponseEntity<String> {
+    fun updateMultiplePumps(@SwaggerRequestBody(description = "Pumps to be updated") @RequestBody pumpRequests: List<UpdatePumpRequest>) : ResponseEntity<String> {
         log.info("Updating pumps pressure")
 
         val updatedPumps = pumpRequests.map { Pump(it.pumpGpioPin, it.pumpId, it.modelName, it.lifeTime, it.temperature, PumpState.Unknown) }
@@ -181,5 +202,25 @@ class PumpController (
         replConfig.regenerateSingleModel().invoke("pumps")
 
         return ResponseEntity.ok("Pumps updated")
+    }
+
+    @Operation(summary = "Delete a pump")
+    @ApiResponses(value = [
+        ApiResponse(responseCode = "200", description = "Successfully deleted the pump"),
+        ApiResponse(responseCode = "401", description = "You are not authorized to view the resource"),
+        ApiResponse(responseCode = "403", description = "Accessing the resource you were trying to reach is forbidden"),
+        ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
+    ])
+    @PostMapping("/delete")
+    fun deletePump(@SwaggerRequestBody(description = "Pump to be deleted") @RequestBody pumpRequest: DeletePumpRequest) : ResponseEntity<String> {
+        log.info("Deleting a pump")
+
+        if (!pumpService.deletePump(pumpRequest.pumpId)) {
+            return ResponseEntity.badRequest().body("Failed to delete pump")
+        }
+
+        replConfig.regenerateSingleModel().invoke("pumps")
+
+        return ResponseEntity.ok("Pump deleted")
     }
 }
