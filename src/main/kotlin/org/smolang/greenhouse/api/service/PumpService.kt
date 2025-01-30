@@ -28,7 +28,7 @@ class PumpService (
     private val repl = replConfig.repl()
 
     fun createPump(newPump: Pump) : Boolean {
-        val createPump = """
+        val query = """
             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
             PREFIX ast: <$prefix>
             
@@ -42,7 +42,7 @@ class PumpService (
             }
         """
 
-        val updateRequest: UpdateRequest = UpdateFactory.create(createPump)
+        val updateRequest: UpdateRequest = UpdateFactory.create(query)
         val fusekiEndpoint = tripleStore + "/update"
         val updateProcessor: UpdateProcessor = UpdateExecutionFactory.createRemote(updateRequest, fusekiEndpoint)
 
