@@ -163,7 +163,7 @@ class PumpController (
         ApiResponse(responseCode = "403", description = "Accessing the resource you were trying to reach is forbidden"),
         ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
     ])
-    @PostMapping("/update")
+    @PatchMapping("/update")
     fun updatePump(@SwaggerRequestBody(description = "Pump to be updated") @RequestBody pumpRequest: UpdatePumpRequest) : ResponseEntity<String> {
         log.info("Updating pump pressure")
 
@@ -186,7 +186,7 @@ class PumpController (
         ApiResponse(responseCode = "403", description = "Accessing the resource you were trying to reach is forbidden"),
         ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
     ])
-    @PostMapping("/update-multil")
+    @PatchMapping("/update-multil")
     fun updateMultiplePumps(@SwaggerRequestBody(description = "Pumps to be updated") @RequestBody pumpRequests: List<UpdatePumpRequest>) : ResponseEntity<String> {
         log.info("Updating pumps pressure")
 
@@ -211,7 +211,7 @@ class PumpController (
         ApiResponse(responseCode = "403", description = "Accessing the resource you were trying to reach is forbidden"),
         ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
     ])
-    @PostMapping("/delete")
+    @DeleteMapping("/delete")
     fun deletePump(@SwaggerRequestBody(description = "Pump to be deleted") @RequestBody pumpRequest: DeletePumpRequest) : ResponseEntity<String> {
         log.info("Deleting a pump")
 
