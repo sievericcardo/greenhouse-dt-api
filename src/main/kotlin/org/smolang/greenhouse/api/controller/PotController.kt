@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.logging.Logger
+import org.smolang.greenhouse.api.types.CreatePotRequest
+import org.smolang.greenhouse.api.types.UpdatePotRequest
 
 @RestController
 @RequestMapping("/api/pots")
@@ -29,7 +31,7 @@ class PotController (
         ApiResponse(responseCode = "403", description = "Accessing the resource you were trying to reach is forbidden"),
         ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
     ])
-    @GetMapping("/all")
+    @GetMapping("/retrieve")
     fun getPots() : ResponseEntity<List<Pot>> {
         log.info("Getting all pots")
 
