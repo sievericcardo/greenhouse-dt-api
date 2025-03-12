@@ -5,9 +5,10 @@ import org.apache.jena.query.ResultSet
 import org.smolang.greenhouse.api.config.EnvironmentConfig
 import org.smolang.greenhouse.api.config.QueueConfig
 import org.smolang.greenhouse.api.config.REPLConfig
+import org.springframework.stereotype.Service
 import java.util.logging.Logger
 
-
+@Service
 class DecisionService (
     private val replConfig: REPLConfig,
     private val environmentConfig: EnvironmentConfig,
