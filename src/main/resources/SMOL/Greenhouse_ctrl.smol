@@ -96,23 +96,23 @@ class AssetController (AssetModel model, DecisionMaker decide)
 
                 //NDVI START
                 //check all healthstates in the digital twin and check whether we are within some bounds
-                List<HealthState> healthStates = access("
-                    SELECT DISTINCT ?obj {
-                        ?obj a prog:HealthState ;
-                             prog:HealthState_healthStateId ?healthStateId ;
-                             prog:HealthState_healthStateName ?healthStateName .
-                    }");
+                // List<HealthState> healthStates = access("
+                //     SELECT DISTINCT ?obj {
+                //         ?obj a prog:HealthState ;
+                //              prog:HealthState_healthStateId ?healthStateId ;
+                //              prog:HealthState_healthStateName ?healthStateName .
+                //     }");
 
-                while healthStates != null do
-                    HealthState healthState = healthStates.content;
-                    healthStates = healthStates.next;
-                    Double plantNdvi = plant.getNdvi();
+                // while healthStates != null do
+                //     HealthState healthState = healthStates.content;
+                //     healthStates = healthStates.next;
+                //     Double plantNdvi = plant.getNdvi();
 
-                    if plantNdvi >= healthState.minNdvi & plantNdvi <= healthState.maxNdvi then
-                            print("BEHAVIOUR> Plant in good health");
-                            plant.healthState = healthState.name;
-                    end
-                end
+                //     if plantNdvi >= healthState.minNdvi & plantNdvi <= healthState.maxNdvi then
+                //             print("BEHAVIOUR> Plant in good health");
+                //             plant.healthState = healthState.name;
+                //     end
+                // end
                 //NDVI END
             end
         end

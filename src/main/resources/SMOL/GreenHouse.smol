@@ -113,8 +113,8 @@ main
     assetModel.register(m4);
 
     //NDVI START
-    HealthModel m5 = new HealthModel("health states");
-    assetModel.register(m5);
+    // HealthModel m5 = new HealthModel("health states");
+    // assetModel.register(m5);
     //NDVI STOP
 
 

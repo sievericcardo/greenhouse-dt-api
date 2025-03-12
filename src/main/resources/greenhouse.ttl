@@ -90,6 +90,12 @@ ast:hasGroupPosition rdf:type owl:DatatypeProperty ;
                                 ] .
 
 
+###  http://www.smolang.org/greenhouseDT#hasHealthStateName
+ast:hasHealthStateName rdf:type owl:DatatypeProperty ;
+                       rdfs:domain ast:HealthState ;
+                       rdfs:range xsd:string .
+
+
 ###  http://www.smolang.org/greenhouseDT#hasHumidity
 ast:hasHumidity rdf:type owl:DatatypeProperty ;
                 rdfs:domain ast:Shelf ;
@@ -180,12 +186,6 @@ ast:name rdf:type owl:DatatypeProperty ;
 ast:ndvi rdf:type owl:DatatypeProperty ;
          rdfs:domain ast:Plant ;
          rdfs:range xsd:double .
-
-
-###  http://www.smolang.org/greenhouseDT#noiseLevel
-ast:noiseLevel rdf:type owl:DatatypeProperty ;
-               rdfs:domain ast:Pump ;
-               rdfs:range xsd:integer .
 
 
 ###  http://www.smolang.org/greenhouseDT#plantId
@@ -284,7 +284,11 @@ ast:BadHealthState rdf:type owl:Class ;
                                                             ) ;
                                          rdf:type owl:Class
                                        ] ;
-                   rdfs:subClassOf ast:HealthState ;
+                   rdfs:subClassOf ast:HealthState ,
+                                   [ rdf:type owl:Restriction ;
+                                     owl:onProperty ast:hasHealthStateName ;
+                                     owl:hasValue "Unhealthy"
+                                   ] ;
                    owl:disjointWith ast:DeadHealthState ,
                                     ast:GoodHealthState .
 
@@ -321,7 +325,11 @@ ast:DeadHealthState rdf:type owl:Class ;
                                                              ) ;
                                           rdf:type owl:Class
                                         ] ;
-                    rdfs:subClassOf ast:HealthState ;
+                    rdfs:subClassOf ast:HealthState ,
+                                    [ rdf:type owl:Restriction ;
+                                      owl:onProperty ast:hasHealthStateName ;
+                                      owl:hasValue "Dead"
+                                    ] ;
                     owl:disjointWith ast:GoodHealthState .
 
 
@@ -348,7 +356,11 @@ ast:GoodHealthState rdf:type owl:Class ;
                                                              ) ;
                                           rdf:type owl:Class
                                         ] ;
-                    rdfs:subClassOf ast:HealthState .
+                    rdfs:subClassOf ast:HealthState ,
+                                    [ rdf:type owl:Restriction ;
+                                      owl:onProperty ast:hasHealthStateName ;
+                                      owl:hasValue "Healthy"
+                                    ] .
 
 
 ###  http://www.smolang.org/greenhouseDT#Greenhouse
@@ -369,7 +381,11 @@ ast:Greenhouse rdf:type owl:Class ;
 
 
 ###  http://www.smolang.org/greenhouseDT#HealthState
-ast:HealthState rdf:type owl:Class .
+ast:HealthState rdf:type owl:Class ;
+                owl:disjointUnionOf ( ast:BadHealthState
+                                      ast:DeadHealthState
+                                      ast:GoodHealthState
+                                    ) .
 
 
 ###  http://www.smolang.org/greenhouseDT#Maintenance
@@ -380,27 +396,6 @@ ast:Maintenance rdf:type owl:Class ;
 ###  http://www.smolang.org/greenhouseDT#MaintenanceR365
 ast:MaintenanceR365 rdf:type owl:Class ;
                     owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Class ;
-                                                                 owl:unionOf ( [ rdf:type owl:Restriction ;
-                                                                                 owl:onProperty ast:noiseLevel ;
-                                                                                 owl:someValuesFrom [ rdf:type rdfs:Datatype ;
-                                                                                                      owl:onDatatype xsd:integer ;
-                                                                                                      owl:withRestrictions ( [ xsd:minExclusive 65
-                                                                                                                             ]
-                                                                                                                           )
-                                                                                                    ]
-                                                                               ]
-                                                                               [ rdf:type owl:Restriction ;
-                                                                                 owl:onProperty ast:pumpLifeTime ;
-                                                                                 owl:someValuesFrom [ rdf:type rdfs:Datatype ;
-                                                                                                      owl:onDatatype xsd:integer ;
-                                                                                                      owl:withRestrictions ( [ xsd:minInclusive 2500
-                                                                                                                             ]
-                                                                                                                           )
-                                                                                                    ]
-                                                                               ]
-                                                                             )
-                                                               ]
-                                                               [ rdf:type owl:Class ;
                                                                  owl:unionOf ( [ rdf:type owl:Restriction ;
                                                                                  owl:onProperty ast:temperature ;
                                                                                  owl:someValuesFrom [ rdf:type rdfs:Datatype ;
@@ -420,6 +415,15 @@ ast:MaintenanceR365 rdf:type owl:Class ;
                                                                                                     ]
                                                                                ]
                                                                              )
+                                                               ]
+                                                               [ rdf:type owl:Restriction ;
+                                                                 owl:onProperty ast:pumpLifeTime ;
+                                                                 owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                      owl:onDatatype xsd:integer ;
+                                                                                      owl:withRestrictions ( [ xsd:minInclusive 2500
+                                                                                                             ]
+                                                                                                           )
+                                                                                    ]
                                                                ]
                                                                [ rdf:type owl:Restriction ;
                                                                  owl:onProperty ast:modelName ;
@@ -523,15 +527,6 @@ ast:Operational rdf:type owl:Class ;
 ###  http://www.smolang.org/greenhouseDT#OperationalR365
 ast:OperationalR365 rdf:type owl:Class ;
                     owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
-                                                                 owl:onProperty ast:noiseLevel ;
-                                                                 owl:someValuesFrom [ rdf:type rdfs:Datatype ;
-                                                                                      owl:onDatatype xsd:integer ;
-                                                                                      owl:withRestrictions ( [ xsd:maxInclusive 65
-                                                                                                             ]
-                                                                                                           )
-                                                                                    ]
-                                                               ]
-                                                               [ rdf:type owl:Restriction ;
                                                                  owl:onProperty ast:pumpLifeTime ;
                                                                  owl:someValuesFrom [ rdf:type rdfs:Datatype ;
                                                                                       owl:onDatatype xsd:integer ;
@@ -636,15 +631,6 @@ ast:Overheating rdf:type owl:Class ;
 ###  http://www.smolang.org/greenhouseDT#OverheatingR365
 ast:OverheatingR365 rdf:type owl:Class ;
                     owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
-                                                                 owl:onProperty ast:noiseLevel ;
-                                                                 owl:someValuesFrom [ rdf:type rdfs:Datatype ;
-                                                                                      owl:onDatatype xsd:integer ;
-                                                                                      owl:withRestrictions ( [ xsd:maxInclusive 65
-                                                                                                             ]
-                                                                                                           )
-                                                                                    ]
-                                                               ]
-                                                               [ rdf:type owl:Restriction ;
                                                                  owl:onProperty ast:pumpLifeTime ;
                                                                  owl:someValuesFrom [ rdf:type rdfs:Datatype ;
                                                                                       owl:onDatatype xsd:integer ;
@@ -798,40 +784,6 @@ ast:Underheating rdf:type owl:Class ;
 
 ###  http://www.smolang.org/greenhouseDT#UnderheatingR365
 ast:UnderheatingR365 rdf:type owl:Class ;
-                     owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
-                                                                  owl:onProperty ast:noiseLevel ;
-                                                                  owl:someValuesFrom [ rdf:type rdfs:Datatype ;
-                                                                                       owl:onDatatype xsd:integer ;
-                                                                                       owl:withRestrictions ( [ xsd:maxInclusive 65
-                                                                                                              ]
-                                                                                                            )
-                                                                                     ]
-                                                                ]
-                                                                [ rdf:type owl:Restriction ;
-                                                                  owl:onProperty ast:pumpLifeTime ;
-                                                                  owl:someValuesFrom [ rdf:type rdfs:Datatype ;
-                                                                                       owl:onDatatype xsd:integer ;
-                                                                                       owl:withRestrictions ( [ xsd:maxExclusive 2500
-                                                                                                              ]
-                                                                                                            )
-                                                                                     ]
-                                                                ]
-                                                                [ rdf:type owl:Restriction ;
-                                                                  owl:onProperty ast:temperature ;
-                                                                  owl:someValuesFrom [ rdf:type rdfs:Datatype ;
-                                                                                       owl:onDatatype xsd:double ;
-                                                                                       owl:withRestrictions ( [ xsd:maxExclusive "5.0"^^xsd:double
-                                                                                                              ]
-                                                                                                            )
-                                                                                     ]
-                                                                ]
-                                                                [ rdf:type owl:Restriction ;
-                                                                  owl:onProperty ast:modelName ;
-                                                                  owl:hasValue "R365"
-                                                                ]
-                                                              ) ;
-                                           rdf:type owl:Class
-                                         ] ;
                      rdfs:subClassOf ast:Underheating .
 
 
@@ -919,6 +871,7 @@ ast:badHealthState rdf:type owl:NamedIndividual ,
 ast:basilicum1 rdf:type owl:NamedIndividual ,
                         ast:Basil ;
                ast:idealMoisture "50.0"^^xsd:double ;
+               ast:ndvi "0.0"^^xsd:double ;
                ast:plantId "1" .
 
 
@@ -926,6 +879,7 @@ ast:basilicum1 rdf:type owl:NamedIndividual ,
 ast:basilicum2 rdf:type owl:NamedIndividual ,
                         ast:Basil ;
                ast:idealMoisture "50.0"^^xsd:double ;
+               ast:ndvi "0.0"^^xsd:double ;
                ast:plantId "2" .
 
 
@@ -1021,7 +975,6 @@ ast:pot4 rdf:type owl:NamedIndividual ,
 ast:pump1 rdf:type owl:NamedIndividual ,
                    ast:Pump ;
           ast:modelName "R385" ;
-          ast:noiseLevel 20 ;
           ast:pumpGpioPin 18 ;
           ast:pumpId "1" ;
           ast:pumpLifeTime 0 ;
@@ -1032,7 +985,6 @@ ast:pump1 rdf:type owl:NamedIndividual ,
 ast:pump2 rdf:type owl:NamedIndividual ,
                    ast:Pump ;
           ast:modelName "WPS27" ;
-          ast:noiseLevel 20 ;
           ast:pumpGpioPin 18 ;
           ast:pumpId "2" ;
           ast:pumpLifeTime 30 ;
@@ -1043,7 +995,6 @@ ast:pump2 rdf:type owl:NamedIndividual ,
 ast:pump3 rdf:type owl:NamedIndividual ,
                    ast:Pump ;
           ast:modelName "R365" ;
-          ast:noiseLevel 50 ;
           ast:pumpGpioPin 18 ;
           ast:pumpId "3" ;
           ast:pumpLifeTime 3000 ;
@@ -1074,6 +1025,7 @@ ast:shelf2 rdf:type owl:NamedIndividual ,
 ast:stemor1 rdf:type owl:NamedIndividual ,
                      ast:Plant ;
             ast:idealMoisture "40.0"^^xsd:double ;
+            ast:ndvi "0.0"^^xsd:double ;
             ast:plantId "3" .
 
 
@@ -1081,6 +1033,7 @@ ast:stemor1 rdf:type owl:NamedIndividual ,
 ast:stemor2 rdf:type owl:NamedIndividual ,
                      ast:Plant ;
             ast:idealMoisture "40.0"^^xsd:double ;
+            ast:ndvi "0.0"^^xsd:double ;
             ast:plantId "4" .
 
 

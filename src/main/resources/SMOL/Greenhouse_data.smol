@@ -1,11 +1,71 @@
 abstract class Twin() end
 
+abstract hidden class HealthState extends Twin (
+    context Plant plant
+)
+    Unit printInfo()
+        print("Health State");
+    end
+end
+
+class BadHealthState extends HealthState (String name)
+classifies "<ast:BadHealthState>";
+retrieves "
+SELECT DISTINCT ?name WHERE {
+  ?healthState rdfs:subClassOf ast:BadHealthState ;
+    rdfs:subClassOf ?restriction .
+
+    ?restriction owl:onProperty ast:hasHealthStateName ;
+        owl:hasValue ?name .
+}";
+    override Unit printInfo()
+        print("Health State: " ++ this.name);
+    end
+end
+
+class GoodHealthState extends HealthState (String name)
+classifies "<ast:GoodHealthState>";
+retrieves "
+SELECT DISTINCT ?name WHERE {
+  ?healthState rdfs:subClassOf ast:GoodHealthState ;
+    rdfs:subClassOf ?restriction .
+    
+    ?restriction owl:onProperty ast:hasHealthStateName ;
+        owl:hasValue ?name .
+}";
+    override Unit printInfo()
+        print("Health State: " ++ this.name);
+    end
+end
+
+class DeadHealthState extends HealthState (String name)
+classifies "<ast:DeadHealthState>";
+retrieves "
+SELECT DISTINCT ?name WHERE {
+  ?healthState rdfs:subClassOf ast:DeadHealthState ;
+    rdfs:subClassOf ?restriction .
+
+    ?restriction owl:onProperty ast:hasHealthStateName ;
+        owl:hasValue ?name .
+}";
+    override Unit printInfo()
+        print("Health State: " ++ this.name);
+    end
+end
+
 /**
  *  Models a physical plant. It is initially retrieved by
  *  the asset model, but it can be reconfigured by the program model.
  *  Each plant is associated with a pot.
  */
-class Plant extends Twin (String plantId, Double idealMoisture, Double moisture, String healthState)
+class Plant extends Twin (
+    String plantId,
+    Double idealMoisture,
+    Double moisture,
+    domain Double ndvi,
+    HealthState healthState
+)
+models "a ast:Plant ; domain:ndvi %ndvi .";
 
     Double getPotMoisture()
         String id = this.plantId ++ ".0";
@@ -31,8 +91,13 @@ class Plant extends Twin (String plantId, Double idealMoisture, Double moisture,
 
 // NDVI START
     Double getNdvi()
-    String id = this.plantId ++ ".0";
-        Double healthState = 0.0;
+
+        if this.ndvi != null then
+            this.ndvi = 0.0;
+        end
+
+        String id = this.plantId ++ ".0";
+        Double ndviVal = 0.0;
         List<Double> influxReturn = access(
             "from(bucket: \"GreenHouse\")
                 |> range(start: -30d)
@@ -45,12 +110,13 @@ class Plant extends Twin (String plantId, Double idealMoisture, Double moisture,
         id);
 
         if influxReturn != null then
-            healthState = influxReturn.content;
+            ndviVal = influxReturn.content;
+            this.ndvi = ndviVal;
         end
 
-        return healthState;
+        return this.ndvi;
     end
-// NDVI END
+    // NDVI END
 end
 
 

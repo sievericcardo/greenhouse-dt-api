@@ -30,7 +30,7 @@ open class REPLConfig {
         val tripleStoreDataset = System.getenv("TRIPLESTORE_DATASET") ?: "ds"
         val triplestoreUrl = "http://$tripleStoreHost:3030/$tripleStoreDataset"
         val domainPrefixUri = System.getenv("DOMAIN_PREFIX_URI") ?: ""
-        val reasoner = ReasonerMode.off
+        val reasoner = ReasonerMode.owl
 
         if (System.getenv("EXTRA_PREFIXES") != null) {
             val prefixes = System.getenv("EXTRA_PREFIXES")!!.split(";")

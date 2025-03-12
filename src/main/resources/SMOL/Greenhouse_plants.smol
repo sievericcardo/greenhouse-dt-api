@@ -20,6 +20,8 @@ class PlantModel extends BaseModel()
             while newPlants != null do
                 Plant newPlant = newPlants.content;
                 newPlant.moisture = newPlant.getPotMoisture();
+                newPlant.ndvi = newPlant.getNdvi();
+                newPlant.healthState = classify(newPlant);
 
                 List<Plant> lx = newPlants;
                 newPlants = newPlants.next;
@@ -27,6 +29,8 @@ class PlantModel extends BaseModel()
                 print("          Plant Id: " ++ newPlant.plantId);
                 print("          Ideal Moisture: " ++ doubleToString(newPlant.idealMoisture));
                 print("          Moisture: " ++ doubleToString(newPlant.moisture));
+                print("          NDVI: " ++ doubleToString(newPlant.ndvi));
+                print("          Health State: " ++ newPlant.healthState.name);
 
                 destroy(lx);
             end
@@ -105,5 +109,28 @@ class PlantModel extends BaseModel()
         end
     end
 
-    override Unit adaptBehaviour() skip; end
+    override Unit adaptBehaviour()
+        List<Plant> plants = access("
+            SELECT DISTINCT ?obj {
+                ?obj a prog:Plant .
+            }
+        ");
+
+        if plants == null then print("ADAPT> No plants to adapt"); else
+            print("ADAPT> Adapting plants...");
+
+            while plants != null do
+                Plant plant = plants.content;
+
+                print("ADAPT> Adapting plant " ++ plant.plantId);
+
+                adapt(plant.healthState);
+                plant.healthState.printInfo();
+
+                List<Plant> oldList = plants;
+                plants = plants.next;
+                destroy(oldList);
+            end
+        end
+    end
 end

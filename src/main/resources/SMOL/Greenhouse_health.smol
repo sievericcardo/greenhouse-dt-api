@@ -1,36 +1,36 @@
 //NDVI START
 class HealthModel extends BaseModel()
     override Unit adaptAddition()
-            List<HealthState> newHealthStates = construct("
-                PREFIX ast: <http://www.smolang.org/greenhouseDT#>
-                SELECT ?name ?maxNdvi ?minNdvi {
-                    ?healthState a ast:HealthState ;
-                        ast:name ?name ;
-                        ast:maxNdvi ?maxNdvi ;
-                        ast:minNdvi ?minNdvi .
-                        FILTER NOT EXISTS {
-                            ?y a prog:HealthState; prog:HealthState_name ?name.
-                        }
-                }");
+        List<HealthState> newHealthStates = construct("
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
+            SELECT ?name ?maxNdvi ?minNdvi {
+                ?healthState a ast:HealthState ;
+                    ast:name ?name ;
+                    ast:maxNdvi ?maxNdvi ;
+                    ast:minNdvi ?minNdvi .
+                    FILTER NOT EXISTS {
+                        ?y a prog:HealthState; prog:HealthState_name ?name.
+                    }
+            }");
 
-            if newHealthStates != null then
-                print("RECONFIG> New Health State(s) detected: repairing the model");
+        if newHealthStates != null then
+            print("RECONFIG> New Health State(s) detected: repairing the model");
 
-                while newHealthStates != null do
-                    HealthState newHealthState = newHealthStates.content;
-                    List<HealthState> lx = newHealthStates;
-                    newHealthStates = newHealthStates.next;
-                    destroy(lx);
+            while newHealthStates != null do
+                HealthState newHealthState = newHealthStates.content;
+                List<HealthState> lx = newHealthStates;
+                newHealthStates = newHealthStates.next;
+                destroy(lx);
 
-                    print("RECONFIG> New Health State detected: ");
-                    print("          Name: " ++ newHealthState.name);
-                    print("          Max Ndvi: " ++ doubleToString(newHealthState.maxNdvi));
-                    print("          Min Ndvi: " ++ doubleToString(newHealthState.minNdvi));
+                print("RECONFIG> New Health State detected: ");
+                print("          Name: " ++ newHealthState.name);
+                print("          Max Ndvi: " ++ doubleToString(newHealthState.maxNdvi));
+                print("          Min Ndvi: " ++ doubleToString(newHealthState.minNdvi));
 
-                end
+            end
 
-                print("RECONFIG> Health State(s) added");
-            else print("RECONFIG> No Health State(s) added"); end
+            print("RECONFIG> Health State(s) added");
+        else print("RECONFIG> No Health State(s) added"); end
     end
 
 
