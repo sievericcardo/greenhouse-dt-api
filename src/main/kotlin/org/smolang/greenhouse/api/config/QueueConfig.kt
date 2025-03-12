@@ -9,10 +9,13 @@ import org.springframework.context.annotation.Configuration
 open class QueueConfig {
 
     private lateinit var activeMQConnectionFactory: ActiveMQConnectionFactory
+    private val host = System.getenv().getOrDefault("ACTIVEMQ_HOST", "localhost")
+    private val port = System.getenv().getOrDefault("ACTIVEMQ_PORT", "5672")
 
     @PostConstruct
     open fun initActiveMQ() {
-        activeMQConnectionFactory.brokerURL = "tcp://" + System.getenv("ACTIVEMQ_HOST") + ":" + System.getenv("ACTIVEMQ_PORT")
+        activeMQConnectionFactory = ActiveMQConnectionFactory()
+        activeMQConnectionFactory.brokerURL = "amqp://$host:$port"
     }
 
     @Bean
