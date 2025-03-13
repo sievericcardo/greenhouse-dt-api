@@ -8,8 +8,6 @@ import no.uio.microobject.runtime.REPL
 import no.uio.microobject.type.STRINGTYPE
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Lazy
-import java.io.File
 
 @Configuration
 open class REPLConfig {
@@ -18,9 +16,9 @@ open class REPLConfig {
 
     @PostConstruct
     fun initRepl() {
-        val verbose = true
-        val materialize = false
-        val liftedStateOutputPath = System.getenv("LIFTED_STATE_OUTPUT_PATH") ?: ""
+        val verbose = false
+        val materialize = true
+        val liftedStateOutputPath = System.getenv("LIFTED_STATE_OUTPUT_PATH") ?: "./"
         val progPrefix = "https://github.com/Edkamb/SemanticObjects/Program#"
         val runPrefix = "https://github.com/Edkamb/SemanticObjects/Run" + System.currentTimeMillis() + "#"
         val langPrefix = "https://github.com/Edkamb/SemanticObjects#"
@@ -59,7 +57,7 @@ open class REPLConfig {
         // get all file in SMOL_PATH
 
         repl = REPL(settings)
-        repl.command("verbose", "true")
+        repl.command("verbose", "false")
         repl.command("multiread", smolPath)
         repl.command("auto", "")
     }
