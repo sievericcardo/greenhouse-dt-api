@@ -986,20 +986,30 @@ ast:pump1 rdf:type owl:NamedIndividual ,
 ast:pump2 rdf:type owl:NamedIndividual ,
                    ast:Pump ;
           ast:modelName "WPS27" ;
-          ast:pumpGpioPin 18 ;
+          ast:pumpGpioPin 23 ;
           ast:pumpId "2" ;
           ast:pumpLifeTime 30 ;
-          ast:temperature "80.0"^^xsd:double .
+          ast:temperature "20.0"^^xsd:double .
 
 
 ###  http://www.smolang.org/greenhouseDT#pump3
 ast:pump3 rdf:type owl:NamedIndividual ,
                    ast:Pump ;
           ast:modelName "R365" ;
-          ast:pumpGpioPin 18 ;
+          ast:pumpGpioPin 25 ;
           ast:pumpId "3" ;
-          ast:pumpLifeTime 3000 ;
-          ast:temperature "94.0"^^xsd:double .
+          ast:pumpLifeTime 30 ;
+          ast:temperature "20.0"^^xsd:double .
+
+
+###  http://www.smolang.org/greenhouseDT#pump4
+ast:pump4 rdf:type owl:NamedIndividual ,
+                   ast:Pump ;
+          ast:modelName "R365" ;
+          ast:pumpGpioPin 24 ;
+          ast:pumpId "4" ;
+          ast:pumpLifeTime 30 ;
+          ast:temperature "20.0"^^xsd:double .
 
 
 ###  http://www.smolang.org/greenhouseDT#shelf1
