@@ -67,19 +67,31 @@ class AssetController (AssetModel model, DecisionMaker decide)
             if plant != null then
                 //Decision is made here
                 Double plantMoisture = plant.getPotMoisture();
+                print("BEHAVIOUR> Plant: " ++ plant.plantId ++ " has moisture: " ++ doubleToString(plantMoisture));
                 this.decide.setCurrent(plantMoisture);
                 this.decide.setCurrent(plant.idealMoisture);
                 Boolean d = this.decide.decide();
-                if d then
+                // if d then
+                if plant.moisture < plant.idealMoisture then
                     print("BEHAVIOUR> Plant that has to be watered: " ++ plant.plantId);
 
                     //Get the Pump for this plant
                     List<Pump> pumpsThatWater = access("
-                        SELECT ?obj  {
-                            ?obj prog:Pump_pumpId ?pumpId.
-                            ?pot prog:Pot_plantId %1 ;
-                                 prog:Pot_pumpId ?pumpId .
-                        }", plant.plantId);
+                        SELECT ?obj {
+                        {
+                            ?obj prog:Pump_pumpId ?pumpId
+                        } UNION {
+                            ?obj prog:OperatingPump_pumpId ?pumpId
+                        } UNION {
+                            ?obj prog:MaintenancePump_pumpId ?pumpId
+                        } UNION {
+                            ?obj prog:UnderheatingPump_pumpId ?pumpId
+                        } UNION {
+                            ?obj prog:OverheatingPump_pumpId ?pumpId
+                        }
+                        ?pot prog:Pot_plantId %1 ;
+                            prog:Pot_pumpId ?pumpId .
+                    }", plant.plantId);
 
                     // Generate decision
                     if pumpsThatWater != null then
