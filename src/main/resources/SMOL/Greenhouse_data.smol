@@ -1,12 +1,12 @@
 abstract class Twin() end
 
-abstract hidden class HealthState (context Plant plant)
+abstract hidden class HealthState (context Plant plant, String name)
     Unit printInfo()
         print("Health State");
     end
 end
 
-class BadHealthState extends HealthState (hidden String name)
+class BadHealthState extends HealthState ()
 classifies "<ast:BadHealthState>";
 retrieves "
 SELECT DISTINCT ?name WHERE {
@@ -23,7 +23,7 @@ LIMIT 1";
     end
 end
 
-class GoodHealthState extends HealthState (hidden String name)
+class GoodHealthState extends HealthState ()
 classifies "<ast:GoodHealthState>";
 retrieves "
 SELECT DISTINCT ?name WHERE {
@@ -40,7 +40,7 @@ LIMIT 1";
     end
 end
 
-class DeadHealthState extends HealthState (hidden String name)
+class DeadHealthState extends HealthState ()
 classifies "<ast:DeadHealthState>";
 retrieves "
 SELECT DISTINCT ?name WHERE {
@@ -185,7 +185,7 @@ end
 
 // NDVI START
 /* Models the health state of a plant via NDVI */
-class HealthState extends Twin (String name, Double minNdvi, Double maxNdvi) end
+// class HealthState extends Twin (String name, Double minNdvi, Double maxNdvi) end
 // NDVI END
 
 /* The following classes are used to store results of CONSTRUCT queries */
