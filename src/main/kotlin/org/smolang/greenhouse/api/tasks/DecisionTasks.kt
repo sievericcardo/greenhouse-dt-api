@@ -20,6 +20,7 @@ class DecisionTasks (
     fun makeDecision() {
         log.info( "Start decision process")
         val plantsToWater = decisionService.execSmol()
+        log.info("Plants to water: $plantsToWater")
         decisionService.waterControl(plantsToWater)
         log.info( "End decision process")
     }

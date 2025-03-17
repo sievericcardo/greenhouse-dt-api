@@ -20,8 +20,8 @@ class DecisionController (
 
 //    @Scheduled(fixedRate = 3600000) // 3600000 milliseconds = 60 minutes
 //    @Scheduled(fixedRate = 3) // 3600000 milliseconds = 60 minutes
-    @Scheduled(cron = "*/5 * * * * *") // Execute every 5 second
-    @Operation(summary = "Make a decision every 6 hours")
+//    @Scheduled(cron = "*/5 * * * * *") // Execute every 5 second
+//    @Operation(summary = "Make a decision every 6 hours")
     fun makeDecision() {
         log.info( "Start decision process")
         val plantsToWater = decisionService.execSmol()
