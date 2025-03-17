@@ -1,14 +1,12 @@
 abstract class Twin() end
 
-abstract hidden class HealthState extends Twin (
-    context Plant plant
-)
+abstract hidden class HealthState (context Plant plant)
     Unit printInfo()
         print("Health State");
     end
 end
 
-class BadHealthState extends HealthState (String name)
+class BadHealthState extends HealthState (hidden String name)
 classifies "<ast:BadHealthState>";
 retrieves "
 SELECT DISTINCT ?name WHERE {
@@ -25,7 +23,7 @@ LIMIT 1";
     end
 end
 
-class GoodHealthState extends HealthState (String name)
+class GoodHealthState extends HealthState (hidden String name)
 classifies "<ast:GoodHealthState>";
 retrieves "
 SELECT DISTINCT ?name WHERE {
@@ -42,7 +40,7 @@ LIMIT 1";
     end
 end
 
-class DeadHealthState extends HealthState (String name)
+class DeadHealthState extends HealthState (hidden String name)
 classifies "<ast:DeadHealthState>";
 retrieves "
 SELECT DISTINCT ?name WHERE {
@@ -154,7 +152,7 @@ classifies "<ast:Operational>";
     end
 end
 
-class MaintenancePump extends Pump (Int powerOutput)
+class MaintenancePump extends Pump (hidden Int powerOutput)
 classifies "<ast:Maintenance>";
 retrieves "SELECT DISTINCT ?powerOutput WHERE {
   %this a prog:Pump ;
@@ -166,7 +164,7 @@ retrieves "SELECT DISTINCT ?powerOutput WHERE {
   FILTER (?model = ?modelName) .
 }";
     Unit printInfo()
-        print("Pump: " ++ this.pumpId ++ " is in maintenance. Set power to " ++ this.powerOutput ++ ".");
+        print("Pump: " ++ this.pumpId ++ " is in maintenance. Set power to " ++ intToString(this.powerOutput) ++ ".");
     end
 end
 
