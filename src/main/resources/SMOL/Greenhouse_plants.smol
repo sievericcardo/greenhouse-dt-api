@@ -123,6 +123,7 @@ class PlantModel extends BaseModel()
                 Plant plant = plants.content;
 
                 print("ADAPT> Adapting plant " ++ plant.plantId);
+                plant.ndvi = plant.getNdvi();
 
                 adapt(plant.healthState);
                 plant.healthState.printInfo();
