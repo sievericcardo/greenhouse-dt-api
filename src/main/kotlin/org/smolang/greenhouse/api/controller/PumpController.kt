@@ -7,6 +7,7 @@ import no.uio.microobject.runtime.REPL
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.model.Pump
 import org.smolang.greenhouse.api.service.PumpService
+import org.smolang.greenhouse.api.types.PumpState
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.logging.Logger
