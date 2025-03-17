@@ -24,7 +24,8 @@ class DecisionService (
         repl.interpreter!!.evalCall(
             repl.interpreter!!.getObjectNames("AssetModel")[0],
             "AssetModel",
-            "decision"
+            "decision",
+            mapOf()
         )
 
         val needWaterQuery: String =
