@@ -75,7 +75,7 @@ class DecisionService (
 
         if (pumpPinsToActivate.isNotEmpty()) {
             // We are not going to connect to any machines if we are in local
-            val mode = environmentConfig.getOrDefault("MODE", "local")
+            val mode = environmentConfig.getOrDefault("MODE", "remote")
             if (mode== "remote") {
                 for (pumps in pumpPinsToActivate) {
                     try {
