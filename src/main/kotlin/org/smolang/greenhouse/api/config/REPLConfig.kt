@@ -20,7 +20,7 @@ open class REPLConfig {
     fun initRepl() {
         val verbose = true
         val materialize = false
-        val liftedStateOutputPath = System.getenv("LIFTED_STATE_OUTPUT_PATH") ?: ""
+        val liftedStateOutputPath = System.getenv("LIFTED_STATE_OUTPUT_PATH") ?: "./"
         val progPrefix = "https://github.com/Edkamb/SemanticObjects/Program#"
         val runPrefix = "https://github.com/Edkamb/SemanticObjects/Run" + System.currentTimeMillis() + "#"
         val langPrefix = "https://github.com/Edkamb/SemanticObjects#"
@@ -30,7 +30,7 @@ open class REPLConfig {
         val tripleStoreDataset = System.getenv("TRIPLESTORE_DATASET") ?: "ds"
         val triplestoreUrl = "http://$tripleStoreHost:3030/$tripleStoreDataset"
         val domainPrefixUri = System.getenv("DOMAIN_PREFIX_URI") ?: ""
-        val reasoner = ReasonerMode.owl
+        val reasoner = ReasonerMode.off
 
         if (System.getenv("EXTRA_PREFIXES") != null) {
             val prefixes = System.getenv("EXTRA_PREFIXES")!!.split(";")
@@ -59,7 +59,6 @@ open class REPLConfig {
         // get all file in SMOL_PATH
 
         repl = REPL(settings)
-        repl.command("verbose", "true")
         repl.command("multiread", smolPath)
         repl.command("auto", "")
     }
@@ -79,6 +78,17 @@ open class REPLConfig {
             "reconfigureSingleModel",
             mapOf("mod" to LiteralExpr(escapedModelName, STRINGTYPE))
         )
+        repl.interpreter!!.evalCall(
+            repl.interpreter!!.getObjectNames("AssetModel")[0],
+            "AssetModel",
+            "reclassifySingleModel",
+            mapOf("mod" to LiteralExpr(escapedModelName, STRINGTYPE))
+        )
+    }
+
+    @Bean
+    open fun reclassifySingleModel() : (String) -> Unit = { modelName: String ->
+        val escapedModelName = "\"$modelName\""
         repl.interpreter!!.evalCall(
             repl.interpreter!!.getObjectNames("AssetModel")[0],
             "AssetModel",
