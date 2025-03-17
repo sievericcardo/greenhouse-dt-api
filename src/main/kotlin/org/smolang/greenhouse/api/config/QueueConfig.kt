@@ -10,12 +10,12 @@ open class QueueConfig {
 
     private lateinit var activeMQConnectionFactory: ActiveMQConnectionFactory
     private val host = System.getenv().getOrDefault("ACTIVEMQ_HOST", "localhost")
-    private val port = System.getenv().getOrDefault("ACTIVEMQ_PORT", "5672")
+    private val port = System.getenv().getOrDefault("ACTIVEMQ_PORT", "61616")
 
     @PostConstruct
     open fun initActiveMQ() {
         activeMQConnectionFactory = ActiveMQConnectionFactory()
-        activeMQConnectionFactory.brokerURL = "amqp://$host:$port"
+        activeMQConnectionFactory.brokerURL = "tcp://$host:$port"
     }
 
     @Bean
