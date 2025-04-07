@@ -2,16 +2,12 @@ package org.smolang.greenhouse.api.types
 
 data class CreatePlantRequest (
     val plantId: String,
-    val idealMoisture: Double
+    val idealMoisture: Double,
+    val status: String,
 )
 
 data class UpdatePlantRequest (
-    val plantId: String,
     val idealMoistureNew: Double?
-)
-
-data class DeletePlantRequest (
-    val plantId: String
 )
 
 data class CreatePotRequest (

@@ -53,7 +53,8 @@ class PlantService (
                     prog:Plant_plantId ?plantId ;
                     prog:Plant_idealMoisture ?idealMoisture ;
                     prog:Plant_moisture ?moisture ;
-                    prog:Plant_healthState ?healthState .
+                    prog:Plant_healthState ?healthState ;
+                    prog:Plant_status ?status .
              }"""
 
         val result : ResultSet = repl.interpreter!!.query(plants)!!
@@ -69,8 +70,9 @@ class PlantService (
             val idealMoisture = solution.get("?idealMoisture").asLiteral().toString().split("^^")[0].toDouble()
             val moisture = solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble()
             val healthState = solution.get("?healthState").asLiteral().toString()
+            val status = solution.get("?status").asLiteral().toString()
 
-            plantsList.add(Plant(plantId, idealMoisture, moisture, healthState))
+            plantsList.add(Plant(plantId, idealMoisture, moisture, healthState, status))
         }
 
         return plantsList
@@ -78,13 +80,13 @@ class PlantService (
 
     fun getPlantByPlantId (plantId: String): Plant? {
         val query = """
-            PREFIX ast: <$prefix>
-            SELECT DISTINCT ?idealMoisture ?moisture ?healthState WHERE {
-                ?plant a ast:Plant ;
-                    ast:plantId "$plantId" ;
-                    ast:idealMoisture ?idealMoisture ;
-                    ast:moisture ?moisture ;
-                    ast:healthState ?healthState .
+            SELECT DISTINCT ?idealMoisture ?moisture ?healthState ?status WHERE {
+                ?plant a prog:Plant ;
+                    prog:Plant_plantId  "$plantId" ;
+                    prog:Plant_idealMoisture ?idealMoisture ;
+                    prog:Plant_moisture ?moisture ;
+                    prog:Plant_healthState ?healthState ;
+                    prog:Plant_status ?status .
             }
         """.trimIndent()
 
@@ -97,8 +99,9 @@ class PlantService (
         val idealMoisture = solution.get("?idealMoisture").asLiteral().toString().split("^^")[0].toDouble()
         val moisture = solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble()
         val healthState = solution.get("?healthState").asLiteral().toString()
+        val status = solution.get("?status").asLiteral().toString()
 
-        return Plant(plantId, idealMoisture, moisture, healthState)
+        return Plant(plantId, idealMoisture, moisture, healthState, status)
     }
 
     fun updatePlant(plant: Plant, newIdealMoisture: Double): Boolean {
@@ -112,7 +115,12 @@ class PlantService (
                 ?plant ast:idealMoisture $newIdealMoisture .
             }
             WHERE {
-                ?plant ast:idealMoisture ${plant.idealMoisture} .
+                ?plant a ast:Plant ;
+                    ast:plantId "${plant.plantId}" ;
+                    ast:idealMoisture ${plant.idealMoisture} ;
+                    ast:moisture ${plant.moisture} ;
+                    ast:healthState ${plant.healthState} ;
+                    ast:status ${plant.state} .
             }
         """.trimIndent()
 

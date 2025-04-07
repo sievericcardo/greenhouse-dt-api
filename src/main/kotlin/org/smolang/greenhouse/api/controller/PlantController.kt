@@ -1,12 +1,11 @@
 package org.smolang.greenhouse.api.controller
 
+import io.swagger.annotations.ApiParam
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
+import jakarta.validation.Valid
 import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBody
-import no.uio.microobject.runtime.REPL
-import org.apache.jena.query.QuerySolution
-import org.apache.jena.query.ResultSet
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.model.Plant
 import org.smolang.greenhouse.api.service.PlantService
@@ -14,7 +13,6 @@ import org.springframework.http.ResponseEntity
 import java.util.logging.Logger
 import org.smolang.greenhouse.api.types.CreatePlantRequest
 import org.smolang.greenhouse.api.types.UpdatePlantRequest
-import org.smolang.greenhouse.api.types.DeletePlantRequest
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -33,15 +31,16 @@ class PlantController (
         ApiResponse(responseCode = "403", description = "Accessing the resource you were trying to reach is forbidden"),
         ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
     ])
-    @PostMapping("/create")
+    @PostMapping(produces = ["application/json"])
     fun createPlant(@SwaggerRequestBody(description = "Plant to be created") @RequestBody createPlantRequest: CreatePlantRequest) : ResponseEntity<Boolean> {
         log.info("Creating a plant")
 
         val plant = Plant(
             createPlantRequest.plantId,
             createPlantRequest.idealMoisture,
-            0.0,
-            "bad"
+            100.0,
+            "good",
+            createPlantRequest.status
         )
 
         if (!plantService.createPlant(plant)) {
@@ -61,7 +60,7 @@ class PlantController (
         ApiResponse(responseCode = "403", description = "Accessing the resource you were trying to reach is forbidden"),
         ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
     ])
-    @GetMapping("/retrieve")
+    @GetMapping(produces = ["application/json"])
     fun getPlants() : ResponseEntity<List<Plant>> {
         log.info("Getting all plants")
 
@@ -72,6 +71,22 @@ class PlantController (
         return ResponseEntity.ok(plantsList)
     }
 
+    @Operation(summary = "Retrieve a plant")
+    @ApiResponses(value = [
+        ApiResponse(responseCode = "200", description = "Successfully retrieved the plant"),
+        ApiResponse(responseCode = "401", description = "You are not authorized to view the resource"),
+        ApiResponse(responseCode = "403", description = "Accessing the resource you were trying to reach is forbidden"),
+        ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
+    ])
+    @GetMapping("/{plantId}", produces = ["application/json"])
+    fun getPlant(@ApiParam(value = "Plant ID", required = true) @Valid @PathVariable plantId: String) : ResponseEntity<Plant> {
+        log.info("Getting plant with ID $plantId")
+        val plant = plantService.getPlantByPlantId(plantId) ?: return ResponseEntity.notFound().build()
+        log.info("Plant: $plant")
+
+        return ResponseEntity.ok(plant)
+    }
+
     @Operation(summary = "Update a plant")
     @ApiResponses(value = [
         ApiResponse(responseCode = "200", description = "Successfully updated the plant"),
@@ -79,11 +94,12 @@ class PlantController (
         ApiResponse(responseCode = "403", description = "Accessing the resource you were trying to reach is forbidden"),
         ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
     ])
-    @PatchMapping("/update")
-    fun updatePlant(@SwaggerRequestBody(description = "Plant to be updated") @RequestBody updatePlantRequest: UpdatePlantRequest) : ResponseEntity<Boolean> {
+    @PatchMapping(produces = ["application/json"])
+    fun updatePlant(@ApiParam(value = "Plant ID", required = true) @Valid @PathVariable plantId: String,
+                    @SwaggerRequestBody(description = "Plant to be updated") @RequestBody updatePlantRequest: UpdatePlantRequest) : ResponseEntity<Boolean> {
         log.info("Updating a plant")
 
-        val plant = plantService.getPlantByPlantId(updatePlantRequest.plantId) ?: return ResponseEntity.notFound().build()
+        val plant = plantService.getPlantByPlantId(plantId) ?: return ResponseEntity.notFound().build()
         val moisture = updatePlantRequest.idealMoistureNew ?: plant.idealMoisture
 
         if (!plantService.updatePlant(plant, moisture)) {
@@ -103,11 +119,11 @@ class PlantController (
         ApiResponse(responseCode = "403", description = "Accessing the resource you were trying to reach is forbidden"),
         ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
     ])
-    @DeleteMapping("/delete")
-    fun deletePlant(@SwaggerRequestBody(description = "Plant to be deleted") @RequestBody deletePlantRequest: DeletePlantRequest) : ResponseEntity<Boolean> {
+    @DeleteMapping(produces = ["application/json"])
+    fun deletePlant(@ApiParam(value = "Plant ID", required = true) @Valid @PathVariable plantId: String) : ResponseEntity<Boolean> {
         log.info("Deleting a plant")
 
-        if (!plantService.deletePlant(deletePlantRequest.plantId)) {
+        if (!plantService.deletePlant(plantId)) {
             log.severe("Plant not deleted")
             return ResponseEntity.badRequest().build()
         }

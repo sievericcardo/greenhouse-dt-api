@@ -61,6 +61,12 @@ ast:hasWaterTank rdf:type owl:ObjectProperty ;
                  rdfs:range ast:WaterTank .
 
 
+###  http://www.smolang.org/greenhouseDT#monitors
+ast:monitors rdf:type owl:ObjectProperty ;
+             rdfs:domain ast:Monitor ;
+             rdfs:range ast:Plant .
+
+
 ###  http://www.smolang.org/greenhouseDT#wateredBy
 ast:wateredBy rdf:type owl:ObjectProperty ;
               rdfs:subPropertyOf owl:topObjectProperty ;
@@ -71,6 +77,18 @@ ast:wateredBy rdf:type owl:ObjectProperty ;
 #################################################################
 #    Data properties
 #################################################################
+
+###  http://www.smolang.org/greenhouseDT#cameraId
+ast:cameraId rdf:type owl:DatatypeProperty ;
+             rdfs:domain ast:Monitor ;
+             rdfs:range xsd:string .
+
+
+###  http://www.smolang.org/greenhouseDT#cameraPort
+ast:cameraPort rdf:type owl:DatatypeProperty ;
+               rdfs:domain ast:Monitor ;
+               rdfs:range xsd:string .
+
 
 ###  http://www.smolang.org/greenhouseDT#hasGroupPosition
 ast:hasGroupPosition rdf:type owl:DatatypeProperty ;
@@ -171,6 +189,10 @@ ast:modelName rdf:type owl:DatatypeProperty ;
               rdfs:range xsd:string .
 
 
+###  http://www.smolang.org/greenhouseDT#monitors
+ast:monitors rdf:type owl:DatatypeProperty .
+
+
 ###  http://www.smolang.org/greenhouseDT#name
 ast:name rdf:type owl:DatatypeProperty ;
          rdfs:domain owl:Thing .
@@ -186,6 +208,12 @@ ast:ndvi rdf:type owl:DatatypeProperty ;
 ast:plantId rdf:type owl:DatatypeProperty ;
             rdfs:domain ast:Plant ;
             rdfs:range xsd:string .
+
+
+###  http://www.smolang.org/greenhouseDT#potId
+ast:potId rdf:type owl:DatatypeProperty ;
+          rdfs:domain ast:Pot ;
+          rdfs:range xsd:string .
 
 
 ###  http://www.smolang.org/greenhouseDT#potPosition
@@ -243,6 +271,13 @@ ast:shelfFloor rdf:type owl:DatatypeProperty ;
                                                  ]
                                       ]
                           ] .
+
+
+###  http://www.smolang.org/greenhouseDT#status
+ast:status rdf:type owl:DatatypeProperty ;
+           rdfs:subPropertyOf owl:topDataProperty ;
+           rdfs:domain ast:Plant ;
+           rdfs:range xsd:string .
 
 
 ###  http://www.smolang.org/greenhouseDT#temperature
@@ -495,6 +530,10 @@ ast:MaintenanceWPS27 rdf:type owl:Class ;
                                            rdf:type owl:Class
                                          ] ;
                      rdfs:subClassOf ast:Maintenance .
+
+
+###  http://www.smolang.org/greenhouseDT#Monitor
+ast:Monitor rdf:type owl:Class .
 
 
 ###  http://www.smolang.org/greenhouseDT#Operational
@@ -873,15 +912,57 @@ ast:badHealthState rdf:type owl:NamedIndividual ,
 ###  http://www.smolang.org/greenhouseDT#basilicum1
 ast:basilicum1 rdf:type owl:NamedIndividual ,
                         ast:Basil ;
-               ast:idealMoisture "50.0"^^xsd:double ;
-               ast:plantId "1" .
+               ast:idealMoisture "85.0"^^xsd:double ;
+               ast:plantId "1" ;
+               ast:status "Healthy" .
 
 
 ###  http://www.smolang.org/greenhouseDT#basilicum2
 ast:basilicum2 rdf:type owl:NamedIndividual ,
                         ast:Basil ;
-               ast:idealMoisture "50.0"^^xsd:double ;
-               ast:plantId "2" .
+               ast:idealMoisture "85.0"^^xsd:double ;
+               ast:plantId "2" ;
+               ast:status "Healthy" .
+
+
+###  http://www.smolang.org/greenhouseDT#basilicum3
+ast:basilicum3 rdf:type owl:NamedIndividual ,
+                        ast:Basil ;
+               ast:idealMoisture "85.0"^^xsd:double ;
+               ast:plantId "4" ;
+               ast:status "Healthy" .
+
+
+###  http://www.smolang.org/greenhouseDT#basilicum4
+ast:basilicum4 rdf:type owl:NamedIndividual ,
+                        ast:Basil ;
+               ast:idealMoisture "85.0"^^xsd:double ;
+               ast:plantId "4" ;
+               ast:status "Healthy" .
+
+
+###  http://www.smolang.org/greenhouseDT#camera1
+ast:camera1 rdf:type owl:NamedIndividual ;
+            ast:monitors ast:basilicum1 ;
+            ast:cameraId "1" .
+
+
+###  http://www.smolang.org/greenhouseDT#camera2
+ast:camera2 rdf:type owl:NamedIndividual ;
+            ast:monitors ast:basilicum2 ;
+            ast:cameraId 2 .
+
+
+###  http://www.smolang.org/greenhouseDT#camera3
+ast:camera3 rdf:type owl:NamedIndividual ;
+            ast:monitors ast:basilicum3 ;
+            ast:cameraId 3 .
+
+
+###  http://www.smolang.org/greenhouseDT#camera4
+ast:camera4 rdf:type owl:NamedIndividual ;
+            ast:monitors ast:basilicum4 ;
+            ast:cameraId 4 .
 
 
 ###  http://www.smolang.org/greenhouseDT#deadHealthState
@@ -936,6 +1017,7 @@ ast:pot1 rdf:type owl:NamedIndividual ,
          ast:wateredBy ast:pump1 ;
          ast:hasGroupPosition "left" ;
          ast:hasMoistureAdcChannel 1 ;
+         ast:potId "1" ;
          ast:potPosition "left" ;
          ast:shelfFloor "1" .
 
@@ -947,6 +1029,7 @@ ast:pot2 rdf:type owl:NamedIndividual ,
          ast:wateredBy ast:pump2 ;
          ast:hasGroupPosition "left" ;
          ast:hasMoistureAdcChannel 2 ;
+         ast:potId "2" ;
          ast:potPosition "right" ;
          ast:shelfFloor "1" .
 
@@ -954,10 +1037,11 @@ ast:pot2 rdf:type owl:NamedIndividual ,
 ###  http://www.smolang.org/greenhouseDT#pot3
 ast:pot3 rdf:type owl:NamedIndividual ,
                   ast:Pot ;
-         ast:hasPlant ast:stemor1 ;
+         ast:hasPlant ast:basilicum3 ;
          ast:wateredBy ast:pump3 ;
          ast:hasGroupPosition "left" ;
          ast:hasMoistureAdcChannel 1 ;
+         ast:potId "3" ;
          ast:potPosition "left" ;
          ast:shelfFloor "2" .
 
@@ -965,9 +1049,10 @@ ast:pot3 rdf:type owl:NamedIndividual ,
 ###  http://www.smolang.org/greenhouseDT#pot4
 ast:pot4 rdf:type owl:NamedIndividual ,
                   ast:Pot ;
-         ast:hasPlant ast:stemor2 ;
+         ast:hasPlant ast:basilicum4 ;
          ast:hasGroupPosition "left" ;
          ast:hasMoistureAdcChannel 2 ;
+         ast:potId "4" ;
          ast:potPosition "right" ;
          ast:shelfFloor "2" .
 
@@ -1030,20 +1115,6 @@ ast:shelf2 rdf:type owl:NamedIndividual ,
            ast:hasHumidityGpioPin 4 ;
            ast:hasTemperatureGpioPin 4 ;
            ast:shelfFloor "2" .
-
-
-###  http://www.smolang.org/greenhouseDT#stemor1
-ast:stemor1 rdf:type owl:NamedIndividual ,
-                     ast:Plant ;
-            ast:idealMoisture "40.0"^^xsd:double ;
-            ast:plantId "3" .
-
-
-###  http://www.smolang.org/greenhouseDT#stemor2
-ast:stemor2 rdf:type owl:NamedIndividual ,
-                     ast:Plant ;
-            ast:idealMoisture "40.0"^^xsd:double ;
-            ast:plantId "4" .
 
 
 ###  http://www.smolang.org/greenhouseDT#waterTank

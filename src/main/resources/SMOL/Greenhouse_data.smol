@@ -5,7 +5,7 @@ abstract class Twin() end
  *  the asset model, but it can be reconfigured by the program model.
  *  Each plant is associated with a pot.
  */
-class Plant extends Twin (String plantId, Double idealMoisture, Double moisture, String healthState)
+class Plant extends Twin (String plantId, Double idealMoisture, Double moisture, String healthState, String status)
 
     Double getPotMoisture()
         String id = this.plantId ++ ".0";
@@ -55,7 +55,7 @@ end
 
 
 /* Models a physical pot. It is initially retrieved by the asset model. Each pot is associated with a moisture sensor. */
-class Pot extends Twin (String shelfFloor, String potPosition, String pumpId, String plantId) end
+class Pot extends Twin (String id, String shelfFloor, String potPosition, String pumpId, String plantId) end
 
 
 /** The following classes represent instances of assets that we currently not using directly but that are twinned for possible extensions */
@@ -131,6 +131,7 @@ class MaintenancePumpDefectLifeTime (MaintenancePump obj, Int pumpLifeTimeNew) e
 class OverheatingPumpDefectLifeTime (OverheatingPump obj, Int pumpLifeTimeNew) end
 class UnderheatingPumpDefectLifeTime (UnderheatingPump obj, Int pumpLifeTimeNew) end
 class PlantDefect (Plant obj, Double idealMoistureNew) end
+class PlantDefectStatus (Plant obj, String, statusNew) end
 class PotDefectShelf (Pot obj, String shelfFloorNew) end
 class PotDefectPosition (Pot obj, String potPositionNew) end
 class PotDefectPump (Pot obj, String pumpIdNew) end

@@ -3,8 +3,9 @@ class PotModel extends BaseModel()
     override Unit adaptAddition()
         List<Pot> newPots = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
-            SELECT ?shelfFloor ?potPosition ?pumpId ?plantId {
+            SELECT ?id ?shelfFloor ?potPosition ?pumpId ?plantId {
                 ?x a ast:Pot ;
+                    ast:potId ?id ;
                     ast:shelfFloor ?shelfFloor ;
                     ast:potPosition ?potPosition ;
                     ast:wateredBy ?pump ;
@@ -13,6 +14,7 @@ class PotModel extends BaseModel()
                 ?plant a ast:Plant; ast:plantId ?plantId .
                 FILTER NOT EXISTS {
                     ?y a prog:Pot ;
+                        prog:Pot_id ?postId ;
                         prog:Pot_shelfFloor ?shelfFloor ;
                         prog:Pot_potPosition ?potPosition .
                 }
@@ -28,6 +30,7 @@ class PotModel extends BaseModel()
                 destroy(lx);
 
                 print("RECONFIG> New pot detected: ");
+                print("          Pot Id: " ++ newPot.id);
                 print("          Shelf Floor: " ++ newPot.shelfFloor);
                 print("          Pump Id: " ++ newPot.pumpId);
                 print("          Plant Id: " ++ newPot.plantId);
@@ -43,10 +46,12 @@ class PotModel extends BaseModel()
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
             SELECT DISTINCT ?obj {
                 ?obj a prog:Pot ;
+                    prog:Pot_id ?id ;
                     prog:Pot_shelfFloor ?shelfFloor ;
                     prog:Pot_potPosition ?potPosition .
                 FILTER NOT EXISTS {
                     ?y a ast:Pot ;
+                        ast:potId ?id ;
                         ast:shelfFloor ?shelfFloor ;
                         ast:potPosition ?potPosition .
                 }
@@ -61,6 +66,7 @@ class PotModel extends BaseModel()
                 wrongPots = wrongPots.next;
 
                 print("RECONFIG> Misconfigured pot to remove: ");
+                print("          Pot Id: " ++ wrongPot.id);
                 print("          ShelfFloor: " ++ wrongPot.shelfFloor);
                 print("          Pot Position: " ++ wrongPot.potPosition);
 

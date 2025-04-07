@@ -3,10 +3,11 @@ class PlantModel extends BaseModel()
     override Unit adaptAddition()
         List<Plant> newPlants = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
-            SELECT ?plantId ?idealMoisture {
+            SELECT ?plantId ?idealMoisture ?status {
                 ?x a ast:Plant ;
                     ast:plantId ?plantId ;
-                    ast:idealMoisture ?idealMoisture .
+                    ast:idealMoisture ?idealMoisture ;
+                    ast:status ?status .
                 FILTER NOT EXISTS {
                     ?y a prog:Plant ;
                         prog:Plant_plantId ?plantId .
@@ -27,6 +28,7 @@ class PlantModel extends BaseModel()
                 print("          Plant Id: " ++ newPlant.plantId);
                 print("          Ideal Moisture: " ++ doubleToString(newPlant.idealMoisture));
                 print("          Moisture: " ++ doubleToString(newPlant.moisture));
+                print("          Status: " ++ newPlant.status);
 
                 destroy(lx);
             end
@@ -69,9 +71,13 @@ class PlantModel extends BaseModel()
         end
     end
 
-
-
     override Unit adaptDefect()
+        print("RECONFIG> Check defects in plant(s)");
+        this.adaptDefectMoisture();
+        print("RECONFIG> Defect repaired");
+    end
+
+    Unit adaptDefectMoisture()
         List<PlantDefect> changedPlants = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
             SELECT ?obj ?idealMoistureNew {
@@ -99,6 +105,40 @@ class PlantModel extends BaseModel()
 
                 moist.obj.idealMoisture = moist.idealMoistureNew;
                 destroy(moist);
+            end
+
+            print("RECONFIG> Plant(s) changed");
+        end
+    end
+
+    Unit adatpDefectStatus()
+        LIST<PlantDefectStatus> defectPlants = construct("
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
+            SELECT ?obj ?statusNew {
+                ?obj a prog:Plant ;
+                    prog:Plant_plantId ?plantId ;
+                    prog:Plant_status ?status.
+                ?y a ast:Plant ;
+                    ast:plantId ?plantId ;
+                    ast:status ?statusNew.
+                FILTER(?status != ?statusNew)
+            }");
+        
+        if defectPlants != null then
+            print("RECONFIG> Changed Plant(s) detected: repairing the model");
+
+            while defectPlants != null do
+                PlantDefectStatus status = defectPlants.content;
+                List<PlantDefectStatus> lx = defectPlants;
+                defectPlants = defectPlants.next;
+                destroy(lx);
+
+                print("RECONFIG> Changed plant to adjust: " ++ status.obj.plantId);
+                print("          Old status: " ++ status.obj.status);
+                print("          New status: " ++ status.statusNew);
+
+                status.obj.status = status.statusNew;
+                destroy(status);
             end
 
             print("RECONFIG> Plant(s) changed");
