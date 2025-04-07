@@ -27,7 +27,7 @@ class PlantService (
             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
             PREFIX ast: <$prefix>
             INSERT DATA {
-                $prefix:${plant.plantId} a ast:Plant ;
+                $prefix:plant${plant.plantId} a ast:Plant ;
                     $prefix:idealMoisture ${plant.idealMoisture} .
             }
         """.trimIndent()

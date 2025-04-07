@@ -11,6 +11,7 @@ data class UpdatePlantRequest (
 )
 
 data class CreatePotRequest (
+    val potId: String,
     val shelfFloor: String,
     val potPosition: String,
     val pumpId: String,
@@ -18,21 +19,10 @@ data class CreatePotRequest (
 )
 
 data class UpdatePotRequest (
-    val shelfFloor: String,
-    val potPosition: String,
-    val pumpId: String,
-    val plantId: String,
     val newShelfFloor: String?,
     val newPotPosition: String?,
     val newPumpId: String?,
     val newPlantId: String?
-)
-
-data class DeletePotRequest (
-    val shelfFloor: String,
-    val potPosition: String,
-    val pumpId: String,
-    val plantId: String
 )
 
 data class CreatePumpRequest(
