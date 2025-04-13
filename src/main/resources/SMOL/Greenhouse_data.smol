@@ -76,7 +76,7 @@ models "a ast:Plant ; domain:ndvi %ndvi .";
         Double moisture = -1.0;
         List<Double> influxReturn = access(
             "from(bucket: \"GreenHouse\")
-                |> range(start: -30d)
+                |> range(start: -1h)
                 |> filter(fn: (r) => r[\"_measurement\"] == \"ast:pot\")
                 |> filter(fn: (r) => r[\"_field\"] == \"moisture\")
                 |> filter(fn: (r) => r[\"plant_id\"] == \"%1\")
@@ -104,7 +104,7 @@ models "a ast:Plant ; domain:ndvi %ndvi .";
         Double ndviVal = 0.0;
         List<Double> influxReturn = access(
             "from(bucket: \"GreenHouse\")
-                |> range(start: -30d)
+                |> range(start: -1h)
                 |> filter(fn: (r) => r[\"_measurement\"] == \"ast:plant\")
                 |> filter(fn: (r) => r[\"_field\"] == \"ndvi\")
                 |> filter(fn: (r) => r[\"plant_id\"] == \"%1\")
