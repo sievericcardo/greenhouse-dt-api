@@ -298,7 +298,7 @@ class PumpModel extends BaseModel()
                 List<MaintenancePumpDefectWater> lx = changedPumps;
                 changedPumps = changedPumps.next;
 
-                print("RECONFIG> Changed pump to adjust: " ++ rpump.pumpId);
+                print("RECONFIG> Changed pump to adjust: " ++ rpump.obj.pumpId);
                 print("          Old water Temperature: " ++ doubleToString(rpump.obj.temperatureOut));
                 print("          New water Temperature: " ++ doubleToString(rpump.temperatureNew));
 
