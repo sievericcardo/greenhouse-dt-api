@@ -46,7 +46,7 @@ class PumpService (
             val lifeTime = solution.get("?pumpLifeTime").asLiteral().toString().split("^^")[0].toInt()
             val temperature = solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble()
 
-            pumpsList.add(Pump(pumpGpioPin, pumpId, modelName, lifeTime, temperature, PumpState.Operational))
+            pumpsList.add(Pump(pumpGpioPin, pumpId, modelName, lifeTime, temperature, PumpState.Operating))
         }
 
         return pumpsList
