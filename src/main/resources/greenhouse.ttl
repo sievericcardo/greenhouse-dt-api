@@ -784,6 +784,31 @@ ast:Underheating rdf:type owl:Class ;
 
 ###  http://www.smolang.org/greenhouseDT#UnderheatingR365
 ast:UnderheatingR365 rdf:type owl:Class ;
+                     owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                                  owl:onProperty ast:pumpLifeTime ;
+                                                                  owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                       owl:onDatatype xsd:integer ;
+                                                                                       owl:withRestrictions ( [ xsd:maxExclusive 2500
+                                                                                                              ]
+                                                                                                            )
+                                                                                     ]
+                                                                ]
+                                                                [ rdf:type owl:Restriction ;
+                                                                  owl:onProperty ast:temperature ;
+                                                                  owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                       owl:onDatatype xsd:double ;
+                                                                                       owl:withRestrictions ( [ xsd:maxExclusive "5.0"^^xsd:double
+                                                                                                              ]
+                                                                                                            )
+                                                                                     ]
+                                                                ]
+                                                                [ rdf:type owl:Restriction ;
+                                                                  owl:onProperty ast:modelName ;
+                                                                  owl:hasValue "R385"
+                                                                ]
+                                                              ) ;
+                                           rdf:type owl:Class
+                                         ] ;
                      rdfs:subClassOf ast:Underheating .
 
 
