@@ -1,5 +1,5 @@
 # Use an official OpenJDK runtime as a parent image
-FROM openjdk:24-oraclelinux8
+FROM openjdk:24-jdk-bullseye
 
 RUN <<EOF
     apt-get -y update
