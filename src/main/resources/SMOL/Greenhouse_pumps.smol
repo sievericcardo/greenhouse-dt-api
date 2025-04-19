@@ -556,7 +556,15 @@ class PumpModel extends BaseModel()
     Unit adaptBehaviourPump()
         List<Pump> pumps = access("
             SELECT DISTINCT ?obj {
-                ?obj a prog:Pump .
+                { ?obj a prog:Pump . }
+                UNION
+                { ?obj a prog:UnderheatingPump . }
+                UNION
+                { ?obj a prog:OverheatingPump . }
+                UNION
+                { ?obj a prog:OperatingPump . }
+                UNION
+                { ?obj a prog:MaintenancePump . }
             }");
 
         if pumps == null then print("ADAPT> No pumps"); else
