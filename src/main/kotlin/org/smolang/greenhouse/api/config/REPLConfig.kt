@@ -57,6 +57,7 @@ open class REPLConfig {
 
         val smolPath = System.getenv("SMOL_PATH") ?: "GreenHouse.smol"
         // get all file in SMOL_PATH
+        println("SMOL_PATH: $smolPath")
 
         repl = REPL(settings)
         repl.command("multiread", smolPath)
