@@ -894,7 +894,7 @@ ast:badHealthState rdf:type owl:NamedIndividual ,
 
 ###  http://www.smolang.org/greenhouseDT#basilicum1
 ast:basilicum1 rdf:type owl:NamedIndividual ,
-                        ast:Basil ;
+                        ast:Plant ;
                ast:idealMoisture "50.0"^^xsd:double ;
                ast:ndvi "0.0"^^xsd:double ;
                ast:plantId "1" .
@@ -902,7 +902,7 @@ ast:basilicum1 rdf:type owl:NamedIndividual ,
 
 ###  http://www.smolang.org/greenhouseDT#basilicum2
 ast:basilicum2 rdf:type owl:NamedIndividual ,
-                        ast:Basil ;
+                        ast:Plant ;
                ast:idealMoisture "50.0"^^xsd:double ;
                ast:ndvi "0.0"^^xsd:double ;
                ast:plantId "2" .
