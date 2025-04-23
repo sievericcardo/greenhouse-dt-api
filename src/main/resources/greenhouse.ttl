@@ -804,7 +804,7 @@ ast:UnderheatingR365 rdf:type owl:Class ;
                                                                 ]
                                                                 [ rdf:type owl:Restriction ;
                                                                   owl:onProperty ast:modelName ;
-                                                                  owl:hasValue "R385"
+                                                                  owl:hasValue "R365"
                                                                 ]
                                                               ) ;
                                            rdf:type owl:Class
