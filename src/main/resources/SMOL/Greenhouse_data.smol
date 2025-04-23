@@ -155,8 +155,18 @@ end
 class MaintenancePump extends Pump (hidden Int powerOutput)
 classifies "<ast:Maintenance>";
 retrieves "SELECT DISTINCT ?powerOutput WHERE {
-  %this a prog:Pump ;
-    domain:models ?x .
+  {
+    { %this a prog:Pump . }
+    UNION
+    { %this a prog:UnderheatingPump . }
+    UNION
+    { %this a prog:OverheatingPump . }
+    UNION
+    { %this a prog:OperatingPump . }
+    UNION
+    { %this a prog:MaintenancePump . }
+  }
+  %this domain:models ?x .
   ?x domain:modelName ?modelName .
   ?pump a ast:Maintenance ;
     ast:powerOutput ?powerOutput ;
