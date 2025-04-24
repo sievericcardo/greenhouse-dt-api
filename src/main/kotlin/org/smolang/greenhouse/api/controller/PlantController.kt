@@ -8,8 +8,11 @@ import org.apache.jena.query.QuerySolution
 import org.apache.jena.query.ResultSet
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.model.Plant
+import org.smolang.greenhouse.api.service.PlantService
+import org.smolang.greenhouse.api.types.PlantState
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.logging.Logger
@@ -17,7 +20,8 @@ import java.util.logging.Logger
 @RestController
 @RequestMapping("/api/plants")
 class PlantController (
-    private val replConfig: REPLConfig
+    private val replConfig: REPLConfig,
+    private val plantService: PlantService
 ) {
 
     private val log : Logger = Logger.getLogger(PlantController::class.java.name)
@@ -32,34 +36,28 @@ class PlantController (
     @GetMapping("/all")
     fun getPlants() : ResponseEntity<List<Plant>> {
         log.info("Getting all plants")
+        val plants = mutableListOf<Plant>()
+
+        val healthyPlants = plantService.getHealthyPlants() ?: emptyList()
+        val unhealthyPlants = plantService.getUnhealthyPlants() ?: emptyList()
+        val deadPlants = plantService.getDeadPlants() ?: emptyList()
+
+        plants.addAll(healthyPlants)
+        plants.addAll(unhealthyPlants)
+        plants.addAll(deadPlants)
+
+        log.info("Plants: $plants")
+
+        return ResponseEntity.ok(plants)
+    }
+
+    @PostMapping("/update-model")
+    fun updateModel() : ResponseEntity<String> {
+        log.info("Updating the model")
 
         val repl : REPL = replConfig.repl()
+        replConfig.reclassifySingleModel().invoke("plants")
 
-        val plants =
-            """
-             SELECT DISTINCT ?plantId ?idealMoisture ?moisture ?healthState WHERE {
-                ?obj a prog:Plant ;
-                    prog:Plant_plantId ?plantId ;
-                    prog:Plant_idealMoisture ?idealMoisture ;
-                    prog:Plant_moisture ?moisture ;
-                    prog:Plant_healthState ?healthState .
-             }"""
-
-        val result : ResultSet = repl.interpreter!!.query(plants)!!
-        val plantsList = mutableListOf<Plant>()
-
-        while (result.hasNext()) {
-            val solution : QuerySolution = result.next()
-            val plantId = solution.get("?plantId").asLiteral().toString()
-            val idealMoisture = solution.get("?idealMoisture").asLiteral().toString().split("^^")[0].toDouble()
-            val moisture = solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble()
-            val healthState = solution.get("?healthState").asLiteral().toString()
-
-            plantsList.add(Plant(plantId, idealMoisture, moisture, healthState))
-        }
-
-        log.info("Plants: $plantsList")
-
-        return ResponseEntity.ok(plantsList)
+        return ResponseEntity.ok("Model updated")
     }
 }

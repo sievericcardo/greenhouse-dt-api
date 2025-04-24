@@ -1,18 +1,82 @@
 abstract class Twin() end
 
+abstract hidden class HealthState (context Plant plant, String name)
+    Unit printInfo()
+        print("Health State");
+    end
+end
+
+class BadHealthState extends HealthState ()
+classifies "<ast:BadHealthState>";
+retrieves "
+SELECT DISTINCT ?name WHERE {
+  ?healthState rdfs:subClassOf* ast:BadHealthState ;
+    rdfs:subClassOf ?restriction .
+
+    ?restriction owl:onProperty ast:hasHealthStateName ;
+        owl:hasValue ?name .
+}
+
+LIMIT 1";
+    override Unit printInfo()
+        print("Health State: " ++ this.name);
+    end
+end
+
+class GoodHealthState extends HealthState ()
+classifies "<ast:GoodHealthState>";
+retrieves "
+SELECT DISTINCT ?name WHERE {
+  ?healthState rdfs:subClassOf* ast:GoodHealthState ;
+    rdfs:subClassOf ?restriction .
+    
+    ?restriction owl:onProperty ast:hasHealthStateName ;
+        owl:hasValue ?name .
+}
+
+LIMIT 1";
+    override Unit printInfo()
+        print("Health State: " ++ this.name);
+    end
+end
+
+class DeadHealthState extends HealthState ()
+classifies "<ast:DeadHealthState>";
+retrieves "
+SELECT DISTINCT ?name WHERE {
+  ?healthState rdfs:subClassOf* ast:DeadHealthState ;
+    rdfs:subClassOf ?restriction .
+
+    ?restriction owl:onProperty ast:hasHealthStateName ;
+        owl:hasValue ?name .
+}
+
+LIMIT 1";
+    override Unit printInfo()
+        print("Health State: " ++ this.name);
+    end
+end
+
 /**
  *  Models a physical plant. It is initially retrieved by
  *  the asset model, but it can be reconfigured by the program model.
  *  Each plant is associated with a pot.
  */
-class Plant extends Twin (String plantId, Double idealMoisture, Double moisture, String healthState)
+class Plant extends Twin (
+    String plantId,
+    Double idealMoisture,
+    Double moisture,
+    domain Double ndvi,
+    HealthState healthState
+)
+models "a ast:Plant ; domain:ndvi %ndvi .";
 
     Double getPotMoisture()
         String id = this.plantId ++ ".0";
         Double moisture = -1.0;
         List<Double> influxReturn = access(
             "from(bucket: \"GreenHouse\")
-                |> range(start: -30d)
+                |> range(start: -1h)
                 |> filter(fn: (r) => r[\"_measurement\"] == \"ast:pot\")
                 |> filter(fn: (r) => r[\"_field\"] == \"moisture\")
                 |> filter(fn: (r) => r[\"plant_id\"] == \"%1\")
@@ -31,11 +95,16 @@ class Plant extends Twin (String plantId, Double idealMoisture, Double moisture,
 
 // NDVI START
     Double getNdvi()
-    String id = this.plantId ++ ".0";
-        Double healthState = 0.0;
+
+        if this.ndvi != null then
+            this.ndvi = 0.0;
+        end
+
+        String id = this.plantId ++ ".0";
+        Double ndviVal = 0.0;
         List<Double> influxReturn = access(
             "from(bucket: \"GreenHouse\")
-                |> range(start: -30d)
+                |> range(start: -1h)
                 |> filter(fn: (r) => r[\"_measurement\"] == \"ast:plant\")
                 |> filter(fn: (r) => r[\"_field\"] == \"ndvi\")
                 |> filter(fn: (r) => r[\"plant_id\"] == \"%1\")
@@ -45,12 +114,13 @@ class Plant extends Twin (String plantId, Double idealMoisture, Double moisture,
         id);
 
         if influxReturn != null then
-            healthState = influxReturn.content;
+            ndviVal = influxReturn.content;
+            this.ndvi = ndviVal;
         end
 
-        return healthState;
+        return this.ndvi;
     end
-// NDVI END
+    // NDVI END
 end
 
 
@@ -82,11 +152,21 @@ classifies "<ast:Operational>";
     end
 end
 
-class MaintenancePump extends Pump (Int powerOutput)
+class MaintenancePump extends Pump (hidden Int powerOutput)
 classifies "<ast:Maintenance>";
 retrieves "SELECT DISTINCT ?powerOutput WHERE {
-  %this a prog:Pump ;
-    domain:models ?x .
+  {
+    { %this a prog:Pump . }
+    UNION
+    { %this a prog:UnderheatingPump . }
+    UNION
+    { %this a prog:OverheatingPump . }
+    UNION
+    { %this a prog:OperatingPump . }
+    UNION
+    { %this a prog:MaintenancePump . }
+  }
+  %this domain:models ?x .
   ?x domain:modelName ?modelName .
   ?pump a ast:Maintenance ;
     ast:powerOutput ?powerOutput ;
@@ -94,7 +174,7 @@ retrieves "SELECT DISTINCT ?powerOutput WHERE {
   FILTER (?model = ?modelName) .
 }";
     Unit printInfo()
-        print("Pump: " ++ this.pumpId ++ " is in maintenance. Set power to " ++ this.powerOutput ++ ".");
+        print("Pump: " ++ this.pumpId ++ " is in maintenance. Set power to " ++ intToString(this.powerOutput) ++ ".");
     end
 end
 
@@ -115,7 +195,7 @@ end
 
 // NDVI START
 /* Models the health state of a plant via NDVI */
-class HealthState extends Twin (String name, Double minNdvi, Double maxNdvi) end
+// class HealthState extends Twin (String name, Double minNdvi, Double maxNdvi) end
 // NDVI END
 
 /* The following classes are used to store results of CONSTRUCT queries */

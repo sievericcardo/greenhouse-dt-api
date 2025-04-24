@@ -18,9 +18,9 @@ open class REPLConfig {
 
     @PostConstruct
     fun initRepl() {
-        val verbose = true
+        val verbose = false
         val materialize = false
-        val liftedStateOutputPath = System.getenv("LIFTED_STATE_OUTPUT_PATH") ?: ""
+        val liftedStateOutputPath = System.getenv("LIFTED_STATE_OUTPUT_PATH") ?: "./"
         val progPrefix = "https://github.com/Edkamb/SemanticObjects/Program#"
         val runPrefix = "https://github.com/Edkamb/SemanticObjects/Run" + System.currentTimeMillis() + "#"
         val langPrefix = "https://github.com/Edkamb/SemanticObjects#"
@@ -57,9 +57,9 @@ open class REPLConfig {
 
         val smolPath = System.getenv("SMOL_PATH") ?: "GreenHouse.smol"
         // get all file in SMOL_PATH
+        println("SMOL_PATH: $smolPath")
 
         repl = REPL(settings)
-        repl.command("verbose", "true")
         repl.command("multiread", smolPath)
         repl.command("auto", "")
     }
@@ -79,6 +79,17 @@ open class REPLConfig {
             "reconfigureSingleModel",
             mapOf("mod" to LiteralExpr(escapedModelName, STRINGTYPE))
         )
+        repl.interpreter!!.evalCall(
+            repl.interpreter!!.getObjectNames("AssetModel")[0],
+            "AssetModel",
+            "reclassifySingleModel",
+            mapOf("mod" to LiteralExpr(escapedModelName, STRINGTYPE))
+        )
+    }
+
+    @Bean
+    open fun reclassifySingleModel() : (String) -> Unit = { modelName: String ->
+        val escapedModelName = "\"$modelName\""
         repl.interpreter!!.evalCall(
             repl.interpreter!!.getObjectNames("AssetModel")[0],
             "AssetModel",

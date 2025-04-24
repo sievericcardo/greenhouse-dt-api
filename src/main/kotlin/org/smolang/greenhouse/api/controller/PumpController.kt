@@ -7,6 +7,7 @@ import no.uio.microobject.runtime.REPL
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.model.Pump
 import org.smolang.greenhouse.api.service.PumpService
+import org.smolang.greenhouse.api.types.PumpState
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.logging.Logger
@@ -59,16 +60,16 @@ class PumpController (
         return ResponseEntity.ok(pumpsList)
     }
 
-    @Operation(summary = "Retrieve the pump that are operational")
+    @Operation(summary = "Retrieve the pump that are operating")
     @ApiResponses(value = [
-        ApiResponse(responseCode = "200", description = "Successfully retrieved the operational pumps"),
+        ApiResponse(responseCode = "200", description = "Successfully retrieved the operating pumps"),
         ApiResponse(responseCode = "401", description = "You are not authorized to view the resource"),
         ApiResponse(responseCode = "403", description = "Accessing the resource you were trying to reach is forbidden"),
         ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
     ])
-    @GetMapping("/operational")
-    fun getOperationalPumps() : ResponseEntity<List<Pump>> {
-        log.info("Getting all operational pumps")
+    @GetMapping("/operating")
+    fun getOperatingPumps() : ResponseEntity<List<Pump>> {
+        log.info("Getting all operating pumps")
 
         val repl: REPL = replConfig.repl()
         val pumpsList = pumpService.getOperatingPumps()

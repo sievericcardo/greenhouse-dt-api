@@ -1,8 +1,5 @@
 package org.smolang.greenhouse.api.service
 
-import no.uio.microobject.ast.expr.LiteralExpr
-import no.uio.microobject.runtime.REPL
-import no.uio.microobject.type.STRINGTYPE
 import org.apache.jena.query.QuerySolution
 import org.apache.jena.query.ResultSet
 import org.apache.jena.update.UpdateExecutionFactory
@@ -11,9 +8,8 @@ import org.apache.jena.update.UpdateProcessor
 import org.apache.jena.update.UpdateRequest
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
-import org.smolang.greenhouse.api.controller.PumpState
+import org.smolang.greenhouse.api.types.PumpState
 import org.smolang.greenhouse.api.model.Pump
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 
 @Service
@@ -50,7 +46,7 @@ class PumpService (
             val lifeTime = solution.get("?pumpLifeTime").asLiteral().toString().split("^^")[0].toInt()
             val temperature = solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble()
 
-            pumpsList.add(Pump(pumpGpioPin, pumpId, modelName, lifeTime, temperature, PumpState.Operational))
+            pumpsList.add(Pump(pumpGpioPin, pumpId, modelName, lifeTime, temperature, PumpState.Operating))
         }
 
         return pumpsList

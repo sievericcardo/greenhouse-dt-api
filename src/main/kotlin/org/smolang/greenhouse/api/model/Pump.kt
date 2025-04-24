@@ -1,6 +1,6 @@
 package org.smolang.greenhouse.api.model
 
-import org.smolang.greenhouse.api.controller.PumpState
+import org.smolang.greenhouse.api.types.PumpState
 
 class Pump (
     val pumpGpioPin: Int,
