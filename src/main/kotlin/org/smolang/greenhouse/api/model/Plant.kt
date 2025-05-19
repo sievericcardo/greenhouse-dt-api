@@ -5,6 +5,6 @@ class Plant (
     val idealMoisture: Double,
     val moisture: Double,
     val healthState: String,
-    val state: String
+    val status: String
 ) {
 }

@@ -7,7 +7,8 @@ data class CreatePlantRequest (
 )
 
 data class UpdatePlantRequest (
-    val idealMoistureNew: Double?
+    val idealMoistureNew: Double?,
+    val statusNew: String?,
 )
 
 data class CreatePotRequest (

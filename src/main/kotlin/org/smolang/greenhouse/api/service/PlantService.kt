@@ -28,7 +28,8 @@ class PlantService (
             PREFIX ast: <$prefix>
             INSERT DATA {
                 $prefix:plant${plant.plantId} a ast:Plant ;
-                    $prefix:idealMoisture ${plant.idealMoisture} .
+                    $prefix:idealMoisture ${plant.idealMoisture} ;
+                    $prefix:status ${plant.status} .
             }
         """.trimIndent()
 
@@ -104,15 +105,17 @@ class PlantService (
         return Plant(plantId, idealMoisture, moisture, healthState, status)
     }
 
-    fun updatePlant(plant: Plant, newIdealMoisture: Double): Boolean {
+    fun updatePlant(plant: Plant, newIdealMoisture: Double, newStatus: String): Boolean {
         val query = """
             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
             PREFIX ast: <$prefix>
             DELETE {
                 ?plant ast:idealMoisture ${plant.idealMoisture} .
+                ?plant ast:status ${plant.status} .
             }
             INSERT {
                 ?plant ast:idealMoisture $newIdealMoisture .
+                ?plant ast:status $newStatus .
             }
             WHERE {
                 ?plant a ast:Plant ;
@@ -120,7 +123,7 @@ class PlantService (
                     ast:idealMoisture ${plant.idealMoisture} ;
                     ast:moisture ${plant.moisture} ;
                     ast:healthState ${plant.healthState} ;
-                    ast:status ${plant.state} .
+                    ast:status ${plant.status} .
             }
         """.trimIndent()
 
