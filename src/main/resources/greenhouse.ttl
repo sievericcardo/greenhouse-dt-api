@@ -942,27 +942,31 @@ ast:basilicum4 rdf:type owl:NamedIndividual ,
 
 
 ###  http://www.smolang.org/greenhouseDT#camera1
-ast:camera1 rdf:type owl:NamedIndividual ;
+ast:camera1 rdf:type owl:NamedIndividual ,
+                     ast:Monitor ;
             ast:monitors ast:basilicum1 ;
             ast:cameraId "1" .
 
 
 ###  http://www.smolang.org/greenhouseDT#camera2
-ast:camera2 rdf:type owl:NamedIndividual ;
+ast:camera2 rdf:type owl:NamedIndividual ,
+                     ast:Monitor ;
             ast:monitors ast:basilicum2 ;
-            ast:cameraId 2 .
+            ast:cameraId "2" .
 
 
 ###  http://www.smolang.org/greenhouseDT#camera3
-ast:camera3 rdf:type owl:NamedIndividual ;
+ast:camera3 rdf:type owl:NamedIndividual ,
+                     ast:Monitor ;
             ast:monitors ast:basilicum3 ;
-            ast:cameraId 3 .
+            ast:cameraId "3" .
 
 
 ###  http://www.smolang.org/greenhouseDT#camera4
-ast:camera4 rdf:type owl:NamedIndividual ;
+ast:camera4 rdf:type owl:NamedIndividual ,
+                     ast:Monitor ;
             ast:monitors ast:basilicum4 ;
-            ast:cameraId 4 .
+            ast:cameraId "4" .
 
 
 ###  http://www.smolang.org/greenhouseDT#deadHealthState
