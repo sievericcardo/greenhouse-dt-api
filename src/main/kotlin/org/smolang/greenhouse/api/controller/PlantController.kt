@@ -49,6 +49,7 @@ class PlantController (
         }
 
         log.info("Plant created")
+        replConfig.regenerateSingleModel().invoke("plants")
 
         return ResponseEntity.ok(true)
     }
@@ -109,6 +110,7 @@ class PlantController (
         }
 
         log.info("Plant updated")
+        replConfig.regenerateSingleModel().invoke("plants")
 
         return ResponseEntity.ok(true)
     }
@@ -130,6 +132,7 @@ class PlantController (
         }
 
         log.info("Plant deleted")
+        replConfig.regenerateSingleModel().invoke("plants")
 
         return ResponseEntity.ok(true)
     }
