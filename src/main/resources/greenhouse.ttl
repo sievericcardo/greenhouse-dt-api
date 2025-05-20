@@ -929,7 +929,7 @@ ast:basilicum2 rdf:type owl:NamedIndividual ,
 ast:basilicum3 rdf:type owl:NamedIndividual ,
                         ast:Basil ;
                ast:idealMoisture "85.0"^^xsd:double ;
-               ast:plantId "4" ;
+               ast:plantId 3 ;
                ast:status "Healthy" .
 
 
