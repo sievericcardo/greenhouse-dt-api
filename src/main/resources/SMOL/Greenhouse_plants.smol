@@ -4,10 +4,11 @@ class PlantModel extends BaseModel()
         List<Plant> newPlants = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
             SELECT ?plantId ?idealMoisture ?status {
-                ?x a ast:Plant ;
+                ?entity rdf:type ?t ;
                     ast:plantId ?plantId ;
                     ast:idealMoisture ?idealMoisture ;
                     ast:status ?status .
+                ?t rdfs:subClassOf* ast:Plant .
                 FILTER NOT EXISTS {
                     ?y a prog:Plant ;
                         prog:Plant_plantId ?plantId .
@@ -38,7 +39,6 @@ class PlantModel extends BaseModel()
     end
 
 
-
     override Unit adaptRemoval()
         List<Plant> wrongPlants = access("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
@@ -46,8 +46,9 @@ class PlantModel extends BaseModel()
                 ?obj a prog:Plant ;
                      prog:Plant_plantId ?plantId.
                 FILTER NOT EXISTS {
-                    ?y a ast:Plant ;
-                       ast:plantId ?plantId.
+                    ?entity rdf:type ?t ;
+                       ast:plantId ?plantId .
+                    ?t rdfs:subClassOf* ast:Plant .
                 }
             }");
 
@@ -84,9 +85,10 @@ class PlantModel extends BaseModel()
                 ?obj a prog:Plant ;
                     prog:Plant_plantId ?plantId ;
                     prog:Plant_idealMoisture ?idealMoisture.
-                ?y a ast:Plant ;
+                ?y rdf:type ?t ;
                     ast:plantId ?plantId ;
-                    ast:idealMoisture ?idealMoistureNew.
+                    ast:idealMoisture ?idealMoistureNew .
+                ?t rdfs:subClassOf* ast:Plant .
                 FILTER(?idealMoisture != ?idealMoistureNew)
             }");
 
@@ -118,9 +120,10 @@ class PlantModel extends BaseModel()
                 ?obj a prog:Plant ;
                     prog:Plant_plantId ?plantId ;
                     prog:Plant_status ?status.
-                ?y a ast:Plant ;
+                ?y rdf:type ?t ;
                     ast:plantId ?plantId ;
-                    ast:status ?statusNew.
+                    ast:status ?statusNew .
+                ?t rdfs:subClassOf* ast:Plant .
                 FILTER(?status != ?statusNew)
             }");
         
