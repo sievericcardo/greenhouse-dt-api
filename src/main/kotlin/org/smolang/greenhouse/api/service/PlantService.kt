@@ -49,7 +49,7 @@ class PlantService (
     fun getAllPlants() : List<Plant>? {
         val plants =
             """
-             SELECT DISTINCT ?plantId ?idealMoisture ?moisture ?healthState WHERE {
+             SELECT DISTINCT ?plantId ?idealMoisture ?moisture ?healthState ?status WHERE {
                 ?obj a prog:Plant ;
                     prog:Plant_plantId ?plantId ;
                     prog:Plant_idealMoisture ?idealMoisture ;
