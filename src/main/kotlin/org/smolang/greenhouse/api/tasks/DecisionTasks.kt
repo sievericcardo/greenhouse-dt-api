@@ -2,13 +2,15 @@ package org.smolang.greenhouse.api.tasks
 
 import io.swagger.v3.oas.annotations.Operation
 import org.smolang.greenhouse.api.service.DecisionService
+import org.smolang.greenhouse.api.service.MessagePublisher
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.util.logging.Logger
 
 @Component
 class DecisionTasks (
-    private val decisionService: DecisionService
+    private val decisionService: DecisionService,
+    private val messagePublisher: MessagePublisher,
 ) {
 
     private val log: Logger = Logger.getLogger(DecisionTasks::class.java.name)
