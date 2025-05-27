@@ -75,6 +75,7 @@ class PlantModel extends BaseModel()
     override Unit adaptDefect()
         print("RECONFIG> Check defects in plant(s)");
         this.adaptDefectMoisture();
+        this.adatpDefectStatus();
         print("RECONFIG> Defect repaired");
     end
 
@@ -114,7 +115,7 @@ class PlantModel extends BaseModel()
     end
 
     Unit adatpDefectStatus()
-        LIST<PlantDefectStatus> defectPlants = construct("
+        List<PlantDefectStatus> defectPlants = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
             SELECT ?obj ?statusNew {
                 ?obj a prog:Plant ;

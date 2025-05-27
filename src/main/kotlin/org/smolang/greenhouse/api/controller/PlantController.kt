@@ -95,9 +95,9 @@ class PlantController (
         ApiResponse(responseCode = "403", description = "Accessing the resource you were trying to reach is forbidden"),
         ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
     ])
-    @PatchMapping(produces = ["application/json"])
+    @PatchMapping("/{plantId}", produces = ["application/json"])
     fun updatePlant(@ApiParam(value = "Plant ID", required = true) @Valid @PathVariable plantId: String,
-                    @SwaggerRequestBody(description = "Plant to be updated") @RequestBody updatePlantRequest: UpdatePlantRequest) : ResponseEntity<Boolean> {
+                    @SwaggerRequestBody(description = "Plant to be updated") @RequestBody updatePlantRequest: UpdatePlantRequest) : ResponseEntity<Plant> {
         log.info("Updating a plant")
 
         val plant = plantService.getPlantByPlantId(plantId) ?: return ResponseEntity.notFound().build()
@@ -111,8 +111,9 @@ class PlantController (
 
         log.info("Plant updated")
         replConfig.regenerateSingleModel().invoke("plants")
+         val updatedPlant = plantService.getPlantByPlantId(plantId) ?: return ResponseEntity.notFound().build()
 
-        return ResponseEntity.ok(true)
+        return ResponseEntity.ok(updatedPlant)
     }
 
     @Operation(summary = "Delete a plant")

@@ -28,8 +28,8 @@ class PlantService (
             PREFIX ast: <$prefix>
             INSERT DATA {
                 $prefix:plant${plant.plantId} a ast:Plant ;
-                    $prefix:idealMoisture ${plant.idealMoisture} ;
-                    $prefix:status ${plant.status} .
+                    $prefix:idealMoisture "${plant.idealMoisture}"^^xsd:double ;
+                    $prefix:status "${plant.status}" .
             }
         """.trimIndent()
 
@@ -108,22 +108,23 @@ class PlantService (
     fun updatePlant(plant: Plant, newIdealMoisture: Double, newStatus: String): Boolean {
         val query = """
             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
             PREFIX ast: <$prefix>
             DELETE {
-                ?plant ast:idealMoisture ${plant.idealMoisture} .
-                ?plant ast:status ${plant.status} .
+                ?plant ast:idealMoisture "${plant.idealMoisture}"^^xsd:double .
+                ?plant ast:status "${plant.status}" .
             }
             INSERT {
-                ?plant ast:idealMoisture $newIdealMoisture .
-                ?plant ast:status $newStatus .
+                ?plant ast:idealMoisture "$newIdealMoisture"^^xsd:double .
+                ?plant ast:status "$newStatus" .
             }
             WHERE {
-                ?plant a ast:Plant ;
+                ?plant rdf:type ?t ;
                     ast:plantId "${plant.plantId}" ;
-                    ast:idealMoisture ${plant.idealMoisture} ;
-                    ast:moisture ${plant.moisture} ;
-                    ast:healthState ${plant.healthState} ;
-                    ast:status ${plant.status} .
+                    ast:idealMoisture "${plant.idealMoisture}"^^xsd:double ;
+                    ast:status "${plant.status}" .
+               ?t rdfs:subClassOf* ast:Plant .
             }
         """.trimIndent()
 
@@ -143,6 +144,8 @@ class PlantService (
     fun deletePlant(plantId: String) : Boolean {
         val query = """
             PREFIX ast: <$prefix>
+            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
             DELETE {
                 ?plant a ast:Plant ;
                     ast:plantId "$plantId" ;
@@ -151,8 +154,9 @@ class PlantService (
                     ast:healthState ?healthState .
             }
             WHERE {
-                ?plant a ast:Plant ;
+                ?plant rdf:type ?t ;
                     ast:plantId "$plantId" .
+                ?t rdfs:subClassOf* ast:Plant .
             }
         """.trimIndent()
 
