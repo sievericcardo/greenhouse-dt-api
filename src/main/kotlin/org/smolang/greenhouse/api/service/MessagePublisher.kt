@@ -9,20 +9,35 @@ import org.springframework.stereotype.Service
 class MessagePublisher (
     private val queueConfig: QueueConfig
 ) {
-    private val connectionFactory = queueConfig.getActiveMQConnectionFactory()
+    private val queueType =  System.getenv().getOrDefault("QUEUE_TYPE", "activemq")
+    private val connectionFactory = if (queueType == "activemq") {
+        queueConfig.getActiveMQConnectionFactory()
+    } else {
+        queueConfig.getArtemisConnectionFactory()
+    }
 
     @Throws(Exception::class)
     fun publish(queueName: String, message: String) {
-        val connection = connectionFactory.createConnection()
-        connection.start()
-        val session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)
-        val destination = session.createQueue(queueName)
-
-        val producer = session.createProducer(destination)
-        val textMessage: TextMessage = session.createTextMessage(message)
-
-        producer.send(textMessage)
-        session.close()
-        connection.close()
+        if (queueType == "activemq") {
+            queueConfig.getActiveMQConnectionFactory().createConnection().use { connection ->
+                connection.start()
+                connection.createSession(false, Session.AUTO_ACKNOWLEDGE).use { session ->
+                    val destination = session.createQueue(queueName)
+                    val producer = session.createProducer(destination)
+                    val textMessage: TextMessage = session.createTextMessage(message)
+                    producer.send(textMessage)
+                }
+            }
+        } else {
+            queueConfig.getArtemisConnectionFactory().createConnection().use { connection ->
+                connection.start()
+                connection.createSession(false, Session.AUTO_ACKNOWLEDGE).use { session ->
+                    val destination = session.createQueue(queueName)
+                    val producer = session.createProducer(destination)
+                    val textMessage: TextMessage = session.createTextMessage(message)
+                    producer.send(textMessage)
+                }
+            }
+        }
     }
 }
