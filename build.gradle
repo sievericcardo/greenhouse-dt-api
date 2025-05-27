@@ -71,7 +71,11 @@ dependencies {
         exclude group: "ch.qos.logback", module: "logback-classic"
         exclude group: "ch.qos.logback", module: "logback-core"
     }
-    implementation("org.springframework.boot:spring-boot-starter-websocket:${springBootVersion}") {
+    implementation("org.springframework.boot:spring-boot-starter-artemis:${springBootVersion}") {
+        exclude group: "ch.qos.logback", module: "logback-classic"
+        exclude group: "ch.qos.logback", module: "logback-core"
+    }
+    implementation("org.springframework.boot:spring-boot-starter-amqp:${springBootVersion}") {
         exclude group: "ch.qos.logback", module: "logback-classic"
         exclude group: "ch.qos.logback", module: "logback-core"
     }
