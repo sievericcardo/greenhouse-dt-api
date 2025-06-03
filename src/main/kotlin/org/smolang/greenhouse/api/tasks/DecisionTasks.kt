@@ -26,4 +26,26 @@ class DecisionTasks (
         decisionService.waterControl(plantsToWater)
         log.info( "End decision process")
     }
+
+    // Schedule every 3 minutes
+    @Scheduled(cron = "0 0/3 * * * ?") // Execute every 3 minutes
+    @Operation(summary = "Make a decision every 6 hours")
+    fun promptQueue() {
+        log.info( "Alive message")
+        messagePublisher.publish("controller.keepalive","SMOL Scheduler is alive: ${System.currentTimeMillis()}")
+        log.info( "End message")
+    }
+
+    @Scheduled(cron = "* * * * * *") // Execute every 3 minutes
+    @Operation(summary = "Make a decision every 6 hours")
+    fun spamMsg() {
+        log.info( "Alive message")
+        for (i in 1..4) {
+            log.info( "Sending message to actuator.$i.water")
+            messagePublisher.publish("actuator.$i.water","[WATER]18 2")
+        }
+        // wait 3 hours
+        Thread.sleep(1000 * 60 * 3) // 3 minutes
+        log.info( "End message")
+    }
 }
