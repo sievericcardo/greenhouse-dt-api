@@ -28,7 +28,7 @@ class DecisionTasks (
     }
 
     // Schedule every 3 minutes
-    @Scheduled(cron = "0 0/3 * * * ?") // Execute every 3 minutes
+//    @Scheduled(cron = "0 0/3 * * * ?") // Execute every 3 minutes
     @Operation(summary = "Make a decision every 6 hours")
     fun promptQueue() {
         log.info( "Alive message")
@@ -36,7 +36,7 @@ class DecisionTasks (
         log.info( "End message")
     }
 
-    @Scheduled(cron = "* * * * * *") // Execute every 3 minutes
+//    @Scheduled(cron = "* * * * * *") // Execute every 3 minutes
     @Operation(summary = "Make a decision every 6 hours")
     fun spamMsg() {
         log.info( "Alive message")
