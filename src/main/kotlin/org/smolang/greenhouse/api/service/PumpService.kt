@@ -23,7 +23,35 @@ class PumpService (
     private val ttlPrefix = triplestoreProperties.ttlPrefix
     private val repl = replConfig.repl()
 
-    fun getOperatingPumps() : List<Pump> {
+    fun createPump(newPump: Pump) : Boolean {
+        val query = """
+            PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+            PREFIX ast: <$prefix>
+            
+            INSERT DATA {
+                ast:${newPump.pumpId} a ast:Pump ;
+                    ast:pumpGpioPin ${newPump.pumpGpioPin} ;
+                    ast:pumpId "${newPump.pumpId}" ;
+                    ast:modelName "${newPump.modelName}" ;
+                    ast:pumpLifeTime ${newPump.lifeTime} ;
+                    ast:temperature "${newPump.temperature}"^^xsd:double .
+            }
+        """
+
+        val updateRequest: UpdateRequest = UpdateFactory.create(query)
+        val fusekiEndpoint = tripleStore + "/update"
+        val updateProcessor: UpdateProcessor = UpdateExecutionFactory.createRemote(updateRequest, fusekiEndpoint)
+
+        try {
+            updateProcessor.execute()
+        } catch (e: Exception) {
+            return false
+        }
+
+        return true
+    }
+
+    fun getOperatingPumps() : List<Pump>? {
         val pumpsList = mutableListOf<Pump>()
         val pumps =
             """
@@ -37,6 +65,10 @@ class PumpService (
              }""".trimIndent()
 
         val result: ResultSet = repl.interpreter!!.query(pumps)!!
+
+        if (!result.hasNext()) {
+            return null
+        }
 
         while (result.hasNext()) {
             val solution: QuerySolution = result.next()
@@ -52,7 +84,7 @@ class PumpService (
         return pumpsList
     }
 
-    fun getMaintenancePumps() : List<Pump> {
+    fun getMaintenancePumps() : List<Pump>? {
         val pumpsList = mutableListOf<Pump>()
         val pumps =
             """
@@ -66,6 +98,10 @@ class PumpService (
              }""".trimIndent()
 
         val result: ResultSet = repl.interpreter!!.query(pumps)!!
+
+        if (!result.hasNext()) {
+            return null
+        }
 
         while (result.hasNext()) {
             val solution: QuerySolution = result.next()
@@ -81,7 +117,7 @@ class PumpService (
         return pumpsList
     }
 
-    fun getOverheatingPumps() : List<Pump> {
+    fun getOverheatingPumps() : List<Pump>? {
         val pumpsList = mutableListOf<Pump>()
         val pumps =
             """
@@ -95,6 +131,10 @@ class PumpService (
              }""".trimIndent()
 
         val result: ResultSet = repl.interpreter!!.query(pumps)!!
+
+        if (!result.hasNext()) {
+            return null
+        }
 
         while (result.hasNext()) {
             val solution: QuerySolution = result.next()
@@ -110,7 +150,7 @@ class PumpService (
         return pumpsList
     }
 
-    fun getUnderheatingPumps() : List<Pump> {
+    fun getUnderheatingPumps() : List<Pump>? {
         val pumpsList = mutableListOf<Pump>()
         val pumps =
             """
@@ -124,6 +164,10 @@ class PumpService (
              }""".trimIndent()
 
         val result: ResultSet = repl.interpreter!!.query(pumps)!!
+
+        if (!result.hasNext()) {
+            return null
+        }
 
         while (result.hasNext()) {
             val solution: QuerySolution = result.next()
@@ -162,6 +206,37 @@ class PumpService (
         """
 
         val updateRequest: UpdateRequest = UpdateFactory.create(updateQuery)
+        val fusekiEndpoint = tripleStore + "/update"
+        val updateProcessor: UpdateProcessor = UpdateExecutionFactory.createRemote(updateRequest, fusekiEndpoint)
+
+        try {
+            updateProcessor.execute()
+        } catch (e: Exception) {
+            return false
+        }
+
+        return true
+    }
+
+    fun deletePump(pumpId: String) : Boolean {
+        val deletePump = """
+            PREFIX ast: <$prefix>
+            
+            DELETE {
+                ?pump a ast:Pump ;
+                    ast:pumpGpioPin ?pumpGpioPin ;
+                    ast:pumpId ?pumpId ;
+                    ast:modelName ?modelName ;
+                    ast:pumpLifeTime ?pumpLifeTime ;
+                    ast:temperature ?temperature .
+            }
+            WHERE {
+                ?pump a ast:Pump ;
+                    ast:pumpId "$pumpId" .
+            }
+        """
+
+        val updateRequest: UpdateRequest = UpdateFactory.create(deletePump)
         val fusekiEndpoint = tripleStore + "/update"
         val updateProcessor: UpdateProcessor = UpdateExecutionFactory.createRemote(updateRequest, fusekiEndpoint)
 

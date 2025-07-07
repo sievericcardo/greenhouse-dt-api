@@ -3,10 +3,12 @@ class PlantModel extends BaseModel()
     override Unit adaptAddition()
         List<Plant> newPlants = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
-            SELECT ?plantId ?idealMoisture {
-                ?x a ast:Plant ;
+            SELECT ?plantId ?idealMoisture ?status {
+                ?entity rdf:type ?t ;
                     ast:plantId ?plantId ;
-                    ast:idealMoisture ?idealMoisture .
+                    ast:idealMoisture ?idealMoisture ;
+                    ast:status ?status .
+                ?t rdfs:subClassOf* ast:Plant .
                 FILTER NOT EXISTS {
                     ?y a prog:Plant ;
                         prog:Plant_plantId ?plantId .
@@ -20,8 +22,6 @@ class PlantModel extends BaseModel()
             while newPlants != null do
                 Plant newPlant = newPlants.content;
                 newPlant.moisture = newPlant.getPotMoisture();
-                newPlant.ndvi = newPlant.getNdvi();
-                newPlant.healthState = classify(newPlant);
 
                 List<Plant> lx = newPlants;
                 newPlants = newPlants.next;
@@ -29,8 +29,7 @@ class PlantModel extends BaseModel()
                 print("          Plant Id: " ++ newPlant.plantId);
                 print("          Ideal Moisture: " ++ doubleToString(newPlant.idealMoisture));
                 print("          Moisture: " ++ doubleToString(newPlant.moisture));
-                print("          NDVI: " ++ doubleToString(newPlant.ndvi));
-                print("          Health State: " ++ newPlant.healthState.name);
+                print("          Status: " ++ newPlant.status);
 
                 destroy(lx);
             end
@@ -40,7 +39,6 @@ class PlantModel extends BaseModel()
     end
 
 
-
     override Unit adaptRemoval()
         List<Plant> wrongPlants = access("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
@@ -48,8 +46,9 @@ class PlantModel extends BaseModel()
                 ?obj a prog:Plant ;
                      prog:Plant_plantId ?plantId.
                 FILTER NOT EXISTS {
-                    ?y a ast:Plant ;
-                       ast:plantId ?plantId.
+                    ?entity rdf:type ?t ;
+                       ast:plantId ?plantId .
+                    ?t rdfs:subClassOf* ast:Plant .
                 }
             }");
 
@@ -73,18 +72,24 @@ class PlantModel extends BaseModel()
         end
     end
 
-
-
     override Unit adaptDefect()
+        print("RECONFIG> Check defects in plant(s)");
+        this.adaptDefectMoisture();
+        this.adatpDefectStatus();
+        print("RECONFIG> Defect repaired");
+    end
+
+    Unit adaptDefectMoisture()
         List<PlantDefect> changedPlants = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
             SELECT ?obj ?idealMoistureNew {
                 ?obj a prog:Plant ;
                     prog:Plant_plantId ?plantId ;
                     prog:Plant_idealMoisture ?idealMoisture.
-                ?y a ast:Plant ;
+                ?y rdf:type ?t ;
                     ast:plantId ?plantId ;
-                    ast:idealMoisture ?idealMoistureNew.
+                    ast:idealMoisture ?idealMoistureNew .
+                ?t rdfs:subClassOf* ast:Plant .
                 FILTER(?idealMoisture != ?idealMoistureNew)
             }");
 
@@ -109,29 +114,40 @@ class PlantModel extends BaseModel()
         end
     end
 
-    override Unit adaptBehaviour()
-        List<Plant> plants = access("
-            SELECT DISTINCT ?obj {
-                ?obj a prog:Plant .
-            }
-        ");
+    Unit adatpDefectStatus()
+        List<PlantDefectStatus> defectPlants = construct("
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
+            SELECT ?obj ?statusNew {
+                ?obj a prog:Plant ;
+                    prog:Plant_plantId ?plantId ;
+                    prog:Plant_status ?status.
+                ?y rdf:type ?t ;
+                    ast:plantId ?plantId ;
+                    ast:status ?statusNew .
+                ?t rdfs:subClassOf* ast:Plant .
+                FILTER(?status != ?statusNew)
+            }");
+        
+        if defectPlants != null then
+            print("RECONFIG> Changed Plant(s) detected: repairing the model");
 
-        if plants == null then print("ADAPT> No plants to adapt"); else
-            print("ADAPT> Adapting plants...");
+            while defectPlants != null do
+                PlantDefectStatus status = defectPlants.content;
+                List<PlantDefectStatus> lx = defectPlants;
+                defectPlants = defectPlants.next;
+                destroy(lx);
 
-            while plants != null do
-                Plant plant = plants.content;
+                print("RECONFIG> Changed plant to adjust: " ++ status.obj.plantId);
+                print("          Old status: " ++ status.obj.status);
+                print("          New status: " ++ status.statusNew);
 
-                print("ADAPT> Adapting plant " ++ plant.plantId);
-                plant.ndvi = plant.getNdvi();
-
-                adapt(plant.healthState);
-                plant.healthState.printInfo();
-
-                List<Plant> oldList = plants;
-                plants = plants.next;
-                destroy(oldList);
+                status.obj.status = status.statusNew;
+                destroy(status);
             end
+
+            print("RECONFIG> Plant(s) changed");
         end
     end
+
+    override Unit adaptBehaviour() skip; end
 end

@@ -8,8 +8,6 @@ import no.uio.microobject.runtime.REPL
 import no.uio.microobject.type.STRINGTYPE
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Lazy
-import java.io.File
 
 @Configuration
 open class REPLConfig {

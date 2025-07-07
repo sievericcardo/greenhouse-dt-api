@@ -71,6 +71,14 @@ dependencies {
         exclude group: "ch.qos.logback", module: "logback-classic"
         exclude group: "ch.qos.logback", module: "logback-core"
     }
+    implementation("org.springframework.boot:spring-boot-starter-artemis:${springBootVersion}") {
+        exclude group: "ch.qos.logback", module: "logback-classic"
+        exclude group: "ch.qos.logback", module: "logback-core"
+    }
+    implementation("org.springframework.boot:spring-boot-starter-amqp:${springBootVersion}") {
+        exclude group: "ch.qos.logback", module: "logback-classic"
+        exclude group: "ch.qos.logback", module: "logback-core"
+    }
     // Jackson
     implementation("com.fasterxml.jackson.core:jackson-core:${jacksonVersion}")
     implementation("com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}")
