@@ -3,10 +3,16 @@ abstract class Twin() end
 class Sensor extends Twin (String sensorId, String sensorProperty)
 end
 
-class MoistureSensor extends Sensor ()
+class MoistureSensor extends Sensor (Double moisture)
 end
 
-class NutrientSensor extends Sensor ()
+class NutrientSensor extends Sensor (Double nutrient)
+end
+
+class LightSensor extends Sensor (Double lightIntensity)
+end
+
+class TemperatureHumiditySensor extends Sensor (Double temperature,Double humidity)
 end
 
 class HealthState extends Twin (context Plant plant, String name)
@@ -159,6 +165,16 @@ class WaterBucket extends Twin (
     String bucketId,
     Double waterLevel
 ) end
+
+class GreenHouse extends Twin (
+    String greenhouseId,
+    List<Section> sections,
+    List<WaterBucket> waterBuckets,
+    LightSensor lightSensor,
+    TemperatureHumiditySensor temperatureHumiditySensor,
+)
+end
+
 
 
 // NDVI START
