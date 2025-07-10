@@ -1,11 +1,54 @@
 abstract class Twin() end
 
+class Sensor extends Twin (String sensorId, String sensorProperty)
+end
+
+class MoistureSensor extends Sensor ()
+end
+
+class NutrientSensor extends Sensor ()
+end
+
+class HealthState extends Twin (context Plant plant, String name)
+end
+
+class Healthy extends HealthState ()
+classifies "<ast:Healthy>";
+    Unit printInfo()
+        print("Plant is healthy.");
+    end
+end
+
+class Unhealthy extends HealthState ()
+classifies "<ast:Unhealthy>";
+    Unit printInfo()
+        print("Plant is unhealthy.");
+    end
+end
+
+class Dead extends HealthState ()
+classifies "<ast:Dead>";
+    Unit printInfo()
+        print("Plant is dead.");
+    end
+end
+
 /**
  *  Models a physical plant. It is initially retrieved by
  *  the asset model, but it can be reconfigured by the program model.
  *  Each plant is associated with a pot.
  */
-class Plant extends Twin (String plantId, Double idealMoisture, Double moisture, String healthState, String status)
+class Plant extends Twin (
+    hidden String plantId,
+    domain String familyName,
+    domain Double moisture,
+    domain Double ndvi,
+    hidden HealthState healthState
+)
+models "a ast:Plant ; domain:familyName %familyName ; domain:moisture %moisture ; domain:ndvi %ndvi";
+    Unit printInfo()
+        print("Plant: " ++ this.plantId ++ " has ideal moisture: " ++ this.idealMoisture ++ " and current moisture: " ++ this.moisture ++ ".");
+    end
 
     Double getPotMoisture()
         String id = this.plantId ++ ".0";
@@ -28,11 +71,8 @@ class Plant extends Twin (String plantId, Double idealMoisture, Double moisture,
         return moisture;
     end
 
-
-// NDVI START
-    Double getNdvi()
-    String id = this.plantId ++ ".0";
-        Double healthState = 0.0;
+    Unit getNdvi()
+        String id = this.plantId ++ ".0";
         List<Double> influxReturn = access(
             "from(bucket: \"GreenHouse\")
                 |> range(start: -30d)
@@ -45,33 +85,36 @@ class Plant extends Twin (String plantId, Double idealMoisture, Double moisture,
         id);
 
         if influxReturn != null then
-            healthState = influxReturn.content;
+            this.ndvi = influxReturn.content;
         end
-
-        return healthState;
     end
-// NDVI END
 end
 
-
 /* Models a physical pot. It is initially retrieved by the asset model. Each pot is associated with a moisture sensor. */
-class Pot extends Twin (String id, String shelfFloor, String potPosition, String pumpId, String plantId) end
+class Pot extends Twin (
+    String potId, 
+    List<Plant> plants, 
+    MoistureSensor moistureSensor, 
+    NutrientSensor nutrientSensor.
+    Pump pump
+) end
 
-
-/** The following classes represent instances of assets that we currently not using directly but that are twinned for possible extensions */
-/* Models a physical shelf. It is initially retrieved by the asset model. */
-class Shelf extends Twin (String shelfFloor) end
+/*  Models a physical section of the greenhouse. It is initially retrieved by the asset model.
+ *  Each section contains a list of pots.
+ */
+class Section extends Twin (String sectionId, List<Pot> pots) end
 
 /*  Models a physical pump. It is initially retrieved by the asset model. */
 class Pump extends Twin (
-    Int pumpGpioPin,
+    Int pumpChannel,
     String pumpId,
     domain String modelName,
     hidden String modelNameOut,
     domain Int pumpLifeTime,
     hidden Int pumpLifeTimeOut,
     domain Double temperature, 
-    hidden Double temperatureOut)
+    hidden Double temperatureOut
+)
 models "a ast:Pump ; domain:temperature %temperature ; domain:pumpLifeTime %pumpLifeTime ; domain:modelName %modelName";
 end
 
@@ -111,6 +154,11 @@ classifies "<ast:Underheating>";
         print("Pump: " ++ this.pumpId ++ " is underheating.");
     end
 end
+
+class WaterBucket extends Twin (
+    String bucketId,
+    Double waterLevel
+) end
 
 
 // NDVI START
