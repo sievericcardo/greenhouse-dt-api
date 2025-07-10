@@ -133,6 +133,12 @@ ast:modelName rdf:type owl:DatatypeProperty ;
               rdfs:range xsd:string .
 
 
+###  http://www.smolang.org/greenhouseDT#moisture
+ast:moisture rdf:type owl:DatatypeProperty ;
+             rdfs:domain ast:Plant ;
+             rdfs:range xsd:double .
+
+
 ###  http://www.smolang.org/greenhouseDT#ndvi
 ast:ndvi rdf:type owl:DatatypeProperty ;
          rdfs:domain ast:Plant ;
@@ -266,6 +272,7 @@ ast:HealthState rdf:type owl:Class ;
 
 ###  http://www.smolang.org/greenhouseDT#Healthy
 ast:Healthy rdf:type owl:Class ;
+            owl:equivalentClass ast:HealthyStrategy ;
             rdfs:subClassOf ast:HealthState ;
             owl:disjointWith ast:Unhealthy .
 
@@ -291,6 +298,31 @@ ast:HealthyBasil rdf:type owl:Class ;
                  rdfs:subClassOf ast:Healthy .
 
 
+###  http://www.smolang.org/greenhouseDT#HealthyMoistStrategy
+ast:HealthyMoistStrategy rdf:type owl:Class ;
+                         owl:equivalentClass [ owl:intersectionOf ( ast:Healthy
+                                                                    ast:MoistPlant
+                                                                  ) ;
+                                               rdf:type owl:Class
+                                             ] ;
+                         rdfs:subClassOf ast:Water_Strategy .
+
+
+###  http://www.smolang.org/greenhouseDT#HealthyStrategy
+ast:HealthyStrategy rdf:type owl:Class ;
+                    rdfs:subClassOf ast:Water_Strategy .
+
+
+###  http://www.smolang.org/greenhouseDT#HealthyThirstyStrategy
+ast:HealthyThirstyStrategy rdf:type owl:Class ;
+                           owl:equivalentClass [ owl:intersectionOf ( ast:Healthy
+                                                                      ast:ThirstyPlant
+                                                                    ) ;
+                                                 rdf:type owl:Class
+                                               ] ;
+                           rdfs:subClassOf ast:Water_Strategy .
+
+
 ###  http://www.smolang.org/greenhouseDT#Light
 ast:Light rdf:type owl:Class ;
           rdfs:subClassOf ast:Sensor .
@@ -302,7 +334,30 @@ ast:Light_Switch rdf:type owl:Class ;
 
 
 ###  http://www.smolang.org/greenhouseDT#MoistBasil
-ast:MoistBasil rdf:type owl:Class .
+ast:MoistBasil rdf:type owl:Class ;
+               owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                            owl:onProperty ast:moisture ;
+                                                            owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                 owl:onDatatype xsd:double ;
+                                                                                 owl:withRestrictions ( [ xsd:minInclusive "80.0"^^xsd:double
+                                                                                                        ]
+                                                                                                      )
+                                                                               ]
+                                                          ]
+                                                          [ rdf:type owl:Restriction ;
+                                                            owl:onProperty ast:familyName ;
+                                                            owl:hasValue "Ocimum basilicum"
+                                                          ]
+                                                        ) ;
+                                     rdf:type owl:Class
+                                   ] ;
+               rdfs:subClassOf ast:MoistPlant .
+
+
+###  http://www.smolang.org/greenhouseDT#MoistPlant
+ast:MoistPlant rdf:type owl:Class ;
+               rdfs:subClassOf ast:Plant ;
+               owl:disjointWith ast:ThirstyPlant .
 
 
 ###  http://www.smolang.org/greenhouseDT#Moisture
@@ -316,7 +371,10 @@ ast:Nutrient rdf:type owl:Class ;
 
 
 ###  http://www.smolang.org/greenhouseDT#Plant
-ast:Plant rdf:type owl:Class .
+ast:Plant rdf:type owl:Class ;
+          owl:disjointUnionOf ( ast:MoistPlant
+                                ast:ThirstyPlant
+                              ) .
 
 
 ###  http://www.smolang.org/greenhouseDT#Pot
@@ -368,6 +426,58 @@ ast:Strategy rdf:type owl:Class .
 ###  http://www.smolang.org/greenhouseDT#Temperature_Humidity
 ast:Temperature_Humidity rdf:type owl:Class ;
                          rdfs:subClassOf ast:Sensor .
+
+
+###  http://www.smolang.org/greenhouseDT#ThirstyBasil
+ast:ThirstyBasil rdf:type owl:Class ;
+                 owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                              owl:onProperty ast:moisture ;
+                                                              owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                   owl:onDatatype xsd:double ;
+                                                                                   owl:withRestrictions ( [ xsd:maxExclusive "80.0"^^xsd:double
+                                                                                                          ]
+                                                                                                        )
+                                                                                 ]
+                                                            ]
+                                                            [ rdf:type owl:Restriction ;
+                                                              owl:onProperty ast:familyName ;
+                                                              owl:hasValue "Ocimum basilicum"
+                                                            ]
+                                                          ) ;
+                                       rdf:type owl:Class
+                                     ] ;
+                 rdfs:subClassOf ast:ThirstyPlant .
+
+
+###  http://www.smolang.org/greenhouseDT#ThirstyPlant
+ast:ThirstyPlant rdf:type owl:Class ;
+                 rdfs:subClassOf ast:Plant .
+
+
+###  http://www.smolang.org/greenhouseDT#UnHealthyMoistStrategy
+ast:UnHealthyMoistStrategy rdf:type owl:Class ;
+                           owl:equivalentClass [ owl:intersectionOf ( ast:MoistPlant
+                                                                      ast:Unhealthy
+                                                                    ) ;
+                                                 rdf:type owl:Class
+                                               ] ;
+                           rdfs:subClassOf ast:Water_Strategy .
+
+
+###  http://www.smolang.org/greenhouseDT#UnHealthyStrategy
+ast:UnHealthyStrategy rdf:type owl:Class ;
+                      owl:equivalentClass ast:Unhealthy ;
+                      rdfs:subClassOf ast:Water_Strategy .
+
+
+###  http://www.smolang.org/greenhouseDT#UnHealthyThirstyStrategy
+ast:UnHealthyThirstyStrategy rdf:type owl:Class ;
+                             owl:equivalentClass [ owl:intersectionOf ( ast:ThirstyPlant
+                                                                        ast:Unhealthy
+                                                                      ) ;
+                                                   rdf:type owl:Class
+                                                 ] ;
+                             rdfs:subClassOf ast:Water_Strategy .
 
 
 ###  http://www.smolang.org/greenhouseDT#Unhealthy
@@ -469,6 +579,8 @@ ast:plant1 rdf:type owl:NamedIndividual ,
                     ast:Basil ;
            ast:familyName "Ocimum basilicum" ;
            ast:idealMoisture "80.0"^^xsd:double ;
+           ast:moisture "50.0"^^xsd:double ;
+           ast:ndvi "0.6"^^xsd:double ;
            ast:plantId "Riccardo" .
 
 
