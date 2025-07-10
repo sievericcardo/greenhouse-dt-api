@@ -97,6 +97,18 @@ ast:wateredBy rdf:type owl:ObjectProperty ;
 #    Data properties
 #################################################################
 
+###  http://www.smolang.org/greenhouseDT#bucketId
+ast:bucketId rdf:type owl:DatatypeProperty ;
+             rdfs:domain ast:Water_Bucket ;
+             rdfs:range xsd:string .
+
+
+###  http://www.smolang.org/greenhouseDT#familyName
+ast:familyName rdf:type owl:DatatypeProperty ;
+               rdfs:domain ast:Plant ;
+               rdfs:range xsd:string .
+
+
 ###  http://www.smolang.org/greenhouseDT#greenhouseId
 ast:greenhouseId rdf:type owl:DatatypeProperty ;
                  rdfs:domain ast:Greenhouse ;
@@ -113,6 +125,18 @@ ast:hasMoisture rdf:type owl:DatatypeProperty ;
 ast:idealMoisture rdf:type owl:DatatypeProperty ;
                   rdfs:domain ast:Plant ;
                   rdfs:range xsd:double .
+
+
+###  http://www.smolang.org/greenhouseDT#modelName
+ast:modelName rdf:type owl:DatatypeProperty ;
+              rdfs:domain ast:Pump ;
+              rdfs:range xsd:string .
+
+
+###  http://www.smolang.org/greenhouseDT#ndvi
+ast:ndvi rdf:type owl:DatatypeProperty ;
+         rdfs:domain ast:Plant ;
+         rdfs:range xsd:double .
 
 
 ###  http://www.smolang.org/greenhouseDT#plantId
@@ -137,6 +161,12 @@ ast:pumpChannel rdf:type owl:DatatypeProperty ;
 ast:pumpId rdf:type owl:DatatypeProperty ;
            rdfs:domain ast:Pump ;
            rdfs:range xsd:string .
+
+
+###  http://www.smolang.org/greenhouseDT#pumpLifeTime
+ast:pumpLifeTime rdf:type owl:DatatypeProperty ;
+                 rdfs:domain ast:Pump ;
+                 rdfs:range xsd:int .
 
 
 ###  http://www.smolang.org/greenhouseDT#secondToWater
@@ -169,6 +199,12 @@ ast:status rdf:type owl:DatatypeProperty ;
            rdfs:range xsd:string .
 
 
+###  http://www.smolang.org/greenhouseDT#temperature
+ast:temperature rdf:type owl:DatatypeProperty ;
+                rdfs:domain ast:Pump ;
+                rdfs:range xsd:double .
+
+
 ###  http://www.smolang.org/greenhouseDT#waterLevel
 ast:waterLevel rdf:type owl:DatatypeProperty ;
                rdfs:domain ast:Water_Bucket ;
@@ -188,8 +224,71 @@ ast:Basil rdf:type owl:Class ;
           rdfs:subClassOf ast:Plant .
 
 
+###  http://www.smolang.org/greenhouseDT#Dead
+ast:Dead rdf:type owl:Class ;
+         rdfs:subClassOf ast:HealthState ;
+         owl:disjointWith ast:Healthy ,
+                          ast:Unhealthy .
+
+
+###  http://www.smolang.org/greenhouseDT#DeadBasil
+ast:DeadBasil rdf:type owl:Class ;
+              owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                           owl:onProperty ast:ndvi ;
+                                                           owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                owl:onDatatype xsd:double ;
+                                                                                owl:withRestrictions ( [ xsd:maxInclusive "0.0"^^xsd:double
+                                                                                                       ]
+                                                                                                     )
+                                                                              ]
+                                                         ]
+                                                         [ rdf:type owl:Restriction ;
+                                                           owl:onProperty ast:familyName ;
+                                                           owl:hasValue "Ocimum basilicum"
+                                                         ]
+                                                       ) ;
+                                    rdf:type owl:Class
+                                  ] ;
+              rdfs:subClassOf ast:Dead .
+
+
 ###  http://www.smolang.org/greenhouseDT#Greenhouse
 ast:Greenhouse rdf:type owl:Class .
+
+
+###  http://www.smolang.org/greenhouseDT#HealthState
+ast:HealthState rdf:type owl:Class ;
+                owl:disjointUnionOf ( ast:Dead
+                                      ast:Healthy
+                                      ast:Unhealthy
+                                    ) .
+
+
+###  http://www.smolang.org/greenhouseDT#Healthy
+ast:Healthy rdf:type owl:Class ;
+            rdfs:subClassOf ast:HealthState ;
+            owl:disjointWith ast:Unhealthy .
+
+
+###  http://www.smolang.org/greenhouseDT#HealthyBasil
+ast:HealthyBasil rdf:type owl:Class ;
+                 owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                              owl:onProperty ast:ndvi ;
+                                                              owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                   owl:onDatatype xsd:double ;
+                                                                                   owl:withRestrictions ( [ xsd:minInclusive "0.5"^^xsd:double
+                                                                                                          ]
+                                                                                                        )
+                                                                                 ]
+                                                            ]
+                                                            [ rdf:type owl:Restriction ;
+                                                              owl:onProperty ast:familyName ;
+                                                              owl:hasValue "Ocimum basilicum"
+                                                            ]
+                                                          ) ;
+                                       rdf:type owl:Class
+                                     ] ;
+                 rdfs:subClassOf ast:Healthy .
 
 
 ###  http://www.smolang.org/greenhouseDT#Light
@@ -200,6 +299,10 @@ ast:Light rdf:type owl:Class ;
 ###  http://www.smolang.org/greenhouseDT#Light_Switch
 ast:Light_Switch rdf:type owl:Class ;
                  rdfs:subClassOf ast:Actuator .
+
+
+###  http://www.smolang.org/greenhouseDT#MoistBasil
+ast:MoistBasil rdf:type owl:Class .
 
 
 ###  http://www.smolang.org/greenhouseDT#Moisture
@@ -267,6 +370,41 @@ ast:Temperature_Humidity rdf:type owl:Class ;
                          rdfs:subClassOf ast:Sensor .
 
 
+###  http://www.smolang.org/greenhouseDT#Unhealthy
+ast:Unhealthy rdf:type owl:Class ;
+              rdfs:subClassOf ast:HealthState .
+
+
+###  http://www.smolang.org/greenhouseDT#UnhealthyBasil
+ast:UnhealthyBasil rdf:type owl:Class ;
+                   owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                                owl:onProperty ast:ndvi ;
+                                                                owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                     owl:onDatatype xsd:double ;
+                                                                                     owl:withRestrictions ( [ xsd:minExclusive "0.0"^^xsd:double
+                                                                                                            ]
+                                                                                                          )
+                                                                                   ]
+                                                              ]
+                                                              [ rdf:type owl:Restriction ;
+                                                                owl:onProperty ast:ndvi ;
+                                                                owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                     owl:onDatatype xsd:double ;
+                                                                                     owl:withRestrictions ( [ xsd:maxExclusive "0.5"^^xsd:double
+                                                                                                            ]
+                                                                                                          )
+                                                                                   ]
+                                                              ]
+                                                              [ rdf:type owl:Restriction ;
+                                                                owl:onProperty ast:familyName ;
+                                                                owl:hasValue "Ocimum basilicum"
+                                                              ]
+                                                            ) ;
+                                         rdf:type owl:Class
+                                       ] ;
+                   rdfs:subClassOf ast:Unhealthy .
+
+
 ###  http://www.smolang.org/greenhouseDT#Water_Bucket
 ast:Water_Bucket rdf:type owl:Class .
 
@@ -329,6 +467,7 @@ ast:nutrientSensor1 rdf:type owl:NamedIndividual ,
 ###  http://www.smolang.org/greenhouseDT#plant1
 ast:plant1 rdf:type owl:NamedIndividual ,
                     ast:Basil ;
+           ast:familyName "Ocimum basilicum" ;
            ast:idealMoisture "80.0"^^xsd:double ;
            ast:plantId "Riccardo" .
 
@@ -345,7 +484,8 @@ ast:pot1 rdf:type owl:NamedIndividual ,
 
 ###  http://www.smolang.org/greenhouseDT#pump1
 ast:pump1 rdf:type owl:NamedIndividual ,
-                   ast:Pump .
+                   ast:Pump ;
+          ast:pumpId "Pump 1" .
 
 
 ###  http://www.smolang.org/greenhouseDT#section1
@@ -364,7 +504,7 @@ ast:sickPlantStrategy rdf:type owl:NamedIndividual ,
 ###  http://www.smolang.org/greenhouseDT#waterBucket1
 ast:waterBucket1 rdf:type owl:NamedIndividual ,
                           ast:Water_Bucket ;
-                 ast:sensorId "Bucky 1" .
+                 ast:bucketId "Bucky 1" .
 
 
-###  Generated by the OWL API (version 4.5.26.2023-07-17T20:34:13Z) https://github.com/owlcs/owlapi
+###  Generated by the OWL API (version 4.5.29.2024-05-13T12:11:03Z) https://github.com/owlcs/owlapi
