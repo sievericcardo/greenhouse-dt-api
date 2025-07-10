@@ -1,0 +1,370 @@
+@prefix : <http://www.smolang.org/greenhouseDT#> .
+@prefix ast: <http://www.smolang.org/greenhouseDT#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@base <http://www.smolang.org/greenhouseDT#> .
+
+<http://www.smolang.org/greenhouseDT> rdf:type owl:Ontology .
+
+#################################################################
+#    Datatypes
+#################################################################
+
+###  http://www.smolang.org/greenhouseDT#percentage
+ast:percentage rdf:type rdfs:Datatype ;
+               owl:equivalentClass [ rdf:type rdfs:Datatype ;
+                                     owl:onDatatype xsd:double ;
+                                     owl:withRestrictions ( [ xsd:minInclusive "0.0"^^xsd:double
+                                                            ]
+                                                            [ xsd:maxInclusive "100.0"^^xsd:double
+                                                            ]
+                                                          )
+                                   ] .
+
+
+#################################################################
+#    Object Properties
+#################################################################
+
+###  http://www.smolang.org/greenhouseDT#containsPlant
+ast:containsPlant rdf:type owl:ObjectProperty ;
+                  rdfs:domain ast:Pot ;
+                  rdfs:range ast:Plant .
+
+
+###  http://www.smolang.org/greenhouseDT#containsPot
+ast:containsPot rdf:type owl:ObjectProperty ;
+                rdfs:domain ast:Section ;
+                rdfs:range ast:Pot .
+
+
+###  http://www.smolang.org/greenhouseDT#containsWaterBucket
+ast:containsWaterBucket rdf:type owl:ObjectProperty ;
+                        rdfs:domain ast:Greenhouse ;
+                        rdfs:range ast:Water_Bucket .
+
+
+###  http://www.smolang.org/greenhouseDT#hasLightSensor
+ast:hasLightSensor rdf:type owl:ObjectProperty ;
+                   rdfs:domain ast:Greenhouse ;
+                   rdfs:range ast:Light .
+
+
+###  http://www.smolang.org/greenhouseDT#hasLightSwitch
+ast:hasLightSwitch rdf:type owl:ObjectProperty ;
+                   rdfs:domain ast:Greenhouse ;
+                   rdfs:range ast:Light_Switch .
+
+
+###  http://www.smolang.org/greenhouseDT#hasMoistureSensor
+ast:hasMoistureSensor rdf:type owl:ObjectProperty ;
+                      rdfs:domain ast:Pot ;
+                      rdfs:range ast:Moisture .
+
+
+###  http://www.smolang.org/greenhouseDT#hasNutrientSensor
+ast:hasNutrientSensor rdf:type owl:ObjectProperty ;
+                      rdfs:domain ast:Pot ;
+                      rdfs:range ast:Nutrient .
+
+
+###  http://www.smolang.org/greenhouseDT#hasTemperatureHumiditySensor
+ast:hasTemperatureHumiditySensor rdf:type owl:ObjectProperty ;
+                                 rdfs:domain ast:Greenhouse ;
+                                 rdfs:range ast:Temperature_Humidity .
+
+
+###  http://www.smolang.org/greenhouseDT#hasWaterLevelSensor
+ast:hasWaterLevelSensor rdf:type owl:ObjectProperty ;
+                        rdfs:domain ast:Water_Bucket ;
+                        rdfs:range ast:Water_Level .
+
+
+###  http://www.smolang.org/greenhouseDT#hasWaterStrategy
+ast:hasWaterStrategy rdf:type owl:ObjectProperty .
+
+
+###  http://www.smolang.org/greenhouseDT#wateredBy
+ast:wateredBy rdf:type owl:ObjectProperty ;
+              rdfs:domain ast:Pot ;
+              rdfs:range ast:Pump .
+
+
+#################################################################
+#    Data properties
+#################################################################
+
+###  http://www.smolang.org/greenhouseDT#greenhouseId
+ast:greenhouseId rdf:type owl:DatatypeProperty ;
+                 rdfs:domain ast:Greenhouse ;
+                 rdfs:range xsd:string .
+
+
+###  http://www.smolang.org/greenhouseDT#hasMoisture
+ast:hasMoisture rdf:type owl:DatatypeProperty ;
+                rdfs:domain ast:Pot ;
+                rdfs:range xsd:double .
+
+
+###  http://www.smolang.org/greenhouseDT#idealMoisture
+ast:idealMoisture rdf:type owl:DatatypeProperty ;
+                  rdfs:domain ast:Plant ;
+                  rdfs:range xsd:double .
+
+
+###  http://www.smolang.org/greenhouseDT#plantId
+ast:plantId rdf:type owl:DatatypeProperty ;
+            rdfs:domain ast:Plant ;
+            rdfs:range xsd:string .
+
+
+###  http://www.smolang.org/greenhouseDT#potId
+ast:potId rdf:type owl:DatatypeProperty ;
+          rdfs:domain ast:Pot ;
+          rdfs:range xsd:string .
+
+
+###  http://www.smolang.org/greenhouseDT#pumpChannel
+ast:pumpChannel rdf:type owl:DatatypeProperty ;
+                rdfs:domain ast:Pump ;
+                rdfs:range xsd:int .
+
+
+###  http://www.smolang.org/greenhouseDT#pumpId
+ast:pumpId rdf:type owl:DatatypeProperty ;
+           rdfs:domain ast:Pump ;
+           rdfs:range xsd:string .
+
+
+###  http://www.smolang.org/greenhouseDT#secondToWater
+ast:secondToWater rdf:type owl:DatatypeProperty ;
+                  rdfs:domain ast:Water_Strategy ;
+                  rdfs:range xsd:int .
+
+
+###  http://www.smolang.org/greenhouseDT#sectionId
+ast:sectionId rdf:type owl:DatatypeProperty ;
+              rdfs:domain ast:Section ;
+              rdfs:range xsd:string .
+
+
+###  http://www.smolang.org/greenhouseDT#sensorId
+ast:sensorId rdf:type owl:DatatypeProperty ;
+             rdfs:domain ast:Sensor ;
+             rdfs:range xsd:string .
+
+
+###  http://www.smolang.org/greenhouseDT#sensorProperty
+ast:sensorProperty rdf:type owl:DatatypeProperty ;
+                   rdfs:domain ast:Sensor ;
+                   rdfs:range xsd:string .
+
+
+###  http://www.smolang.org/greenhouseDT#status
+ast:status rdf:type owl:DatatypeProperty ;
+           rdfs:domain ast:Plant ;
+           rdfs:range xsd:string .
+
+
+###  http://www.smolang.org/greenhouseDT#waterLevel
+ast:waterLevel rdf:type owl:DatatypeProperty ;
+               rdfs:domain ast:Water_Bucket ;
+               rdfs:range xsd:double .
+
+
+#################################################################
+#    Classes
+#################################################################
+
+###  http://www.smolang.org/greenhouseDT#Actuator
+ast:Actuator rdf:type owl:Class .
+
+
+###  http://www.smolang.org/greenhouseDT#Basil
+ast:Basil rdf:type owl:Class ;
+          rdfs:subClassOf ast:Plant .
+
+
+###  http://www.smolang.org/greenhouseDT#Greenhouse
+ast:Greenhouse rdf:type owl:Class .
+
+
+###  http://www.smolang.org/greenhouseDT#Light
+ast:Light rdf:type owl:Class ;
+          rdfs:subClassOf ast:Sensor .
+
+
+###  http://www.smolang.org/greenhouseDT#Light_Switch
+ast:Light_Switch rdf:type owl:Class ;
+                 rdfs:subClassOf ast:Actuator .
+
+
+###  http://www.smolang.org/greenhouseDT#Moisture
+ast:Moisture rdf:type owl:Class ;
+             rdfs:subClassOf ast:Sensor .
+
+
+###  http://www.smolang.org/greenhouseDT#Nutrient
+ast:Nutrient rdf:type owl:Class ;
+             rdfs:subClassOf ast:Sensor .
+
+
+###  http://www.smolang.org/greenhouseDT#Plant
+ast:Plant rdf:type owl:Class .
+
+
+###  http://www.smolang.org/greenhouseDT#Pot
+ast:Pot rdf:type owl:Class ;
+        owl:equivalentClass [ rdf:type owl:Restriction ;
+                              owl:onProperty ast:hasWaterStrategy ;
+                              owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                              owl:onClass ast:Water_Strategy
+                            ] ;
+        rdfs:subClassOf [ rdf:type owl:Restriction ;
+                          owl:onProperty ast:containsPlant ;
+                          owl:someValuesFrom ast:Plant
+                        ] ,
+                        [ rdf:type owl:Restriction ;
+                          owl:onProperty ast:wateredBy ;
+                          owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                          owl:onClass ast:Pump
+                        ] .
+
+
+###  http://www.smolang.org/greenhouseDT#Pump
+ast:Pump rdf:type owl:Class ;
+         rdfs:subClassOf ast:Actuator .
+
+
+###  http://www.smolang.org/greenhouseDT#Rosemary
+ast:Rosemary rdf:type owl:Class ;
+             rdfs:subClassOf ast:Plant .
+
+
+###  http://www.smolang.org/greenhouseDT#Sage
+ast:Sage rdf:type owl:Class ;
+         rdfs:subClassOf ast:Plant .
+
+
+###  http://www.smolang.org/greenhouseDT#Section
+ast:Section rdf:type owl:Class ;
+            rdfs:subClassOf ast:Greenhouse .
+
+
+###  http://www.smolang.org/greenhouseDT#Sensor
+ast:Sensor rdf:type owl:Class .
+
+
+###  http://www.smolang.org/greenhouseDT#Strategy
+ast:Strategy rdf:type owl:Class .
+
+
+###  http://www.smolang.org/greenhouseDT#Temperature_Humidity
+ast:Temperature_Humidity rdf:type owl:Class ;
+                         rdfs:subClassOf ast:Sensor .
+
+
+###  http://www.smolang.org/greenhouseDT#Water_Bucket
+ast:Water_Bucket rdf:type owl:Class .
+
+
+###  http://www.smolang.org/greenhouseDT#Water_Level
+ast:Water_Level rdf:type owl:Class ;
+                rdfs:subClassOf ast:Sensor .
+
+
+###  http://www.smolang.org/greenhouseDT#Water_Strategy
+ast:Water_Strategy rdf:type owl:Class ;
+                   rdfs:subClassOf ast:Strategy .
+
+
+#################################################################
+#    Individuals
+#################################################################
+
+###  http://www.smolang.org/greenhouseDT#greenhouse1
+ast:greenhouse1 rdf:type owl:NamedIndividual ,
+                         ast:Greenhouse ;
+                ast:containsWaterBucket ast:waterBucket1 ;
+                ast:hasLightSensor ast:lightSensor1 ;
+                ast:hasTemperatureHumiditySensor ast:humidityTemperatureSensor1 ;
+                ast:greenhouseId "Greenhouse 1" .
+
+
+###  http://www.smolang.org/greenhouseDT#healthyPlantStrategy
+ast:healthyPlantStrategy rdf:type owl:NamedIndividual ,
+                                  ast:Water_Strategy ;
+                         ast:secondToWater "1"^^xsd:int .
+
+
+###  http://www.smolang.org/greenhouseDT#humidityTemperatureSensor1
+ast:humidityTemperatureSensor1 rdf:type owl:NamedIndividual ,
+                                        ast:Temperature_Humidity ;
+                               ast:sensorId "DTH Sensor 1" .
+
+
+###  http://www.smolang.org/greenhouseDT#lightSensor1
+ast:lightSensor1 rdf:type owl:NamedIndividual ,
+                          ast:Light ;
+                 ast:sensorId "Light Sensor 1" .
+
+
+###  http://www.smolang.org/greenhouseDT#moistureSensor1
+ast:moistureSensor1 rdf:type owl:NamedIndividual ,
+                             ast:Moisture ;
+                    ast:sensorId "Moisture 1" ;
+                    ast:sensorProperty "2.1,6.2" .
+
+
+###  http://www.smolang.org/greenhouseDT#nutrientSensor1
+ast:nutrientSensor1 rdf:type owl:NamedIndividual ,
+                             ast:Nutrient ;
+                    ast:sensorId "Nutrient 1" ;
+                    ast:sensorProperty "1.1,8.0" .
+
+
+###  http://www.smolang.org/greenhouseDT#plant1
+ast:plant1 rdf:type owl:NamedIndividual ,
+                    ast:Basil ;
+           ast:idealMoisture "80.0"^^xsd:double ;
+           ast:plantId "Riccardo" .
+
+
+###  http://www.smolang.org/greenhouseDT#pot1
+ast:pot1 rdf:type owl:NamedIndividual ,
+                  ast:Pot ;
+         ast:containsPlant ast:plant1 ;
+         ast:hasMoistureSensor ast:moistureSensor1 ;
+         ast:hasNutrientSensor ast:nutrientSensor1 ;
+         ast:wateredBy ast:pump1 ;
+         ast:potId "Pot 1" .
+
+
+###  http://www.smolang.org/greenhouseDT#pump1
+ast:pump1 rdf:type owl:NamedIndividual ,
+                   ast:Pump .
+
+
+###  http://www.smolang.org/greenhouseDT#section1
+ast:section1 rdf:type owl:NamedIndividual ,
+                      ast:Section ;
+             ast:containsPot ast:pot1 ;
+             ast:sectionId "Section 1" .
+
+
+###  http://www.smolang.org/greenhouseDT#sickPlantStrategy
+ast:sickPlantStrategy rdf:type owl:NamedIndividual ,
+                               ast:Water_Strategy ;
+                      ast:secondToWater "2"^^xsd:int .
+
+
+###  http://www.smolang.org/greenhouseDT#waterBucket1
+ast:waterBucket1 rdf:type owl:NamedIndividual ,
+                          ast:Water_Bucket ;
+                 ast:sensorId "Bucky 1" .
+
+
+###  Generated by the OWL API (version 4.5.26.2023-07-17T20:34:13Z) https://github.com/owlcs/owlapi
