@@ -3,11 +3,10 @@ class PlantModel extends BaseModel()
     override Unit adaptAddition()
         List<Plant> newPlants = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
-            SELECT ?plantId ?idealMoisture ?status {
+            SELECT ?plantId ?familyName {
                 ?entity rdf:type ?t ;
-                    ast:plantId ?plantId ;
-                    ast:idealMoisture ?idealMoisture ;
-                    ast:status ?status .
+                    ast:plantId ?plantId .
+                    ast:familyName ?familyName ;
                 ?t rdfs:subClassOf* ast:Plant .
                 FILTER NOT EXISTS {
                     ?y a prog:Plant ;
@@ -15,19 +14,22 @@ class PlantModel extends BaseModel()
                 }
             }");
 
-
         if newPlants != null then
             print("RECONFIG> New Plant(s) detected: repairing the model");
 
             while newPlants != null do
                 Plant newPlant = newPlants.content;
                 newPlant.moisture = newPlant.getPotMoisture();
+                newPlant.ndvi = newPlant.getNdvi();
+
+                if newPlant.ndvi != null then
+                    newPlant.healthState = classify(newPlant);
+                end
 
                 List<Plant> lx = newPlants;
                 newPlants = newPlants.next;
                 print("RECONFIG> New plant detected: ");
                 print("          Plant Id: " ++ newPlant.plantId);
-                print("          Ideal Moisture: " ++ doubleToString(newPlant.idealMoisture));
                 print("          Moisture: " ++ doubleToString(newPlant.moisture));
                 print("          Status: " ++ newPlant.status);
 
@@ -62,7 +64,6 @@ class PlantModel extends BaseModel()
 
                 print("RECONFIG> Misconfigured plant to remove: ");
                 print("          Plant Id: " ++ wrongPlant.plantId);
-                print("          Ideal Moisture: " ++ doubleToString(wrongPlant.idealMoisture));
 
                 destroy(wrongPlant);
             end
@@ -74,8 +75,8 @@ class PlantModel extends BaseModel()
 
     override Unit adaptDefect()
         print("RECONFIG> Check defects in plant(s)");
-        this.adaptDefectMoisture();
-        this.adatpDefectStatus();
+        // this.adaptDefectMoisture();
+        // this.adatpDefectStatus();
         print("RECONFIG> Defect repaired");
     end
 
