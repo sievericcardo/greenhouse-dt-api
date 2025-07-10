@@ -485,6 +485,7 @@ ast:pot1 rdf:type owl:NamedIndividual ,
 ###  http://www.smolang.org/greenhouseDT#pump1
 ast:pump1 rdf:type owl:NamedIndividual ,
                    ast:Pump ;
+          ast:pumpChannel "18"^^xsd:int ;
           ast:pumpId "Pump 1" .
 
 
