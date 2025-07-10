@@ -49,7 +49,8 @@ class Plant extends Twin (
     domain String familyName,
     domain Double moisture,
     domain Double ndvi,
-    hidden HealthState healthState
+    hidden HealthState healthState,
+    String status
 )
 models "a ast:Plant ; domain:familyName %familyName ; domain:moisture %moisture ; domain:ndvi %ndvi";
     Unit printInfo()
