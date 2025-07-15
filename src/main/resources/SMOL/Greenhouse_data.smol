@@ -125,7 +125,52 @@ class Pot extends Twin (
     MoistureSensor moistureSensor, 
     NutrientSensor nutrientSensor.
     Pump pump
-) end
+)
+    List<Plant> getPlants()
+        List<Plant> plants = access("
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
+            SELECT ?obj {
+                ?pot a ast:Pot ;
+                     ast:potId %1 ;
+                     ast:hasPlant ?plants .
+                ?plants rdf:type ?t ;
+                     ast:plantId ?plantId .
+                ?t rdfs:subClassOf* ast:Plant .
+                ?obj a prog:Plant ;
+                     prog:Plant_plantId ?plantId .
+            }", this.potId);
+
+        if plants == null then
+            print("No plants found in pot " ++ this.potId);
+        else
+            print("Plants found in pot " ++ this.potId);
+        end
+
+        return plants;
+    end
+
+    Pump getPump()
+        List<Pump> pumps = access("
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
+            SELECT ?obj {
+                ?pot a ast:Pot ;
+                     ast:potId %1 ;
+                     ast:hasPump ?pump .
+                ?pump a ast:Pump ;
+                     ast:pumpId ?pumpId .
+                ?obj a prog:Pump ;
+                     prog:Pump_pumpId ?pumpId .
+            }", this.potId);
+
+        if pumps == null then
+            print("No pump found in pot " ++ this.potId);
+            return null;
+        else
+            print("Pump found in pot " ++ this.potId);
+            return pumps.content;
+        end
+    end
+end
 
 /*  Models a physical section of the greenhouse. It is initially retrieved by the asset model.
  *  Each section contains a list of pots.
