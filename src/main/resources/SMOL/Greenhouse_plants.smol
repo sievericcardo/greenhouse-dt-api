@@ -3,10 +3,13 @@ class PlantModel extends BaseModel()
     override Unit adaptAddition()
         List<Plant> newPlants = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
-            SELECT ?plantId ?familyName {
+            SELECT ?plantId ?familyName ?status {
                 ?entity rdf:type ?t ;
                     ast:plantId ?plantId .
                     ast:familyName ?familyName ;
+                OPTIONAL {
+                    ?entity ast:status ?status .
+                }
                 ?t rdfs:subClassOf* ast:Plant .
                 FILTER NOT EXISTS {
                     ?y a prog:Plant ;
@@ -31,7 +34,6 @@ class PlantModel extends BaseModel()
                 print("RECONFIG> New plant detected: ");
                 print("          Plant Id: " ++ newPlant.plantId);
                 print("          Moisture: " ++ doubleToString(newPlant.moisture));
-                print("          Status: " ++ newPlant.status);
 
                 destroy(lx);
             end
@@ -76,7 +78,7 @@ class PlantModel extends BaseModel()
     override Unit adaptDefect()
         print("RECONFIG> Check defects in plant(s)");
         // this.adaptDefectMoisture();
-        // this.adatpDefectStatus();
+        this.adatpDefectStatus();
         print("RECONFIG> Defect repaired");
     end
 
@@ -150,5 +152,36 @@ class PlantModel extends BaseModel()
         end
     end
 
-    override Unit adaptBehaviour() skip; end
+    override Unit adaptBehaviour()
+        List<Plant> plants = access("
+            SELECT DISTINCT ?obj {
+                { ?obj a prog:Plant . }
+                UNION
+                { ?obj a prog:ThirstyPlant . }
+                UNION
+                { ?obj a prog:MoistPlant . }
+            }");
+
+        if plants == null then print("ADAPT> No plants"); else
+            print("ADAPT> Plants found check behaviour");
+
+            while plants != null do
+                Plant plant = plants.content;
+
+                print("ADAPT> Adapting plant " ++ plant.plantId);
+
+                adapt(plant);
+                plant.printInfo();
+
+                if plant.healthState != null then
+                    adapt(plant.healthState);
+                    plant.healthState.printInfo();
+                end
+
+                List<Pump> oldList = plants;
+                plants = plants.next;
+                destroy(oldList);
+            end
+        end
+    end
 end
