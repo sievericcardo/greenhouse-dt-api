@@ -3,20 +3,12 @@ class PotModel extends BaseModel()
     override Unit adaptAddition()
         List<Pot> newPots = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
-            SELECT ?id ?shelfFloor ?potPosition ?pumpId ?plantId {
+            SELECT ?potId {
                 ?x a ast:Pot ;
-                    ast:potId ?id ;
-                    ast:shelfFloor ?shelfFloor ;
-                    ast:potPosition ?potPosition ;
-                    ast:wateredBy ?pump ;
-                    ast:hasPlant ?plant .
-                ?pump a ast:Pump; ast:pumpId ?pumpId .
-                ?plant a ast:Plant; ast:plantId ?plantId .
+                    ast:potId ?potId .
                 FILTER NOT EXISTS {
                     ?y a prog:Pot ;
-                        prog:Pot_id ?postId ;
-                        prog:Pot_shelfFloor ?shelfFloor ;
-                        prog:Pot_potPosition ?potPosition .
+                        prog:Pot_potId ?potId ; .
                 }
             }");
 
@@ -30,10 +22,12 @@ class PotModel extends BaseModel()
                 destroy(lx);
 
                 print("RECONFIG> New pot detected: ");
-                print("          Pot Id: " ++ newPot.id);
-                print("          Shelf Floor: " ++ newPot.shelfFloor);
-                print("          Pump Id: " ++ newPot.pumpId);
-                print("          Plant Id: " ++ newPot.plantId);
+                print("          Pot Id: " ++ newPot.potId);
+
+                newPot.plants = newPot.getPlants();
+                newPot.moistureSensor = newPot.getMoistureSensor();
+                newPot.nutrientSensor = newPot.getNutrientSensor();
+                newPot.pump = newPot.getPump();
             end
 
             print("RECONFIG> Pot(s) added");
@@ -46,14 +40,10 @@ class PotModel extends BaseModel()
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
             SELECT DISTINCT ?obj {
                 ?obj a prog:Pot ;
-                    prog:Pot_id ?id ;
-                    prog:Pot_shelfFloor ?shelfFloor ;
-                    prog:Pot_potPosition ?potPosition .
+                    prog:Pot_potId ?potId .
                 FILTER NOT EXISTS {
                     ?y a ast:Pot ;
-                        ast:potId ?id ;
-                        ast:shelfFloor ?shelfFloor ;
-                        ast:potPosition ?potPosition .
+                        ast:potId ?potId .
                 }
             }");
 
@@ -66,9 +56,7 @@ class PotModel extends BaseModel()
                 wrongPots = wrongPots.next;
 
                 print("RECONFIG> Misconfigured pot to remove: ");
-                print("          Pot Id: " ++ wrongPot.id);
-                print("          ShelfFloor: " ++ wrongPot.shelfFloor);
-                print("          Pot Position: " ++ wrongPot.potPosition);
+                print("          Pot Id: " ++ wrongPot.potId);
 
                 destroy(wrongPot);
                 destroy(lx);
@@ -81,96 +69,9 @@ class PotModel extends BaseModel()
 
     override Unit adaptDefect()
         print("RECONFIG> Checking for defects in the Pot(s)");
-        this.checkShelfChanged();
-        this.checkPositionChanged();
-        this.checkPumpChanged();
-        this.checkPlantChanged();
+        // this.checkPumpChanged();
+        // this.checkPlantChanged();
         print("RECONFIG> Defects checked for Pot(s)");
-    end
-
-
-
-    /* Method to check if the shelf of the Pot has changed */
-    Unit checkShelfChanged()
-        List<PotDefectShelf> changedPots = construct("
-            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
-            SELECT DISTINCT ?obj ?shelfFloorNew {
-                ?obj a prog:Pot ;
-                    prog:Pot_shelfFloor ?shelfFloor ;
-                    prog:Pot_potPosition ?potPosition ;
-                    prog:Pot_pumpId ?pumpId ;
-                    prog:Pot_plantId ?plantId .
-                ?y a ast:Pot ;
-                    ast:shelfFloor ?shelfFloorNew ;
-                    ast:potPosition ?potPosition ;
-                    ast:wateredBy ?pump ;
-                    ast:hasPlant ?plant .
-                ?pump a ast:Pump; ast:pumpId ?pumpId .
-                ?plant a ast:Plant; ast:plantId ?plantId .
-                FILTER(?shelfFloor != ?shelfFloorNew)
-            }");
-
-        if changedPots != null then
-            print("RECONFIG> Changed Pot(s) detected: repairing the model");
-
-            Int changedPotsLength = changedPots.length();
-            while changedPots != null do
-                PotDefectShelf pot = changedPots.content;
-                List<PotDefectShelf> lx = changedPots;
-                changedPots = changedPots.next;
-                destroy(lx);
-
-                print("RECONFIG> Changed pot to adjust: ");
-                print("          Old Shelf Floor: " ++ pot.obj.shelfFloor);
-                print("          New Shelf Floor: " ++ pot.shelfFloorNew);
-
-                pot.obj.shelfFloor = pot.shelfFloorNew;
-                destroy(pot);
-            end
-
-            print("RECONFIG> Pot(s) changed");
-        end
-    end
-
-    /* Method to check if the position of the Pot has changed */
-    Unit checkPositionChanged()
-        List<PotDefectPosition> changedPots = construct("
-            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
-            SELECT DISTINCT ?obj ?potPositionNew {
-                ?obj a prog:Pot ;
-                    prog:Pot_shelfFloor ?shelfFloor ;
-                    prog:Pot_potPosition ?potPosition ;
-                    prog:Pot_pumpId ?pumpId ;
-                    prog:Pot_plantId ?plantId .
-                ?y a ast:Pot ;
-                    ast:shelfFloor ?shelfFloor ;
-                    ast:potPosition ?potPositionNew ;
-                    ast:wateredBy ?pump ;
-                    ast:hasPlant ?plant .
-                ?pump a ast:Pump; ast:pumpId ?pumpId .
-                ?plant a ast:Plant; ast:plantId ?plantId .
-                FILTER(?potPosition != ?potPositionNew)
-            }");
-
-        if changedPots != null then
-            print("RECONFIG> Changed Pot(s) detected: repairing the model");
-
-            while changedPots != null do
-                PotDefectPosition pot = changedPots.content;
-                List<PotDefectPosition> lx = changedPots;
-                changedPots = changedPots.next;
-                destroy(lx);
-
-                print("RECONFIG> Changed pot to adjust: ");
-                print("          Old Pot Position: " ++ pot.obj.potPosition);
-                print("          New Pot Position: " ++ pot.potPositionNew);
-
-                pot.obj.potPosition = pot.potPositionNew;
-                destroy(pot);
-            end
-
-            print("RECONFIG> Pot(s) changed");
-        end
     end
 
     /* Method to check if the pump of the Pot has changed */
