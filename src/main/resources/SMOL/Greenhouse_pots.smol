@@ -34,7 +34,6 @@ class PotModel extends BaseModel()
         end
     end
 
-
     override Unit adaptRemoval()
         List<Pot> wrongPots = access("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
