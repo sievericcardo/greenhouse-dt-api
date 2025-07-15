@@ -5,13 +5,19 @@ class PumpModel extends BaseModel()
 
         List<Pump> newPumps = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
-            SELECT ?pumpGpioPin ?pumpId ?modelName ?pumpLifeTime ?temperature {
+            SELECT ?pumpChannel ?pumpId ?modelName ?pumpLifeTime ?temperature {
                 ?pump a ast:Pump ;
-                      ast:pumpGpioPin ?pumpGpioPin ;
-                      ast:pumpId ?pumpId ;
-                      ast:modelName ?modelName ;
-                      ast:pumpLifeTime ?pumpLifeTime ;
-                      ast:temperature ?temperature .
+                      ast:pumpChannel ?pumpChannel ;
+                      ast:pumpId ?pumpId .
+                OPTIONAL {
+                      ?pump ast:modelName ?modelName .
+                }
+                OPTIONAL {
+                    ?pump ast:pumpLifeTime ?pumpLifeTime .
+                }
+                OPTIONAL {
+                    ?pump ast:temperature ?temperature .
+                }
                 FILTER NOT EXISTS {
                     ?y a prog:Pump ;
                        prog:Pump_pumpId ?pumpId .
@@ -44,7 +50,7 @@ class PumpModel extends BaseModel()
 
                 print("RECONFIG> New pump detected: ");
                 print("          Pump Id: " ++ newPump.pumpId);
-                print("          Pump Gpio Pin: " ++ intToString(newPump.pumpGpioPin));
+                print("          Pump Gpio Pin: " ++ intToString(newPump.pumpChannel));
                 print("          Pump Water Temperature: " ++ doubleToString(newPump.temperature));
                 print("          Pump Life Time: " ++ intToString(newPump.pumpLifeTime));
                 print("          Pump Model Name: " ++ newPump.modelName);
@@ -164,14 +170,14 @@ class PumpModel extends BaseModel()
     override Unit adaptDefect()
         List<PumpDefect> changedPumps = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
-            SELECT ?obj ?pumpGpioPinNew {
+            SELECT ?obj ?pumpChannelNew {
                 ?obj a prog:Pump ;
                     prog:Pump_pumpId ?pumpId ;
-                    prog:Pump_pumpGpioPin ?pumpGpioPin .
+                    prog:Pump_pumpChannel ?pumpChannel .
                 ?y a ast:Pump ;
                     ast:pumpId ?pumpId ;
-                    ast:pumpGpioPin ?pumpGpioPinNew .
-                FILTER(?pumpGpioPin != ?pumpGpioPinNew)
+                    ast:pumpChannel ?pumpChannelNew .
+                FILTER(?pumpChannel != ?pumpChannelNew)
             }");
 
         if changedPumps != null then
@@ -183,10 +189,10 @@ class PumpModel extends BaseModel()
                 changedPumps = changedPumps.next;
 
                 print("RECONFIG> Changed pump to adjust: " ++ rpump.obj.pumpId);
-                print("          Old GPIO pin: " ++ intToString(rpump.obj.pumpGpioPin));
-                print("          New GPIO pin: " ++ intToString(rpump.pumpGpioPinNew));
+                print("          Old GPIO pin: " ++ intToString(rpump.obj.pumpChannel));
+                print("          New GPIO pin: " ++ intToString(rpump.pumpChannelNew));
 
-                rpump.obj.pumpGpioPin = rpump.pumpGpioPinNew;
+                rpump.obj.pumpChannel = rpump.pumpChannelNew;
                 destroy(lx);
             end
 
@@ -211,11 +217,11 @@ class PumpModel extends BaseModel()
             SELECT ?obj ?temperatureNew {
                 ?obj a prog:Pump ;
                     prog:Pump_pumpId ?pumpId ;
-                    prog:Pump_pumpGpioPin ?pumpGpioPin ;
+                    prog:Pump_pumpChannel ?pumpChannel ;
                     prog:Pump_temperatureOut ?temperature .
                 ?y a ast:Pump ;
                     ast:pumpId ?pumpId ;
-                    ast:pumpGpioPin ?pumpGpioPin ;
+                    ast:pumpChannel ?pumpChannel ;
                     ast:temperature ?temperatureNew .
                 FILTER(?temperature != ?temperatureNew)
             }");
@@ -247,11 +253,11 @@ class PumpModel extends BaseModel()
             SELECT ?obj ?temperatureNew {
                 ?obj a prog:OperatingPump ;
                     prog:OperatingPump_pumpId ?pumpId ;
-                    prog:OperatingPump_pumpGpioPin ?pumpGpioPin ;
+                    prog:OperatingPump_pumpChannel ?pumpChannel ;
                     prog:OperatingPump_temperatureOut ?temperature .
                 ?y a ast:Pump ;
                     ast:pumpId ?pumpId ;
-                    ast:pumpGpioPin ?pumpGpioPin ;
+                    ast:pumpChannel ?pumpChannel ;
                     ast:temperature ?temperatureNew .
                 FILTER(?temperature != ?temperatureNew)
             }");
@@ -573,7 +579,7 @@ class PumpModel extends BaseModel()
             while pumps != null do
                 Pump pump = pumps.content;
 
-                print("ADAPT> Adapting pump " ++ pump.pumpId ++ ", " ++ intToString(pump.pumpGpioPin) ++ ", " ++ doubleToString(pump.temperature) ++ ", " ++ intToString(pump.pumpLifeTime) ++ ", " ++ pump.modelName);
+                print("ADAPT> Adapting pump " ++ pump.pumpId ++ ", " ++ intToString(pump.pumpChannel) ++ ", " ++ doubleToString(pump.temperature) ++ ", " ++ intToString(pump.pumpLifeTime) ++ ", " ++ pump.modelName);
 
                 adapt(pump);
                 pump.printInfo();
