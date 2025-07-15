@@ -149,6 +149,50 @@ class Pot extends Twin (
         return plants;
     end
 
+    MoistureSensor getMoistureSensor()
+        List<MoistureSensor> moistureSensors = access("
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
+            SELECT ?obj {
+                ?pot a ast:Pot ;
+                     ast:potId %1 ;
+                     ast:hasMoistureSensor ?moistureSensor .
+                ?moistureSensor a ast:MoistureSensor ;
+                     ast:sensorId ?sensorId .
+                ?obj a prog:MoistureSensor ;
+                     prog:MoistureSensor_sensorId ?sensorId .
+            }", this.potId);
+
+        if moistureSensors == null then
+            print("No moisture sensor found in pot " ++ this.potId);
+            return null;
+        else
+            print("Moisture sensor found in pot " ++ this.potId);
+            return moistureSensors.content;
+        end
+    end
+
+    NutrientSensor getNutrientSensor()
+        List<NutrientSensor> nutrientSensors = access("
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
+            SELECT ?obj {
+                ?pot a ast:Pot ;
+                     ast:potId %1 ;
+                     ast:hasNutrientSensor ?nutrientSensor .
+                ?nutrientSensor a ast:NutrientSensor ;
+                     ast:sensorId ?sensorId .
+                ?obj a prog:NutrientSensor ;
+                     prog:NutrientSensor_sensorId ?sensorId .
+            }", this.potId);
+
+        if nutrientSensors == null then
+            print("No nutrient sensor found in pot " ++ this.potId);
+            return null;
+        else
+            print("Nutrient sensor found in pot " ++ this.potId);
+            return nutrientSensors.content;
+        end
+    end
+
     Pump getPump()
         List<Pump> pumps = access("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
