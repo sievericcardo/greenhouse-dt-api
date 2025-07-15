@@ -12,7 +12,7 @@ end
 class LightSensor extends Sensor (Double lightIntensity)
 end
 
-class TemperatureHumiditySensor extends Sensor (Double temperature,Double humidity)
+class TemperatureHumiditySensor extends Sensor (Double temperature, Double humidity)
 end
 
 class HealthState extends Twin (context Plant plant, String name)
@@ -50,7 +50,7 @@ class Plant extends Twin (
     domain Double moisture,
     domain Double ndvi,
     hidden HealthState healthState,
-    String status
+    domain String status
 )
 models "a ast:Plant ; domain:familyName %familyName ; domain:moisture %moisture ; domain:ndvi %ndvi";
     Unit printInfo()
@@ -97,6 +97,27 @@ models "a ast:Plant ; domain:familyName %familyName ; domain:moisture %moisture 
     end
 end
 
+class ThirstyPlant extends Plant ()
+classifies "<ast:Thirsty>";
+    Unit printInfo()
+        print("Plant: " ++ this.plantId ++ " is thirsty.");
+    end
+end
+
+// class OverwateredPlant extends Plant ()
+// classifies "<ast:Overwatered>";
+//     Unit printInfo()
+//         print("Plant: " ++ this.plantId ++ " is overwatered.");
+//     end
+// end
+
+class MoistPlant extends Plant ()
+classifies "<ast:Moist>";
+    Unit printInfo()
+        print("Plant: " ++ this.plantId ++ " is moist.");
+    end
+end
+
 /* Models a physical pot. It is initially retrieved by the asset model. Each pot is associated with a moisture sensor. */
 class Pot extends Twin (
     String potId, 
@@ -109,7 +130,29 @@ class Pot extends Twin (
 /*  Models a physical section of the greenhouse. It is initially retrieved by the asset model.
  *  Each section contains a list of pots.
  */
-class Section extends Twin (String sectionId, List<Pot> pots) end
+class Section extends Twin (String sectionId, List<Pot> pots)
+    List<Pot> getPots()
+        List<Pot> pots = access("
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
+            SELECT ?obj {
+                ?sections a ast:Section ;
+                     ast:sectionId %1 ;
+                     ast:hasPot ?pots .
+                ?pots a ast:Pot ;
+                     ast:potId ?potId .
+                ?obj a ast:Pot ;
+                     ast:potId ?potId .
+            }", this.sectionId);
+
+        if pots == null then
+            print("No pots found in section " ++ this.sectionId);
+        else
+            print("Pots found in section " ++ this.sectionId);
+        end
+
+        return pots;
+    end
+end
 
 /*  Models a physical pump. It is initially retrieved by the asset model. */
 class Pump extends Twin (
@@ -132,7 +175,7 @@ classifies "<ast:Operational>";
     end
 end
 
-class MaintenancePump extends Pump (Int powerOutput)
+class MaintenancePump extends Pump (hidden Int powerOutput)
 classifies "<ast:Maintenance>";
 retrieves "SELECT DISTINCT ?powerOutput WHERE {
   %this a prog:Pump ;
@@ -180,11 +223,11 @@ end
 
 // NDVI START
 /* Models the health state of a plant via NDVI */
-class HealthState extends Twin (String name, Double minNdvi, Double maxNdvi) end
+// class HealthState extends Twin (String name, Double minNdvi, Double maxNdvi) end
 // NDVI END
 
 /* The following classes are used to store results of CONSTRUCT queries */
-class PumpDefect (Pump obj, Int pumpGpioPinNew) end
+class PumpDefect (Pump obj, Int pumpChannelNew) end
 class PumpDefectWater (Pump obj, Double temperatureNew) end
 class OperatingPumpDefectWater (OperatingPump obj, Double temperatureNew) end
 class MaintenancePumpDefectWater (MaintenancePump obj, Double temperatureNew) end
@@ -206,4 +249,4 @@ class PotDefectPlant (Pot obj, String plantIdNew) end
  *  The follow class is used to store results that are read from the simulation driver.
  *  Every instance is representing on decision to water a specific plant and pump.
  */
-class Decision (String plantId, Int pumpGpioPin, String pumpId) end
+class Decision (String plantId, Int pumpChannel, String pumpId) end
