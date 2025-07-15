@@ -102,15 +102,25 @@ main
     AssetController ctrl = new AssetController(assetModel, dc);
     assetModel.ctrl = ctrl;
 
-    PotModel m1 = new PotModel("pots");
-    PlantModel m2 = new PlantModel("plants");
-    PumpModel m3 = new PumpModel("pumps");
-    ShelfModel m4 = new ShelfModel("shelves");
+    GreenHouseModel greenhouse = new GreenHouseModel("greenhouse", assetModel);
+    SectionModel sections = new SectionModel("sections");
+    PotModel pots = new PotModel("pots");
+    PlantModel plants = new PlantModel("plants");
+    PumpModel pumps = new PumpModel("pumps");
+    WaterBucketModel waterBuckets = new WaterBucketModel("water buckets");
+    MoistureSensorModel moistureSensors = new MoistureSensorModel("moisture sensors");
+    LightSensorModel lightSensors = new LightSensorModel("light sensors");
+    TemperatureHumiditySensorModel temperatureHumiditySensors = new TemperatureHumiditySensorModel("temperature humidity sensors");
 
-    assetModel.register(m1);
-    assetModel.register(m2);
-    assetModel.register(m3);
-    assetModel.register(m4);
+    assetModel.register(greenhouse);
+    assetModel.register(sections);
+    assetModel.register(pots);
+    assetModel.register(plants);
+    assetModel.register(pumps);
+    assetModel.register(waterBuckets);
+    assetModel.register(moistureSensors);
+    assetModel.register(lightSensors);
+    assetModel.register(temperatureHumiditySensors);
 
     //NDVI START
     // HealthModel m5 = new HealthModel("health states");
@@ -120,7 +130,7 @@ main
 
     assetModel.reconfigure();
     assetModel.reclassify();
-    assetModel.decision();
+    // assetModel.decision();
 
     breakpoint;
 end
