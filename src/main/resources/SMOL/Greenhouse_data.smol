@@ -306,6 +306,93 @@ class GreenHouse extends Twin (
     LightSensor lightSensor,
     TemperatureHumiditySensor temperatureHumiditySensor,
 )
+    List<Section> getSections()
+        List<Section> sections = access("
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
+            SELECT ?obj {
+                ?greenhouse a ast:GreenHouse ;
+                             ast:greenhouseId %1 ;
+                             ast:hasSection ?sections .
+                ?sections a ast:Section ;
+                          ast:sectionId ?sectionId .
+                ?obj a prog:Section ;
+                      prog:Section_sectionId ?sectionId .
+            }", this.greenhouseId);
+
+        if sections == null then
+            print("No sections found in greenhouse " ++ this.greenhouseId);
+        else
+            print("Sections found in greenhouse " ++ this.greenhouseId);
+        end
+
+        return sections;
+    end
+
+    List<WaterBucket> getWaterBuckets()
+        List<WaterBucket> waterBuckets = access("
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
+            SELECT ?obj {
+                ?greenhouse a ast:GreenHouse ;
+                             ast:greenhouseId %1 ;
+                             ast:hasWaterBucket ?waterBuckets .
+                ?waterBuckets a ast:WaterBucket ;
+                              ast:bucketId ?bucketId .
+                ?obj a prog:WaterBucket ;
+                      prog:WaterBucket_bucketId ?bucketId .
+            }", this.greenhouseId);
+
+        if waterBuckets == null then
+            print("No water buckets found in greenhouse " ++ this.greenhouseId);
+        else
+            print("Water buckets found in greenhouse " ++ this.greenhouseId);
+        end
+
+        return waterBuckets;
+    end
+
+    LightSensor getLightSensor()
+        List<LightSensor> lightSensors = access("
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
+            SELECT ?obj {
+                ?greenhouse a ast:GreenHouse ;
+                             ast:greenhouseId %1 ;
+                             ast:hasLightSensor ?lightSensor .
+                ?lightSensor a ast:LightSensor ;
+                             ast:sensorId ?sensorId .
+                ?obj a prog:LightSensor ;
+                      prog:LightSensor_sensorId ?sensorId .
+            }", this.greenhouseId);
+
+        if lightSensors == null then
+            print("No light sensor found in greenhouse " ++ this.greenhouseId);
+            return null;
+        else
+            print("Light sensor found in greenhouse " ++ this.greenhouseId);
+            return lightSensors.content;
+        end
+    end
+
+    TemperatureHumiditySensor getTemperatureHumiditySensor()
+        List<TemperatureHumiditySensor> temperatureHumiditySensors = access("
+            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
+            SELECT ?obj {
+                ?greenhouse a ast:GreenHouse ;
+                             ast:greenhouseId %1 ;
+                             ast:hasTemperatureHumiditySensor ?temperatureHumiditySensor .
+                ?temperatureHumiditySensor a ast:TemperatureHumiditySensor ;
+                                            ast:sensorId ?sensorId .
+                ?obj a prog:TemperatureHumiditySensor ;
+                      prog:TemperatureHumiditySensor_sensorId ?sensorId .
+            }", this.greenhouseId);
+
+        if temperatureHumiditySensors == null then
+            print("No temperature/humidity sensor found in greenhouse " ++ this.greenhouseId);
+            return null;
+        else
+            print("Temperature/humidity sensor found in greenhouse " ++ this.greenhouseId);
+            return temperatureHumiditySensors.content;
+        end
+    end
 end
 
 
