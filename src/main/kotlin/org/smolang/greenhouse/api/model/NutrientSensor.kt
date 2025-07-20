@@ -1,6 +1,6 @@
 package org.smolang.greenhouse.api.model
 
-class NuetrientSensor(
+class NutrientSensor(
     sensorId: String,
     val nutrient: Double
 ) : Sensor(sensorId) {
