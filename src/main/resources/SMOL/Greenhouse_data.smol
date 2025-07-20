@@ -243,10 +243,15 @@ class Section extends Twin (String sectionId, List<Pot> pots)
     end
 end
 
+class Actuator extends Twin (String actuatorId, String actuatorProperty)
+end
+
+class LightSwitch extends Actuator (Double lightIntensity)
+end
+
 /*  Models a physical pump. It is initially retrieved by the asset model. */
-class Pump extends Twin (
+class Pump extends Actuator (
     Int pumpChannel,
-    String pumpId,
     domain String modelName,
     hidden String modelNameOut,
     domain Int pumpLifeTime,
