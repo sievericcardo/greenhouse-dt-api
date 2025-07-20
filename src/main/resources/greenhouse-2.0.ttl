@@ -97,6 +97,12 @@ ast:wateredBy rdf:type owl:ObjectProperty ;
 #    Data properties
 #################################################################
 
+###  http://www.smolang.org/greenhouseDT#actuatorId
+ast:actuatorId rdf:type owl:DatatypeProperty ;
+               rdfs:domain ast:Actuator ;
+               rdfs:range xsd:string .
+
+
 ###  http://www.smolang.org/greenhouseDT#bucketId
 ast:bucketId rdf:type owl:DatatypeProperty ;
              rdfs:domain ast:Water_Bucket ;
@@ -161,12 +167,6 @@ ast:potId rdf:type owl:DatatypeProperty ;
 ast:pumpChannel rdf:type owl:DatatypeProperty ;
                 rdfs:domain ast:Pump ;
                 rdfs:range xsd:int .
-
-
-###  http://www.smolang.org/greenhouseDT#pumpId
-ast:pumpId rdf:type owl:DatatypeProperty ;
-           rdfs:domain ast:Pump ;
-           rdfs:range xsd:string .
 
 
 ###  http://www.smolang.org/greenhouseDT#pumpLifeTime
@@ -597,8 +597,8 @@ ast:pot1 rdf:type owl:NamedIndividual ,
 ###  http://www.smolang.org/greenhouseDT#pump1
 ast:pump1 rdf:type owl:NamedIndividual ,
                    ast:Pump ;
-          ast:pumpChannel "18"^^xsd:int ;
-          ast:pumpId "Pump 1" .
+          ast:actuatorId "Pump 1" ;
+          ast:pumpChannel "18"^^xsd:int .
 
 
 ###  http://www.smolang.org/greenhouseDT#section1
