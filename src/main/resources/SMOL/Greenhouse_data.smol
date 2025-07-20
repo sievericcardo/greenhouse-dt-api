@@ -39,6 +39,36 @@ classifies "<ast:Dead>";
     end
 end
 
+class Strategy extends Twin()
+end
+
+class WaterStrategy extends Strategy(context Plant plant)
+end
+
+class HealthyStrategy extends WaterStrategy()
+classifies "<ast:HealthyStrategy>";
+end
+
+class HealthyMoistStrategy extends WaterStrategy()
+classifies "<ast:HealthyMoistStrategy>";
+end
+
+class HealthyThirstStrategy extends WaterStrategy()
+classifies "<ast:HealthyThirstStrategy>";
+end
+
+class UnhealthyStrategy extends WaterStrategy()
+classifies "<ast:UnhealthyStrategy>";
+end
+
+class UnhealthyMoistStrategy extends WaterStrategy()
+classifies "<ast:UnhealthyMoistStrategy>";
+end
+
+class UnhealthyThirstyStrategy extends WaterStrategy()
+classifies "<ast:UnhealthyThirstyStrategy>";
+end
+
 /**
  *  Models a physical plant. It is initially retrieved by
  *  the asset model, but it can be reconfigured by the program model.
@@ -50,7 +80,8 @@ class Plant extends Twin (
     domain Double moisture,
     domain Double ndvi,
     hidden HealthState healthState,
-    domain String status
+    domain String status,
+    hidden WaterStrategy waterStrategy
 )
 models "a ast:Plant ; domain:familyName %familyName ; domain:moisture %moisture ; domain:ndvi %ndvi";
     Unit printInfo()
