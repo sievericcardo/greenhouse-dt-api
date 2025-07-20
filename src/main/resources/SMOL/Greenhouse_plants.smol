@@ -28,6 +28,7 @@ class PlantModel extends BaseModel()
                 if newPlant.ndvi != null then
                     newPlant.healthState = classify(newPlant);
                 end
+                newPlant.waterStrategy = classify(newPlant);
 
                 List<Plant> lx = newPlants;
                 newPlants = newPlants.next;
@@ -177,6 +178,7 @@ class PlantModel extends BaseModel()
                     adapt(plant.healthState);
                     plant.healthState.printInfo();
                 end
+                adapt(plant.waterStrategy);
 
                 List<Pump> oldList = plants;
                 plants = plants.next;
