@@ -2,46 +2,60 @@ package org.smolang.greenhouse.api.types
 
 data class CreatePlantRequest (
     val plantId: String,
-    val idealMoisture: Double,
-    val status: String,
+    val moisture: Double,
+    val healthState: String? = null,
+    val status: String? = null
 )
 
 data class UpdatePlantRequest (
-    val idealMoistureNew: Double?,
-    val statusNew: String?,
+    val newMoisture: Double? = null,
+    val newHealthState: String? = null,
+    val newStatus: String? = null
 )
 
 data class CreatePotRequest (
-    val potId: String,
-    val shelfFloor: String,
-    val potPosition: String,
-    val pumpId: String,
-    val plantId: String
+    val potId: String
 )
 
 data class UpdatePotRequest (
-    val newShelfFloor: String?,
-    val newPotPosition: String?,
-    val newPumpId: String?,
-    val newPlantId: String?
+    val potId: String
+    // Add other fields as needed
 )
 
 data class CreatePumpRequest(
-    val pumpGpioPin: Int,
-    val pumpId: String,
-    val modelName: String,
-    val lifeTime: Int,
-    val temperature: Double
+    val actuatorId: String,
+    val pumpChannel: Int,
+    val modelName: String? = null,
+    val lifeTime: Int? = null,
+    val temperature: Double? = null
 )
 
 data class UpdatePumpRequest (
-    val pumpGpioPin: Int,
-    val pumpId: String,
-    val modelName: String,
-    val lifeTime: Int,
-    val temperature: Double
+    val actuatorId: String,
+    val pumpChannel: Int? = null,
+    val modelName: String? = null,
+    val lifeTime: Int? = null,
+    val temperature: Double? = null
 )
 
 data class DeletePumpRequest (
-    val pumpId: String
+    val actuatorId: String
+)
+
+data class CreateGreenHouseRequest (
+    val greenhouseId: String
+)
+
+data class CreateSectionRequest (
+    val sectionId: String
+)
+
+data class CreateWaterBucketRequest (
+    val bucketId: String,
+    val waterLevel: Double
+)
+
+data class UpdateWaterBucketRequest (
+    val bucketId: String,
+    val newWaterLevel: Double
 )
