@@ -1,0 +1,178 @@
+package org.smolang.greenhouse.api.service
+
+import org.apache.jena.query.ResultSet
+import org.apache.jena.update.UpdateExecutionFactory
+import org.apache.jena.update.UpdateFactory
+import org.smolang.greenhouse.api.config.REPLConfig
+import org.smolang.greenhouse.api.config.TriplestoreProperties
+import org.smolang.greenhouse.api.model.WaterBucket
+import org.springframework.stereotype.Service
+
+@Service
+class WaterBucketService (
+    private val replConfig: REPLConfig,
+    private val triplestoreProperties: TriplestoreProperties
+) {
+
+    private val tripleStore = triplestoreProperties.tripleStore
+    private val prefix = triplestoreProperties.prefix
+    private val ttlPrefix = triplestoreProperties.ttlPrefix
+    private val repl = replConfig.repl()
+
+    fun createWaterBucket(bucketId: String, waterLevel: Double): Boolean {
+        val query = """
+            PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+            PREFIX ast: <$prefix>
+            
+            INSERT DATA {
+                ast:bucket$bucketId a ast:WaterBucket ;
+                    ast:bucketId "$bucketId" ;
+                    ast:waterLevel "$waterLevel"^^xsd:double .
+            }
+        """.trimIndent()
+
+        val updateRequest = UpdateFactory.create(query)
+        val fusekiEndpoint = "$tripleStore/update"
+        val updateProcessor = UpdateExecutionFactory.createRemote(updateRequest, fusekiEndpoint)
+
+        try {
+            updateProcessor.execute()
+            return true
+        } catch (e: Exception) {
+            return false
+        }
+    }
+
+    fun getWaterBucketsByGreenHouseId(greenhouseId: String): List<WaterBucket>? {
+        val waterBucketsQuery = """
+            SELECT DISTINCT ?bucketId ?waterLevel WHERE {
+                ?greenhouseObj a prog:GreenHouse ;
+                    prog:GreenHouse_greenhouseId "$greenhouseId" ;
+                    prog:GreenHouse_waterBuckets ?bucketObj .
+                ?bucketObj prog:WaterBucket_bucketId ?bucketId ;
+                          prog:WaterBucket_waterLevel ?waterLevel .
+            }
+        """
+
+        val result: ResultSet? = repl.interpreter!!.query(waterBucketsQuery)
+        if (result == null || !result.hasNext()) {
+            return null
+        }
+
+        val waterBucketsList = mutableListOf<WaterBucket>()
+
+        while (result.hasNext()) {
+            val solution = result.next()
+            val bucketId = solution.get("?bucketId").asLiteral().toString()
+            val waterLevel = solution.get("?waterLevel").asLiteral().toString().split("^^")[0].toDouble()
+
+            waterBucketsList.add(WaterBucket(bucketId, waterLevel))
+        }
+
+        return waterBucketsList
+    }
+
+    fun getAllWaterBuckets(): List<WaterBucket>? {
+        val waterBucketsQuery = """
+            SELECT DISTINCT ?bucketId ?waterLevel WHERE {
+                ?bucketObj a prog:WaterBucket ;
+                    prog:WaterBucket_bucketId ?bucketId ;
+                    prog:WaterBucket_waterLevel ?waterLevel .
+            }
+        """
+
+        val result: ResultSet? = repl.interpreter!!.query(waterBucketsQuery)
+        if (result == null || !result.hasNext()) {
+            return null
+        }
+
+        val waterBucketsList = mutableListOf<WaterBucket>()
+
+        while (result.hasNext()) {
+            val solution = result.next()
+            val bucketId = solution.get("?bucketId").asLiteral().toString()
+            val waterLevel = solution.get("?waterLevel").asLiteral().toString().split("^^")[0].toDouble()
+
+            waterBucketsList.add(WaterBucket(bucketId, waterLevel))
+        }
+
+        return waterBucketsList
+    }
+
+    fun getWaterBucketById(bucketId: String): WaterBucket? {
+        val waterBucketQuery = """
+            SELECT DISTINCT ?waterLevel WHERE {
+                ?bucketObj a prog:WaterBucket ;
+                    prog:WaterBucket_bucketId "$bucketId" ;
+                    prog:WaterBucket_waterLevel ?waterLevel .
+            }
+        """
+
+        val result = repl.interpreter!!.query(waterBucketQuery)
+        if (result == null || !result.hasNext()) {
+            return null
+        }
+
+        val solution = result.next()
+        val waterLevel = solution.get("?waterLevel").asLiteral().toString().split("^^")[0].toDouble()
+
+        return WaterBucket(bucketId, waterLevel)
+    }
+
+    fun updateWaterBucket(bucketId: String, newWaterLevel: Double): Boolean {
+        val query = """
+            PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+            PREFIX ast: <$prefix>
+            
+            DELETE {
+                ?bucket ast:waterLevel ?oldLevel .
+            }
+            INSERT {
+                ?bucket ast:waterLevel "$newWaterLevel"^^xsd:double .
+            }
+            WHERE {
+                ?bucket a ast:WaterBucket ;
+                    ast:bucketId "$bucketId" ;
+                    ast:waterLevel ?oldLevel .
+            }
+        """.trimIndent()
+
+        val updateRequest = UpdateFactory.create(query)
+        val fusekiEndpoint = "$tripleStore/update"
+        val updateProcessor = UpdateExecutionFactory.createRemote(updateRequest, fusekiEndpoint)
+
+        try {
+            updateProcessor.execute()
+            return true
+        } catch (e: Exception) {
+            return false
+        }
+    }
+
+    fun deleteWaterBucket(bucketId: String): Boolean {
+        val query = """
+            PREFIX ast: <$prefix>
+            
+            DELETE {
+                ast:bucket$bucketId ?p ?o .
+                ?s ?p2 ast:bucket$bucketId .
+            }
+            WHERE {
+                { ast:bucket$bucketId ?p ?o . }
+                UNION
+                { ?s ?p2 ast:bucket$bucketId . }
+            }
+        """.trimIndent()
+
+        val updateRequest = UpdateFactory.create(query)
+        val fusekiEndpoint = "$tripleStore/update"
+        val updateProcessor = UpdateExecutionFactory.createRemote(updateRequest, fusekiEndpoint)
+
+        try {
+            updateProcessor.execute()
+            return true
+        } catch (e: Exception) {
+            return false
+        }
+    }
+}
