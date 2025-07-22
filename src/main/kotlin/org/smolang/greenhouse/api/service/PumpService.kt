@@ -29,12 +29,9 @@ class PumpService (
             PREFIX ast: <$prefix>
             
             INSERT DATA {
-                ast:${newPump.pumpId} a ast:Pump ;
-                    ast:pumpGpioPin ${newPump.pumpGpioPin} ;
-                    ast:pumpId "${newPump.pumpId}" ;
-                    ast:modelName "${newPump.modelName}" ;
-                    ast:pumpLifeTime ${newPump.lifeTime} ;
-                    ast:temperature "${newPump.temperature}"^^xsd:double .
+                ast:${newPump.actuatorId} a ast:Pump ;
+                    ast:actuatorId "${newPump.actuatorId}" ;
+                    ast:pumpChannel ${newPump.pumpChannel} .
             }
         """
 
@@ -51,17 +48,18 @@ class PumpService (
         return true
     }
 
-    fun getOperatingPumps() : List<Pump>? {
+    fun getAllPumps() : List<Pump>? {
         val pumpsList = mutableListOf<Pump>()
         val pumps =
             """
-             SELECT DISTINCT ?pumpGpioPin ?pumpId ?modelName ?pumpLifeTime ?temperature WHERE {
-                ?obj a prog:OperatingPump ;
-                    prog:OperatingPump_pumpGpioPin ?pumpGpioPin ;
-                    prog:OperatingPump_pumpId ?pumpId ;
-                    prog:OperatingPump_modelNameOut ?modelName ;
-                    prog:OperatingPump_pumpLifeTimeOut ?pumpLifeTime ;
-                    prog:OperatingPump_temperatureOut ?temperature .
+             SELECT DISTINCT ?actuatorId ?pumpChannel ?modelName ?lifeTime ?temperature ?pumpStatus WHERE {
+                ?obj a prog:Pump ;
+                    prog:Pump_actuatorId ?actuatorId ;
+                    prog:Pump_pumpChannel ?pumpChannel .
+                OPTIONAL { ?obj prog:Pump_modelName ?modelName }
+                OPTIONAL { ?obj prog:Pump_lifeTime ?lifeTime }
+                OPTIONAL { ?obj prog:Pump_temperature ?temperature }
+                OPTIONAL { ?obj prog:Pump_pumpStatus ?pumpStatus }
              }""".trimIndent()
 
         val result: ResultSet = repl.interpreter!!.query(pumps)!!
@@ -72,29 +70,37 @@ class PumpService (
 
         while (result.hasNext()) {
             val solution: QuerySolution = result.next()
-            val pumpGpioPin = solution.get("?pumpGpioPin").asLiteral().toString().split("^^")[0].toInt()
-            val pumpId = solution.get("?pumpId").asLiteral().toString()
-            val modelName = solution.get("?modelName").asLiteral().toString()
-            val lifeTime = solution.get("?pumpLifeTime").asLiteral().toString().split("^^")[0].toInt()
-            val temperature = solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble()
+            val actuatorId = solution.get("?actuatorId").asLiteral().toString()
+            val pumpChannel = solution.get("?pumpChannel").asLiteral().toString().split("^^")[0].toInt()
+            val modelName = if (solution.contains("?modelName")) solution.get("?modelName").asLiteral().toString() else null
+            val lifeTime = if (solution.contains("?lifeTime")) solution.get("?lifeTime").asLiteral().toString().split("^^")[0].toInt() else null
+            val temperature = if (solution.contains("?temperature")) solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble() else null
+            val pumpStatus = if (solution.contains("?pumpStatus")) {
+                try {
+                    PumpState.valueOf(solution.get("?pumpStatus").asLiteral().toString())
+                } catch (e: IllegalArgumentException) {
+                    null
+                }
+            } else null
 
-            pumpsList.add(Pump(pumpGpioPin, pumpId, modelName, lifeTime, temperature, PumpState.Operating))
+            pumpsList.add(Pump(actuatorId, pumpChannel, modelName, lifeTime, temperature, pumpStatus))
         }
 
         return pumpsList
     }
 
-    fun getMaintenancePumps() : List<Pump>? {
+    fun getPumpsByStatus(status: PumpState) : List<Pump>? {
         val pumpsList = mutableListOf<Pump>()
         val pumps =
             """
-             SELECT DISTINCT ?pumpGpioPin ?pumpId ?modelName ?pumpLifeTime ?temperature WHERE {
-                ?obj a prog:MaintenancePump ;
-                    prog:MaintenancePump_pumpGpioPin ?pumpGpioPin ;
-                    prog:MaintenancePump_pumpId ?pumpId ;
-                    prog:MaintenancePump_modelNameOut ?modelName ;
-                    prog:MaintenancePump_pumpLifeTimeOut ?pumpLifeTime ;
-                    prog:MaintenancePump_temperatureOut ?temperature .
+             SELECT DISTINCT ?actuatorId ?pumpChannel ?modelName ?lifeTime ?temperature ?pumpStatus WHERE {
+                ?obj a prog:Pump ;
+                    prog:Pump_actuatorId ?actuatorId ;
+                    prog:Pump_pumpChannel ?pumpChannel ;
+                    prog:Pump_pumpStatus "$status" .
+                OPTIONAL { ?obj prog:Pump_modelName ?modelName }
+                OPTIONAL { ?obj prog:Pump_lifeTime ?lifeTime }
+                OPTIONAL { ?obj prog:Pump_temperature ?temperature }
              }""".trimIndent()
 
         val result: ResultSet = repl.interpreter!!.query(pumps)!!
@@ -105,103 +111,61 @@ class PumpService (
 
         while (result.hasNext()) {
             val solution: QuerySolution = result.next()
-            val pumpGpioPin = solution.get("?pumpGpioPin").asLiteral().toString().split("^^")[0].toInt()
-            val pumpId = solution.get("?pumpId").asLiteral().toString()
-            val modelName = solution.get("?modelName").asLiteral().toString()
-            val lifeTime = solution.get("?pumpLifeTime").asLiteral().toString().split("^^")[0].toInt()
-            val temperature = solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble()
+            val actuatorId = solution.get("?actuatorId").asLiteral().toString()
+            val pumpChannel = solution.get("?pumpChannel").asLiteral().toString().split("^^")[0].toInt()
+            val modelName = if (solution.contains("?modelName")) solution.get("?modelName").asLiteral().toString() else null
+            val lifeTime = if (solution.contains("?lifeTime")) solution.get("?lifeTime").asLiteral().toString().split("^^")[0].toInt() else null
+            val temperature = if (solution.contains("?temperature")) solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble() else null
 
-            pumpsList.add(Pump(pumpGpioPin, pumpId, modelName, lifeTime, temperature, PumpState.Maintenance))
+            pumpsList.add(Pump(actuatorId, pumpChannel, modelName, lifeTime, temperature, status))
         }
 
         return pumpsList
     }
 
-    fun getOverheatingPumps() : List<Pump>? {
-        val pumpsList = mutableListOf<Pump>()
-        val pumps =
-            """
-             SELECT DISTINCT ?pumpGpioPin ?pumpId ?modelName ?pumpLifeTime ?temperature WHERE {
-                ?obj a prog:OverheatingPump ;
-                    prog:OverheatingPump_pumpGpioPin ?pumpGpioPin ;
-                    prog:OverheatingPump_pumpId ?pumpId ;
-                    prog:OverheatingPump_modelNameOut ?modelName ;
-                    prog:OverheatingPump_pumpLifeTimeOut ?pumpLifeTime ;
-                    prog:OverheatingPump_temperatureOut ?temperature .
-             }""".trimIndent()
-
-        val result: ResultSet = repl.interpreter!!.query(pumps)!!
-
-        if (!result.hasNext()) {
-            return null
-        }
-
-        while (result.hasNext()) {
-            val solution: QuerySolution = result.next()
-            val pumpGpioPin = solution.get("?pumpGpioPin").asLiteral().toString().split("^^")[0].toInt()
-            val pumpId = solution.get("?pumpId").asLiteral().toString()
-            val modelName = solution.get("?modelName").asLiteral().toString()
-            val lifeTime = solution.get("?pumpLifeTime").asLiteral().toString().split("^^")[0].toInt()
-            val temperature = solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble()
-
-            pumpsList.add(Pump(pumpGpioPin, pumpId, modelName, lifeTime, temperature, PumpState.Overheating))
-        }
-
-        return pumpsList
-    }
-
-    fun getUnderheatingPumps() : List<Pump>? {
-        val pumpsList = mutableListOf<Pump>()
-        val pumps =
-            """
-             SELECT DISTINCT ?pumpGpioPin ?pumpId ?modelName ?pumpLifeTime ?temperature WHERE {
-                ?obj a prog:UnderheatingPump ;
-                    prog:UnderheatingPump_pumpGpioPin ?pumpGpioPin ;
-                    prog:UnderheatingPump_pumpId ?pumpId ;
-                    prog:UnderheatingPump_modelNameOut ?modelName ;
-                    prog:UnderheatingPump_pumpLifeTimeOut ?pumpLifeTime ;
-                    prog:UnderheatingPump_temperatureOut ?temperature .
-             }""".trimIndent()
-
-        val result: ResultSet = repl.interpreter!!.query(pumps)!!
-
-        if (!result.hasNext()) {
-            return null
-        }
-
-        while (result.hasNext()) {
-            val solution: QuerySolution = result.next()
-            val pumpGpioPin = solution.get("?pumpGpioPin").asLiteral().toString().split("^^")[0].toInt()
-            val pumpId = solution.get("?pumpId").asLiteral().toString()
-            val modelName = solution.get("?modelName").asLiteral().toString()
-            val lifeTime = solution.get("?pumpLifeTime").asLiteral().toString().split("^^")[0].toInt()
-            val temperature = solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble()
-
-            pumpsList.add(Pump(pumpGpioPin, pumpId, modelName, lifeTime, temperature, PumpState.Underheating))
-        }
-
-        return pumpsList
-    }
+    fun getOperatingPumps() : List<Pump>? = getPumpsByStatus(PumpState.Operating)
+    fun getMaintenancePumps() : List<Pump>? = getPumpsByStatus(PumpState.Maintenance)
+    fun getOverheatingPumps() : List<Pump>? = getPumpsByStatus(PumpState.Overheating)
+    fun getUnderheatingPumps() : List<Pump>? = getPumpsByStatus(PumpState.Underheating)
 
     fun updatePump(updatedPump: Pump) : Boolean {
+        var deleteClause = ""
+        var insertClause = ""
+
+        // Build dynamic update based on what fields are not null
+        if (updatedPump.temperature != null) {
+            deleteClause += "?pump ast:temperature ?oldTemperature .\n"
+            insertClause += "?pump ast:temperature \"${updatedPump.temperature}\"^^xsd:double .\n"
+        }
+        
+        if (updatedPump.lifeTime != null) {
+            deleteClause += "?pump ast:lifeTime ?oldLifeTime .\n"
+            insertClause += "?pump ast:lifeTime ${updatedPump.lifeTime} .\n"
+        }
+
+        if (updatedPump.modelName != null) {
+            deleteClause += "?pump ast:modelName ?oldModelName .\n"
+            insertClause += "?pump ast:modelName \"${updatedPump.modelName}\" .\n"
+        }
+
+        if (updatedPump.pumpStatus != null) {
+            deleteClause += "?pump ast:pumpStatus ?oldStatus .\n"
+            insertClause += "?pump ast:pumpStatus \"${updatedPump.pumpStatus}\" .\n"
+        }
+
+        if (deleteClause.isEmpty() && insertClause.isEmpty()) {
+            return false // Nothing to update
+        }
+
         val updateQuery = """
             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
             PREFIX ast: <$prefix>
             
-            DELETE {
-                ?pump ast:temperature ?oldTemperature .
-                ?pump ast:pumpLifeTime ?oldLifeTime .
-            }
-            INSERT {
-                ?pump ast:temperature "${updatedPump.temperature}"^^xsd:double .
-                ?pump ast:pumpLifeTime ${updatedPump.lifeTime} .
-            }
+            ${if (deleteClause.isNotEmpty()) "DELETE {\n$deleteClause}" else ""}
+            ${if (insertClause.isNotEmpty()) "INSERT {\n$insertClause}" else ""}
             WHERE {
                 ?pump a ast:Pump ;
-                    ast:pumpGpioPin ${updatedPump.pumpGpioPin} ;
-                    ast:pumpId "${updatedPump.pumpId}" ;
-                    ast:temperature ?oldTemperature ;
-                    ast:pumpLifeTime ?oldLifeTime .
+                    ast:actuatorId "${updatedPump.actuatorId}" .
             }
         """
 
@@ -218,21 +182,17 @@ class PumpService (
         return true
     }
 
-    fun deletePump(pumpId: String) : Boolean {
+    fun deletePump(actuatorId: String) : Boolean {
         val deletePump = """
             PREFIX ast: <$prefix>
             
             DELETE {
-                ?pump a ast:Pump ;
-                    ast:pumpGpioPin ?pumpGpioPin ;
-                    ast:pumpId ?pumpId ;
-                    ast:modelName ?modelName ;
-                    ast:pumpLifeTime ?pumpLifeTime ;
-                    ast:temperature ?temperature .
+                ?pump ?p ?o .
             }
             WHERE {
                 ?pump a ast:Pump ;
-                    ast:pumpId "$pumpId" .
+                    ast:actuatorId "$actuatorId" ;
+                    ?p ?o .
             }
         """
 
