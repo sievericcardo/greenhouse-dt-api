@@ -27,9 +27,9 @@ class PlantService (
             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
             PREFIX ast: <$prefix>
             INSERT DATA {
-                $prefix:plant${plant.plantId} a ast:Plant ;
-                    $prefix:idealMoisture "${plant.idealMoisture}"^^xsd:double ;
-                    $prefix:status "${plant.status}" .
+                ast:plant${plant.plantId} a ast:Plant ;
+                    ast:plantId "${plant.plantId}" ;
+                    ast:moisture "${plant.moisture}"^^xsd:double .
             }
         """.trimIndent()
 
@@ -49,13 +49,12 @@ class PlantService (
     fun getAllPlants() : List<Plant>? {
         val plants =
             """
-             SELECT DISTINCT ?plantId ?idealMoisture ?moisture ?healthState ?status WHERE {
+             SELECT DISTINCT ?plantId ?moisture ?healthState ?status WHERE {
                 ?obj a prog:Plant ;
                     prog:Plant_plantId ?plantId ;
-                    prog:Plant_idealMoisture ?idealMoisture ;
-                    prog:Plant_moisture ?moisture ;
-                    prog:Plant_healthState ?healthState ;
-                    prog:Plant_status ?status .
+                    prog:Plant_moisture ?moisture .
+                OPTIONAL { ?obj prog:Plant_healthState ?healthState }
+                OPTIONAL { ?obj prog:Plant_status ?status }
              }"""
 
         val result : ResultSet = repl.interpreter!!.query(plants)!!
@@ -68,12 +67,11 @@ class PlantService (
         while (result.hasNext()) {
             val solution : QuerySolution = result.next()
             val plantId = solution.get("?plantId").asLiteral().toString()
-            val idealMoisture = solution.get("?idealMoisture").asLiteral().toString().split("^^")[0].toDouble()
             val moisture = solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble()
-            val healthState = solution.get("?healthState").asLiteral().toString()
-            val status = solution.get("?status").asLiteral().toString()
+            val healthState = if (solution.contains("?healthState")) solution.get("?healthState").asLiteral().toString() else null
+            val status = if (solution.contains("?status")) solution.get("?status").asLiteral().toString() else null
 
-            plantsList.add(Plant(plantId, idealMoisture, moisture, healthState, status))
+            plantsList.add(Plant(plantId, moisture, healthState, status))
         }
 
         return plantsList
@@ -81,13 +79,12 @@ class PlantService (
 
     fun getPlantByPlantId (plantId: String): Plant? {
         val query = """
-            SELECT DISTINCT ?idealMoisture ?moisture ?healthState ?status WHERE {
+            SELECT DISTINCT ?moisture ?healthState ?status WHERE {
                 ?plant a prog:Plant ;
-                    prog:Plant_plantId  "$plantId" ;
-                    prog:Plant_idealMoisture ?idealMoisture ;
-                    prog:Plant_moisture ?moisture ;
-                    prog:Plant_healthState ?healthState ;
-                    prog:Plant_status ?status .
+                    prog:Plant_plantId "$plantId" ;
+                    prog:Plant_moisture ?moisture .
+                OPTIONAL { ?plant prog:Plant_healthState ?healthState }
+                OPTIONAL { ?plant prog:Plant_status ?status }
             }
         """.trimIndent()
 
@@ -97,34 +94,57 @@ class PlantService (
         }
 
         val solution : QuerySolution = result.next()
-        val idealMoisture = solution.get("?idealMoisture").asLiteral().toString().split("^^")[0].toDouble()
         val moisture = solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble()
-        val healthState = solution.get("?healthState").asLiteral().toString()
-        val status = solution.get("?status").asLiteral().toString()
+        val healthState = if (solution.contains("?healthState")) solution.get("?healthState").asLiteral().toString() else null
+        val status = if (solution.contains("?status")) solution.get("?status").asLiteral().toString() else null
 
-        return Plant(plantId, idealMoisture, moisture, healthState, status)
+        return Plant(plantId, moisture, healthState, status)
     }
 
-    fun updatePlant(plant: Plant, newIdealMoisture: Double, newStatus: String): Boolean {
+    fun updatePlant(plant: Plant, newMoisture: Double? = null, newHealthState: String? = null, newStatus: String? = null): Boolean {
+        var setClause = ""
+        var whereClause = """
+            ?plant rdf:type ?t ;
+                ast:plantId "${plant.plantId}" .
+            ?t rdfs:subClassOf* ast:Plant .
+        """
+
+        // Build dynamic DELETE and INSERT clauses based on what's being updated
+        var deleteClause = ""
+        var insertClause = ""
+
+        if (newMoisture != null) {
+            deleteClause += "?plant ast:moisture \"${plant.moisture}\"^^xsd:double .\n"
+            insertClause += "?plant ast:moisture \"$newMoisture\"^^xsd:double .\n"
+        }
+
+        if (newHealthState != null && plant.healthState != null) {
+            deleteClause += "?plant ast:healthState \"${plant.healthState}\" .\n"
+            insertClause += "?plant ast:healthState \"$newHealthState\" .\n"
+        } else if (newHealthState != null && plant.healthState == null) {
+            insertClause += "?plant ast:healthState \"$newHealthState\" .\n"
+        }
+
+        if (newStatus != null && plant.status != null) {
+            deleteClause += "?plant ast:status \"${plant.status}\" .\n"
+            insertClause += "?plant ast:status \"$newStatus\" .\n"
+        } else if (newStatus != null && plant.status == null) {
+            insertClause += "?plant ast:status \"$newStatus\" .\n"
+        }
+
+        if (deleteClause.isEmpty() && insertClause.isEmpty()) {
+            return false // Nothing to update
+        }
+
         val query = """
             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
             PREFIX ast: <$prefix>
-            DELETE {
-                ?plant ast:idealMoisture "${plant.idealMoisture}"^^xsd:double .
-                ?plant ast:status "${plant.status}" .
-            }
-            INSERT {
-                ?plant ast:idealMoisture "$newIdealMoisture"^^xsd:double .
-                ?plant ast:status "$newStatus" .
-            }
+            ${if (deleteClause.isNotEmpty()) "DELETE {\n$deleteClause}" else ""}
+            ${if (insertClause.isNotEmpty()) "INSERT {\n$insertClause}" else ""}
             WHERE {
-                ?plant rdf:type ?t ;
-                    ast:plantId "${plant.plantId}" ;
-                    ast:idealMoisture "${plant.idealMoisture}"^^xsd:double ;
-                    ast:status "${plant.status}" .
-               ?t rdfs:subClassOf* ast:Plant .
+                $whereClause
             }
         """.trimIndent()
 
@@ -147,15 +167,12 @@ class PlantService (
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
             DELETE {
-                ?plant a ast:Plant ;
-                    ast:plantId "$plantId" ;
-                    ast:idealMoisture ?idealMoisture ;
-                    ast:moisture ?moisture ;
-                    ast:healthState ?healthState .
+                ?plant ?p ?o .
             }
             WHERE {
                 ?plant rdf:type ?t ;
-                    ast:plantId "$plantId" .
+                    ast:plantId "$plantId" ;
+                    ?p ?o .
                 ?t rdfs:subClassOf* ast:Plant .
             }
         """.trimIndent()
