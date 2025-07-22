@@ -36,15 +36,15 @@ class PotController (
         ApiResponse(responseCode = "500", description = "Internal server error")
     ])
     @PostMapping(produces= ["application/json"])
-    fun createPot(@SwaggerRequestBody(description = "Request to add a new pot") @RequestBody request: CreatePotRequest) : ResponseEntity<Pot> {
+    fun createPot(@SwaggerRequestBody(description = "Request to add a new pot") @RequestBody request: CreatePotRequest) : ResponseEntity<String> {
         log.info("Creating pot $request")
 
-        if(!potService.createPot(request.potId, request.shelfFloor, request.potPosition, request.pumpId, request.plantId)) {
-            return ResponseEntity.badRequest().build()
+        if(!potService.createPot(request.potId)) {
+            return ResponseEntity.badRequest().body("Failed to create pot")
         }
         replConfig.regenerateSingleModel().invoke("pots")
 
-        return ResponseEntity.ok(Pot(request.potId, request.shelfFloor, request.potPosition, request.pumpId, request.plantId))
+        return ResponseEntity.ok("Pot ${request.potId} created successfully")
     }
 
     @Operation(summary = "Retrieve the pots")
