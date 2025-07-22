@@ -36,7 +36,7 @@ class PumpController (
     fun createPump(@SwaggerRequestBody(description = "Pump to be created") @RequestBody pumpRequest: CreatePumpRequest) : ResponseEntity<String> {
         log.info("Creating a new pump")
 
-        val newPump = Pump(pumpRequest.pumpGpioPin, pumpRequest.pumpId, pumpRequest.modelName, pumpRequest.lifeTime, pumpRequest.temperature, PumpState.Unknown)
+        val newPump = Pump(pumpRequest.actuatorId, pumpRequest.pumpChannel, pumpRequest.modelName, pumpRequest.lifeTime, pumpRequest.temperature, null)
         log.info("New pump: $newPump")
 
         if (!pumpService.createPump(newPump)) {
@@ -59,26 +59,11 @@ class PumpController (
     fun getPumps() : ResponseEntity<List<Pump>> {
         log.info("Getting all pumps")
 
-        val repl: REPL = replConfig.repl()
-        val pumpsList = mutableListOf<Pump>()
+        val allPumps = pumpService.getAllPumps() ?: return ResponseEntity.notFound().build()
 
-        val operatingPumps = pumpService.getOperatingPumps()
-        val maintenancePumps = pumpService.getMaintenancePumps()
-        val overheatingPumps = pumpService.getOverheatingPumps()
-        val underheatingPumps = pumpService.getUnderheatingPumps()
+        log.info("Pumps: $allPumps")
 
-        operatingPumps?.let { pumpsList.addAll(it) }
-        maintenancePumps?.let { pumpsList.addAll(it) }
-        overheatingPumps?.let { pumpsList.addAll(it) }
-        underheatingPumps?.let { pumpsList.addAll(it) }
-
-        if (pumpsList.isEmpty()) {
-            return ResponseEntity.notFound().build()
-        }
-
-        log.info("Pumps: $pumpsList")
-
-        return ResponseEntity.ok(pumpsList)
+        return ResponseEntity.ok(allPumps)
     }
 
     @Operation(summary = "Retrieve the pump that are operating")
@@ -168,7 +153,7 @@ class PumpController (
     fun updatePump(@SwaggerRequestBody(description = "Pump to be updated") @RequestBody pumpRequest: UpdatePumpRequest) : ResponseEntity<String> {
         log.info("Updating pump pressure")
 
-        val updatedPump = Pump(pumpRequest.pumpGpioPin, pumpRequest.pumpId, pumpRequest.modelName, pumpRequest.lifeTime, pumpRequest.temperature, PumpState.Unknown)
+        val updatedPump = Pump(pumpRequest.actuatorId, pumpRequest.pumpChannel ?: 0, pumpRequest.modelName, pumpRequest.lifeTime, pumpRequest.temperature, PumpState.Unknown)
         log.info("Updated pump: $updatedPump")
 
         if (!pumpService.updatePump(updatedPump)) {
@@ -191,7 +176,7 @@ class PumpController (
     fun updateMultiplePumps(@SwaggerRequestBody(description = "Pumps to be updated") @RequestBody pumpRequests: List<UpdatePumpRequest>) : ResponseEntity<String> {
         log.info("Updating pumps pressure")
 
-        val updatedPumps = pumpRequests.map { Pump(it.pumpGpioPin, it.pumpId, it.modelName, it.lifeTime, it.temperature, PumpState.Unknown) }
+        val updatedPumps = pumpRequests.map { Pump(it.actuatorId, it.pumpChannel ?: 0, it.modelName, it.lifeTime, it.temperature, PumpState.Unknown) }
         log.info("Updated pumps: $updatedPumps")
 
         updatedPumps.forEach() {
@@ -216,7 +201,7 @@ class PumpController (
     fun deletePump(@SwaggerRequestBody(description = "Pump to be deleted") @RequestBody pumpRequest: DeletePumpRequest) : ResponseEntity<String> {
         log.info("Deleting a pump")
 
-        if (!pumpService.deletePump(pumpRequest.pumpId)) {
+        if (!pumpService.deletePump(pumpRequest.actuatorId)) {
             return ResponseEntity.badRequest().body("Failed to delete pump")
         }
 
