@@ -1,0 +1,106 @@
+package org.smolang.greenhouse.api.service
+
+import org.apache.jena.query.ResultSet
+import org.apache.jena.update.UpdateExecutionFactory
+import org.apache.jena.update.UpdateFactory
+import org.smolang.greenhouse.api.config.REPLConfig
+import org.smolang.greenhouse.api.config.TriplestoreProperties
+import org.smolang.greenhouse.api.model.Section
+import org.springframework.stereotype.Service
+
+@Service
+class SectionService (
+    private val replConfig: REPLConfig,
+    private val triplestoreProperties: TriplestoreProperties
+) {
+
+    private val tripleStore = triplestoreProperties.tripleStore
+    private val prefix = triplestoreProperties.prefix
+    private val ttlPrefix = triplestoreProperties.ttlPrefix
+    private val repl = replConfig.repl()
+
+    fun createSection(sectionId: String): Boolean {
+        val query = """
+            PREFIX ast: <$prefix>
+            
+            INSERT DATA {
+                ast:section$sectionId a ast:Section ;
+                    ast:sectionId "$sectionId" .
+            }
+        """.trimIndent()
+
+        val updateRequest = UpdateFactory.create(query)
+        val fusekiEndpoint = "$tripleStore/update"
+        val updateProcessor = UpdateExecutionFactory.createRemote(updateRequest, fusekiEndpoint)
+
+        try {
+            updateProcessor.execute()
+            return true
+        } catch (e: Exception) {
+            return false
+        }
+    }
+
+    fun getSectionsByGreenHouseId(greenhouseId: String): List<Section>? {
+        // Simplified implementation for now to avoid circular dependencies
+        return getAllSections()
+    }
+
+    fun getAllSections(): List<Section>? {
+        val sectionsQuery = """
+            SELECT DISTINCT ?sectionId WHERE {
+                ?sectionObj a prog:Section ;
+                    prog:Section_sectionId ?sectionId .
+            }
+        """
+
+        val result: ResultSet? = repl.interpreter!!.query(sectionsQuery)
+        if (result == null || !result.hasNext()) {
+            return null
+        }
+
+        val sectionsList = mutableListOf<Section>()
+
+        while (result.hasNext()) {
+            val solution = result.next()
+            val sectionId = solution.get("?sectionId").asLiteral().toString()
+
+            // For now, return sections with empty pot lists to avoid circular dependency
+            // This should be properly implemented with pot resolution later
+            sectionsList.add(Section(sectionId, emptyList()))
+        }
+
+        return sectionsList
+    }
+
+    fun getSectionById(sectionId: String): Section? {
+        return getAllSections()?.find { it.sectionId == sectionId }
+    }
+
+    fun deleteSection(sectionId: String): Boolean {
+        val query = """
+            PREFIX ast: <$prefix>
+            
+            DELETE {
+                ast:section$sectionId ?p ?o .
+                ?s ?p2 ast:section$sectionId .
+            }
+            WHERE {
+                { ast:section$sectionId ?p ?o . }
+                UNION
+                { ?s ?p2 ast:section$sectionId . }
+            }
+        """.trimIndent()
+
+        val updateRequest = UpdateFactory.create(query)
+        val fusekiEndpoint = "$tripleStore/update"
+        val updateProcessor = UpdateExecutionFactory.createRemote(updateRequest, fusekiEndpoint)
+
+        try {
+            updateProcessor.execute()
+            return true
+        } catch (e: Exception) {
+            return false
+        }
+    }
+}
