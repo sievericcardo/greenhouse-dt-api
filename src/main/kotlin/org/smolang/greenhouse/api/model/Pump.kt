@@ -11,6 +11,6 @@ class Pump (
     val pumpStatus: PumpState?
 ) : Actuator(actuatorId) {
     override fun toString(): String {
-        return "Pump(actuatorId='$actuatorId', pumpGpioPin=$pumpGpioPin, modelName='$modelName', lifeTime=$lifeTime, temperature=$temperature, pumpStatus=$pumpStatus)"
+        return "Pump(actuatorId='$actuatorId', pumpChannel=$pumpChannel, modelName='$modelName', lifeTime=$lifeTime, temperature=$temperature, pumpStatus=$pumpStatus)"
     }
 }
