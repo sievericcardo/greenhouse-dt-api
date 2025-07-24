@@ -233,7 +233,9 @@ ast:Actuator rdf:type owl:Class .
 
 ###  http://www.smolang.org/greenhouseDT#Basil
 ast:Basil rdf:type owl:Class ;
-          rdfs:subClassOf ast:Plant .
+          rdfs:subClassOf ast:Plant ;
+          owl:disjointWith ast:Rosemary ,
+                           ast:Sage .
 
 
 ###  http://www.smolang.org/greenhouseDT#Dead
@@ -278,7 +280,6 @@ ast:HealthState rdf:type owl:Class ;
 
 ###  http://www.smolang.org/greenhouseDT#Healthy
 ast:Healthy rdf:type owl:Class ;
-            owl:equivalentClass ast:HealthyStrategy ;
             rdfs:subClassOf ast:HealthState ;
             owl:disjointWith ast:Unhealthy .
 
@@ -316,6 +317,11 @@ ast:HealthyMoistStrategy rdf:type owl:Class ;
 
 ###  http://www.smolang.org/greenhouseDT#HealthyStrategy
 ast:HealthyStrategy rdf:type owl:Class ;
+                    owl:equivalentClass [ rdf:type owl:Class ;
+                                          owl:unionOf ( ast:Healthy
+                                                        ast:MoistPlant
+                                                      )
+                                        ] ;
                     rdfs:subClassOf ast:Water_Strategy .
 
 
@@ -331,12 +337,16 @@ ast:HealthyThirstyStrategy rdf:type owl:Class ;
 
 ###  http://www.smolang.org/greenhouseDT#Light
 ast:Light rdf:type owl:Class ;
-          rdfs:subClassOf ast:Sensor .
+          rdfs:subClassOf ast:Sensor ;
+          owl:disjointWith ast:Moisture ,
+                           ast:Nutrient ,
+                           ast:Temperature_Humidity .
 
 
 ###  http://www.smolang.org/greenhouseDT#Light_Switch
 ast:Light_Switch rdf:type owl:Class ;
-                 rdfs:subClassOf ast:Actuator .
+                 rdfs:subClassOf ast:Actuator ;
+                 owl:disjointWith ast:Pump .
 
 
 ###  http://www.smolang.org/greenhouseDT#Maintenance
@@ -499,12 +509,17 @@ ast:MoistPlant rdf:type owl:Class ;
 
 ###  http://www.smolang.org/greenhouseDT#Moisture
 ast:Moisture rdf:type owl:Class ;
-             rdfs:subClassOf ast:Sensor .
+             rdfs:subClassOf ast:Sensor ;
+             owl:disjointWith ast:Nutrient ,
+                              ast:Temperature_Humidity ,
+                              ast:Water_Level .
 
 
 ###  http://www.smolang.org/greenhouseDT#Nutrient
 ast:Nutrient rdf:type owl:Class ;
-             rdfs:subClassOf ast:Sensor .
+             rdfs:subClassOf ast:Sensor ;
+             owl:disjointWith ast:Temperature_Humidity ,
+                              ast:Water_Level .
 
 
 ###  http://www.smolang.org/greenhouseDT#Operational
@@ -755,12 +770,18 @@ ast:Pump rdf:type owl:Class ;
                          [ rdf:type owl:Restriction ;
                            owl:onProperty ast:waterFlow ;
                            owl:someValuesFrom xsd:int
-                         ] .
+                         ] ;
+         owl:disjointUnionOf ( ast:Maintenance
+                               ast:Operational
+                               ast:Overheating
+                               ast:Underheating
+                             ) .
 
 
 ###  http://www.smolang.org/greenhouseDT#Rosemary
 ast:Rosemary rdf:type owl:Class ;
-             rdfs:subClassOf ast:Plant .
+             rdfs:subClassOf ast:Plant ;
+             owl:disjointWith ast:Sage .
 
 
 ###  http://www.smolang.org/greenhouseDT#Sage
@@ -783,7 +804,8 @@ ast:Strategy rdf:type owl:Class .
 
 ###  http://www.smolang.org/greenhouseDT#Temperature_Humidity
 ast:Temperature_Humidity rdf:type owl:Class ;
-                         rdfs:subClassOf ast:Sensor .
+                         rdfs:subClassOf ast:Sensor ;
+                         owl:disjointWith ast:Water_Level .
 
 
 ###  http://www.smolang.org/greenhouseDT#ThirstyBasil
@@ -824,7 +846,11 @@ ast:UnHealthyMoistStrategy rdf:type owl:Class ;
 
 ###  http://www.smolang.org/greenhouseDT#UnHealthyStrategy
 ast:UnHealthyStrategy rdf:type owl:Class ;
-                      owl:equivalentClass ast:Unhealthy ;
+                      owl:equivalentClass [ rdf:type owl:Class ;
+                                            owl:unionOf ( ast:ThirstyPlant
+                                                          ast:Unhealthy
+                                                        )
+                                          ] ;
                       rdfs:subClassOf ast:Water_Strategy .
 
 
