@@ -129,7 +129,7 @@ models "a ast:Plant ; domain:familyName %familyName ; domain:moisture %moisture 
 end
 
 class ThirstyPlant extends Plant ()
-classifies "<ast:Thirsty>";
+classifies "<ast:ThirstyPlant>";
     Unit printInfo()
         print("Plant: " ++ this.plantId ++ " is thirsty.");
     end
@@ -143,7 +143,7 @@ end
 // end
 
 class MoistPlant extends Plant ()
-classifies "<ast:Moist>";
+classifies "<ast:MoistPlant>";
     Unit printInfo()
         print("Plant: " ++ this.plantId ++ " is moist.");
     end
@@ -154,7 +154,7 @@ class Pot extends Twin (
     String potId, 
     List<Plant> plants, 
     MoistureSensor moistureSensor, 
-    NutrientSensor nutrientSensor.
+    NutrientSensor nutrientSensor,
     Pump pump
 )
     List<Plant> getPlants()
@@ -340,7 +340,7 @@ class GreenHouse extends Twin (
     List<Section> sections,
     List<WaterBucket> waterBuckets,
     LightSensor lightSensor,
-    TemperatureHumiditySensor temperatureHumiditySensor,
+    TemperatureHumiditySensor temperatureHumiditySensor
 )
     List<Section> getSections()
         List<Section> sections = access("
