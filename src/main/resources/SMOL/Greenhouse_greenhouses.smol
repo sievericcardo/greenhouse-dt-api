@@ -1,4 +1,4 @@
-class greenhouseModel extends BaseModel()
+class GreenHouseModel extends BaseModel()
     override Unit adaptAddition()
         List<Greenhouse> newGreenhouses = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
