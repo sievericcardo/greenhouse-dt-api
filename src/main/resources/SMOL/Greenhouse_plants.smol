@@ -5,7 +5,7 @@ class PlantModel extends BaseModel()
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
             SELECT ?plantId ?familyName ?status {
                 ?entity rdf:type ?t ;
-                    ast:plantId ?plantId .
+                    ast:plantId ?plantId ;
                     ast:familyName ?familyName ;
                 OPTIONAL {
                     ?entity ast:status ?status .
