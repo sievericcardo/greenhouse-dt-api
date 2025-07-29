@@ -102,7 +102,7 @@ main
     AssetController ctrl = new AssetController(assetModel, dc);
     assetModel.ctrl = ctrl;
 
-    GreenHouseModel greenhouse = new GreenHouseModel("greenhouse", assetModel);
+    GreenHouseModel greenhouse = new GreenHouseModel("greenhouse");
     SectionModel sections = new SectionModel("sections");
     PotModel pots = new PotModel("pots");
     PlantModel plants = new PlantModel("plants");
