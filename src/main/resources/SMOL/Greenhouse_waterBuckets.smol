@@ -26,7 +26,7 @@ class WaterBucketModel extends BaseModel()
                 newBuckets = newBuckets.next;
 
                 print("RECONFIG> New Water Bucket detected: ");
-                print("          Water bucket Id: " ++ newBucket.pumpId);
+                print("          Water bucket Id: " ++ newBucket.bucketId);
 
                 destroy(lx);
             end
