@@ -16,25 +16,28 @@ class TemperatureHumiditySensor extends Sensor (Double temperature, Double humid
 end
 
 class HealthState extends Twin (context Plant plant, String name)
+    Unit printInfo()
+        print("Health State: " ++ this.name ++ " for plant " ++ this.plant.plantId ++ ".");
+    end
 end
 
 class Healthy extends HealthState ()
 classifies "<ast:Healthy>";
-    Unit printInfo()
+    override Unit printInfo()
         print("Plant is healthy.");
     end
 end
 
 class Unhealthy extends HealthState ()
 classifies "<ast:Unhealthy>";
-    Unit printInfo()
+    override Unit printInfo()
         print("Plant is unhealthy.");
     end
 end
 
 class Dead extends HealthState ()
 classifies "<ast:Dead>";
-    Unit printInfo()
+    override Unit printInfo()
         print("Plant is dead.");
     end
 end
@@ -85,7 +88,7 @@ class Plant extends Twin (
 )
 models "a ast:Plant ; domain:familyName %familyName ; domain:moisture %moisture ; domain:ndvi %ndvi";
     Unit printInfo()
-        print("Plant: " ++ this.plantId ++ " has ideal moisture: " ++ this.idealMoisture ++ " and current moisture: " ++ this.moisture ++ ".");
+        print("Plant: " ++ this.plantId ++ " has current moisture: " ++ doubleToString(this.moisture) ++ ".");
     end
 
     Double getPotMoisture()
@@ -130,7 +133,7 @@ end
 
 class ThirstyPlant extends Plant ()
 classifies "<ast:ThirstyPlant>";
-    Unit printInfo()
+    override Unit printInfo()
         print("Plant: " ++ this.plantId ++ " is thirsty.");
     end
 end
@@ -144,7 +147,7 @@ end
 
 class MoistPlant extends Plant ()
 classifies "<ast:MoistPlant>";
-    Unit printInfo()
+    override Unit printInfo()
         print("Plant: " ++ this.plantId ++ " is moist.");
     end
 end
@@ -291,12 +294,15 @@ class Pump extends Actuator (
     hidden Double temperatureOut
 )
 models "a ast:Pump ; domain:temperature %temperature ; domain:pumpLifeTime %pumpLifeTime ; domain:modelName %modelName";
+    Unit printInfo()
+        print("Pump: " ++ this.actuatorId ++ " has current temperature: " ++ doubleToString(this.temperature) ++ ".");
+    end
 end
 
 class OperatingPump extends Pump ()
 classifies "<ast:Operational>";
-    Unit printInfo()
-        print("Pump: " ++ this.pumpId ++ " is operational.");
+    override Unit printInfo()
+        print("Pump: " ++ this.actuatorId ++ " is operational.");
     end
 end
 
@@ -311,22 +317,22 @@ retrieves "SELECT DISTINCT ?powerOutput WHERE {
     ast:modelName ?model .
   FILTER (?model = ?modelName) .
 }";
-    Unit printInfo()
-        print("Pump: " ++ this.pumpId ++ " is in maintenance. Set power to " ++ this.powerOutput ++ ".");
+    override Unit printInfo()
+        print("Pump: " ++ this.actuatorId ++ " is in maintenance. Set power to " ++ this.powerOutput ++ ".");
     end
 end
 
 class OverheatingPump extends Pump ()
 classifies "<ast:Overheating>";
-    Unit printInfo()
-        print("Pump: " ++ this.pumpId ++ " is overheating.");
+    override Unit printInfo()
+        print("Pump: " ++ this.actuatorId ++ " is overheating.");
     end
 end
 
 class UnderheatingPump extends Pump ()
 classifies "<ast:Underheating>";
-    Unit printInfo()
-        print("Pump: " ++ this.pumpId ++ " is underheating.");
+    override Unit printInfo()
+        print("Pump: " ++ this.actuatorId ++ " is underheating.");
     end
 end
 
@@ -335,7 +341,7 @@ class WaterBucket extends Twin (
     Double waterLevel
 ) end
 
-class GreenHouse extends Twin (
+class Greenhouse extends Twin (
     String greenhouseId,
     List<Section> sections,
     List<WaterBucket> waterBuckets,
