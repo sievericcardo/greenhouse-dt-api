@@ -44,13 +44,13 @@ ast:containsPot rdf:type owl:ObjectProperty ;
 ###  http://www.smolang.org/greenhouseDT#containsWaterBucket
 ast:containsWaterBucket rdf:type owl:ObjectProperty ;
                         rdfs:domain ast:Greenhouse ;
-                        rdfs:range ast:Water_Bucket .
+                        rdfs:range ast:WaterBucket .
 
 
 ###  http://www.smolang.org/greenhouseDT#hasLightSensor
 ast:hasLightSensor rdf:type owl:ObjectProperty ;
                    rdfs:domain ast:Greenhouse ;
-                   rdfs:range ast:Light .
+                   rdfs:range ast:LightSensor .
 
 
 ###  http://www.smolang.org/greenhouseDT#hasLightSwitch
@@ -62,25 +62,25 @@ ast:hasLightSwitch rdf:type owl:ObjectProperty ;
 ###  http://www.smolang.org/greenhouseDT#hasMoistureSensor
 ast:hasMoistureSensor rdf:type owl:ObjectProperty ;
                       rdfs:domain ast:Pot ;
-                      rdfs:range ast:Moisture .
+                      rdfs:range ast:MoistureSensor .
 
 
 ###  http://www.smolang.org/greenhouseDT#hasNutrientSensor
 ast:hasNutrientSensor rdf:type owl:ObjectProperty ;
                       rdfs:domain ast:Pot ;
-                      rdfs:range ast:Nutrient .
+                      rdfs:range ast:NutrientSensor .
 
 
 ###  http://www.smolang.org/greenhouseDT#hasTemperatureHumiditySensor
 ast:hasTemperatureHumiditySensor rdf:type owl:ObjectProperty ;
                                  rdfs:domain ast:Greenhouse ;
-                                 rdfs:range ast:Temperature_Humidity .
+                                 rdfs:range ast:TemperatureHumiditySensor .
 
 
 ###  http://www.smolang.org/greenhouseDT#hasWaterLevelSensor
 ast:hasWaterLevelSensor rdf:type owl:ObjectProperty ;
-                        rdfs:domain ast:Water_Bucket ;
-                        rdfs:range ast:Water_Level .
+                        rdfs:domain ast:WaterBucket ;
+                        rdfs:range ast:WaterLevel .
 
 
 ###  http://www.smolang.org/greenhouseDT#hasWaterStrategy
@@ -105,7 +105,7 @@ ast:actuatorId rdf:type owl:DatatypeProperty ;
 
 ###  http://www.smolang.org/greenhouseDT#bucketId
 ast:bucketId rdf:type owl:DatatypeProperty ;
-             rdfs:domain ast:Water_Bucket ;
+             rdfs:domain ast:WaterBucket ;
              rdfs:range xsd:string .
 
 
@@ -166,19 +166,19 @@ ast:potId rdf:type owl:DatatypeProperty ;
 ###  http://www.smolang.org/greenhouseDT#pumpChannel
 ast:pumpChannel rdf:type owl:DatatypeProperty ;
                 rdfs:domain ast:Pump ;
-                rdfs:range xsd:int .
+                rdfs:range xsd:integer .
 
 
 ###  http://www.smolang.org/greenhouseDT#pumpLifeTime
 ast:pumpLifeTime rdf:type owl:DatatypeProperty ;
                  rdfs:domain ast:Pump ;
-                 rdfs:range xsd:int .
+                 rdfs:range xsd:integer .
 
 
 ###  http://www.smolang.org/greenhouseDT#secondToWater
 ast:secondToWater rdf:type owl:DatatypeProperty ;
                   rdfs:domain ast:Water_Strategy ;
-                  rdfs:range xsd:int .
+                  rdfs:range xsd:integer .
 
 
 ###  http://www.smolang.org/greenhouseDT#sectionId
@@ -214,12 +214,12 @@ ast:temperature rdf:type owl:DatatypeProperty ;
 ###  http://www.smolang.org/greenhouseDT#waterFlow
 ast:waterFlow rdf:type owl:DatatypeProperty ;
               rdfs:domain ast:Pump ;
-              rdfs:range xsd:int .
+              rdfs:range xsd:integer .
 
 
 ###  http://www.smolang.org/greenhouseDT#waterLevel
 ast:waterLevel rdf:type owl:DatatypeProperty ;
-               rdfs:domain ast:Water_Bucket ;
+               rdfs:domain ast:WaterBucket ;
                rdfs:range xsd:double .
 
 
@@ -335,12 +335,12 @@ ast:HealthyThirstyStrategy rdf:type owl:Class ;
                            rdfs:subClassOf ast:Water_Strategy .
 
 
-###  http://www.smolang.org/greenhouseDT#Light
-ast:Light rdf:type owl:Class ;
-          rdfs:subClassOf ast:Sensor ;
-          owl:disjointWith ast:Moisture ,
-                           ast:Nutrient ,
-                           ast:Temperature_Humidity .
+###  http://www.smolang.org/greenhouseDT#LightSensor
+ast:LightSensor rdf:type owl:Class ;
+                rdfs:subClassOf ast:Sensor ;
+                owl:disjointWith ast:MoistureSensor ,
+                                 ast:NutrientSensor ,
+                                 ast:TemperatureHumiditySensor .
 
 
 ###  http://www.smolang.org/greenhouseDT#Light_Switch
@@ -507,19 +507,19 @@ ast:MoistPlant rdf:type owl:Class ;
                owl:disjointWith ast:ThirstyPlant .
 
 
-###  http://www.smolang.org/greenhouseDT#Moisture
-ast:Moisture rdf:type owl:Class ;
-             rdfs:subClassOf ast:Sensor ;
-             owl:disjointWith ast:Nutrient ,
-                              ast:Temperature_Humidity ,
-                              ast:Water_Level .
+###  http://www.smolang.org/greenhouseDT#MoistureSensor
+ast:MoistureSensor rdf:type owl:Class ;
+                   rdfs:subClassOf ast:Sensor ;
+                   owl:disjointWith ast:NutrientSensor ,
+                                    ast:TemperatureHumiditySensor ,
+                                    ast:WaterLevel .
 
 
-###  http://www.smolang.org/greenhouseDT#Nutrient
-ast:Nutrient rdf:type owl:Class ;
-             rdfs:subClassOf ast:Sensor ;
-             owl:disjointWith ast:Temperature_Humidity ,
-                              ast:Water_Level .
+###  http://www.smolang.org/greenhouseDT#NutrientSensor
+ast:NutrientSensor rdf:type owl:Class ;
+                   rdfs:subClassOf ast:Sensor ;
+                   owl:disjointWith ast:TemperatureHumiditySensor ,
+                                    ast:WaterLevel .
 
 
 ###  http://www.smolang.org/greenhouseDT#Operational
@@ -802,10 +802,10 @@ ast:Sensor rdf:type owl:Class .
 ast:Strategy rdf:type owl:Class .
 
 
-###  http://www.smolang.org/greenhouseDT#Temperature_Humidity
-ast:Temperature_Humidity rdf:type owl:Class ;
-                         rdfs:subClassOf ast:Sensor ;
-                         owl:disjointWith ast:Water_Level .
+###  http://www.smolang.org/greenhouseDT#TemperatureHumiditySensor
+ast:TemperatureHumiditySensor rdf:type owl:Class ;
+                              rdfs:subClassOf ast:Sensor ;
+                              owl:disjointWith ast:WaterLevel .
 
 
 ###  http://www.smolang.org/greenhouseDT#ThirstyBasil
@@ -994,13 +994,13 @@ ast:UnhealthyBasil rdf:type owl:Class ;
                    rdfs:subClassOf ast:Unhealthy .
 
 
-###  http://www.smolang.org/greenhouseDT#Water_Bucket
-ast:Water_Bucket rdf:type owl:Class .
+###  http://www.smolang.org/greenhouseDT#WaterBucket
+ast:WaterBucket rdf:type owl:Class .
 
 
-###  http://www.smolang.org/greenhouseDT#Water_Level
-ast:Water_Level rdf:type owl:Class ;
-                rdfs:subClassOf ast:Sensor .
+###  http://www.smolang.org/greenhouseDT#WaterLevel
+ast:WaterLevel rdf:type owl:Class ;
+               rdfs:subClassOf ast:Sensor .
 
 
 ###  http://www.smolang.org/greenhouseDT#Water_Strategy
@@ -1029,26 +1029,26 @@ ast:healthyPlantStrategy rdf:type owl:NamedIndividual ,
 
 ###  http://www.smolang.org/greenhouseDT#humidityTemperatureSensor1
 ast:humidityTemperatureSensor1 rdf:type owl:NamedIndividual ,
-                                        ast:Temperature_Humidity ;
+                                        ast:TemperatureHumiditySensor ;
                                ast:sensorId "DTH Sensor 1" .
 
 
 ###  http://www.smolang.org/greenhouseDT#lightSensor1
 ast:lightSensor1 rdf:type owl:NamedIndividual ,
-                          ast:Light ;
+                          ast:LightSensor ;
                  ast:sensorId "Light Sensor 1" .
 
 
 ###  http://www.smolang.org/greenhouseDT#moistureSensor1
 ast:moistureSensor1 rdf:type owl:NamedIndividual ,
-                             ast:Moisture ;
+                             ast:MoistureSensor ;
                     ast:sensorId "Moisture 1" ;
                     ast:sensorProperty "2.1,6.2" .
 
 
 ###  http://www.smolang.org/greenhouseDT#nutrientSensor1
 ast:nutrientSensor1 rdf:type owl:NamedIndividual ,
-                             ast:Nutrient ;
+                             ast:NutrientSensor ;
                     ast:sensorId "Nutrient 1" ;
                     ast:sensorProperty "1.1,8.0" .
 
@@ -1095,7 +1095,7 @@ ast:sickPlantStrategy rdf:type owl:NamedIndividual ,
 
 ###  http://www.smolang.org/greenhouseDT#waterBucket1
 ast:waterBucket1 rdf:type owl:NamedIndividual ,
-                          ast:Water_Bucket ;
+                          ast:WaterBucket ;
                  ast:bucketId "Bucky 1" .
 
 
