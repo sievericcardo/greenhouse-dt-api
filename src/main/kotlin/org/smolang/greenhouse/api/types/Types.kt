@@ -18,8 +18,7 @@ data class CreatePotRequest (
 )
 
 data class UpdatePotRequest (
-    val potId: String
-    // Add other fields as needed
+    val potId: String?
 )
 
 data class CreatePumpRequest(
