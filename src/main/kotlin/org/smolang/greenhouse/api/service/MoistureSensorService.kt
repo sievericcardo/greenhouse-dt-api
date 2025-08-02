@@ -19,28 +19,115 @@ class MoistureSensorService (
     private val ttlPrefix = triplestoreProperties.ttlPrefix
     private val repl = replConfig.repl()
 
-    fun createSensor(sensor: MoistureSensor): Boolean {
-        // Implementation for creating a new moisture sensor
-        return true // Placeholder return value
+    fun createSensor(request: CreateMoistureSensorRequest): MoistureSensor? {
+        val query = """
+            PREFIX : <$prefix>
+            INSERT DATA {
+                ast:moistureSensor${request.sensorId} a :MoistureSensor ;
+                    ast:sensorId ${request.sensorId} ;
+                    ast:sensorProperty ${request.sensorProperty} .
+            }
+        """.trimIndent()
+
+        val updateRequest = UpdateFactory.create(query)
+        val fusekiEndpoint = "$tripleStore/update"
+        val updateProcessor = UpdateExecutionFactory.createRemote(updateRequest, fusekiEndpoint)
+
+        try {
+            updateProcessor.execute()
+            return MoistureSensor(request.sensorId, request.sensorProperty)
+        } catch (e: Exception) {
+            return null
+        }
     }
 
-    fun updateSensor(sensor: MoistureSensor): Boolean {
-        // Implementation for updating an existing moisture sensor
-        return true // Placeholder return value
+    fun updateSensor(request: UpdateMoistureSensorRequest): MoistureSensor? {
+        val query = """
+            PREFIX : <$prefix>
+            DELETE WHERE {
+                ast:moistureSensor${request.sensorId} ?p ?o .
+            }
+        """.trimIndent()
+
+        val updateRequest = UpdateFactory.create(query)
+        val fusekiEndpoint = "$tripleStore/update"
+        val updateProcessor = UpdateExecutionFactory.createRemote(updateRequest, fusekiEndpoint)
+
+        try {
+            updateProcessor.execute()
+            return MoistureSensor(request.sensorId, request.sensorProperty)
+        } catch (e: Exception) {
+            return null
+        }
     }
 
     fun deleteSensor(sensorId: String): Boolean {
-        // Implementation for deleting a moisture sensor
-        return true // Placeholder return value
+        val query = """
+            PREFIX : <$prefix>
+            DELETE WHERE {
+                ast:moistureSensor$sensorId ?p ?o .
+            }
+        """.trimIndent()
+
+        val updateRequest = UpdateFactory.create(query)
+        val fusekiEndpoint = "$tripleStore/update"
+        val updateProcessor = UpdateExecutionFactory.createRemote(updateRequest, fusekiEndpoint)
+
+        return try {
+            updateProcessor.execute()
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 
     fun getSensor(sensorId: String): MoistureSensor? {
-        // Implementation for retrieving a moisture sensor
-        return null // Placeholder return value
+        val query = """
+            SELECT ?sensorId ?sensorProperty ?moisture WHERE {
+                ?obj a prog:MoistureSensor ;
+                    prog:MoistureSensor_sensorId ?sensorId ;
+                    prog:MoistureSensor_sensorProperty ?sensorProperty ;
+                    prog:MoistureSensor_moisture ?moisture .
+            }
+        """.trimIndent()
+
+        val result: ResultSet = repl.interpreter!!.query(query) ?: return null
+
+        if (!result.hasNext()) {
+            return null
+        }
+
+        val solution = result.next()
+        val sensorId = solution.get("?sensorId").asLiteral().toString()
+        val sensorProperty = solution.get("?sensorProperty").asLiteral().toString()
+        val moisture = if (solution.contains("?moisture")) {
+            solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble()
+        } else null
+        return MoistureSensor(sensorId, sensorProperty, moisture)
     }
 
     fun getAllSensors(): List<MoistureSensor> {
-        // Implementation for retrieving all moisture sensors
-        return emptyList() // Placeholder return value
+        val query = """
+            SELECT ?sensorId ?sensorProperty ?moisture WHERE {
+                ?obj a prog:MoistureSensor ;
+                    prog:MoistureSensor_sensorId ?sensorId ;
+                    prog:MoistureSensor_sensorProperty ?sensorProperty ;
+                    prog:MoistureSensor_moisture ?moisture .
+            }
+        """.trimIndent()
+
+        val result: ResultSet = repl.interpreter!!.query(query) ?: return emptyList()
+
+        val sensors = mutableListOf<MoistureSensor>()
+        while (result.hasNext()) {
+            val solution = result.next()
+            val sensorId = solution.get("?sensorId").asLiteral().toString()
+            val sensorProperty = solution.get("?sensorProperty").asLiteral().toString()
+            val moisture = if (solution.contains("?moisture")) {
+                solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble()
+            } else null
+            sensors.add(MoistureSensor(sensorId, sensorProperty, moisture))
+        }
+        return sensors
     }
 }
