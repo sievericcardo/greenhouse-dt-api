@@ -19,23 +19,132 @@ class TemperatureHumiditySensorService (
     private val ttlPrefix = triplestoreProperties.ttlPrefix
     private val repl = replConfig.repl()
 
-    fun createSensor(sensor: TemperatureHumiditySensor): Boolean {
-        // Implementation for creating a new temperature and humidity sensor
+    fun createSensor(sensor: TemperatureHumiditySensor): TemperatureHumiditySensor? {
+        val query """
+            PREFIX : <$prefix>
+            INSERT DATA {
+                ast:humidityTemperatureSensor${sensor.sensorId} a :TemperatureHumiditySensor ;
+                    ast:sensorId ${sensor.sensorId} .
+            }
+        """.trimIndent()
+        
+        val updateRequest = UpdateFactory.create(query)
+        val fusekiEndpoint = "$tripleStore/update"
+        val updateProcessor = UpdateExecutionFactory.createRemote(updateRequest, fusekiEndpoint)
+
+        try {
+            updateProcessor.execute()
+            return TemperatureHumiditySensor(sensor.sensorId)
+        } catch (e: Exception) {
+            return null
+        }
     }
 
-    fun updateSensor(sensor: TemperatureHumiditySensor): Boolean {
-        // Implementation for updating an existing temperature and humidity sensor
+    fun updateSensor(sensor: TemperatureHumiditySensor): TemperatureHumiditySensor? {
+        val query = """
+            PREFIX ast: <$prefix>
+
+            DELETE {
+                ast:humidityTemperatureSensor${sensor.sensorId} ?p ?o .
+            }
+            INSERT {
+                ast:humidityTemperatureSensor${sensor.sensorId} a ast:TemperatureHumiditySensor ;
+                    ast:sensorId ${sensor.sensorId} .
+            }
+            WHERE {
+                ast:humidityTemperatureSensor${sensor.sensorId} ?p ?o .
+            }
+        """.trimIndent()
+
+        val updateRequest = UpdateFactory.create(query)
+        val fusekiEndpoint = "$tripleStore/update"
+        val updateProcessor = UpdateExecutionFactory.createRemote(updateRequest, fusekiEndpoint)
+
+        try {
+            updateProcessor.execute()
+            return TemperatureHumiditySensor(sensor.sensorId)
+        } catch (e: Exception) {
+            return null
+        }
     }
 
     fun deleteSensor(sensorId: String): Boolean {
-        // Implementation for deleting a temperature and humidity sensor
+        val query = """
+            PREFIX ast: <$prefix>
+
+            DELETE {
+                ast:humidityTemperatureSensor$sensorId ?p ?o .
+            }
+            WHERE {
+                ast:humidityTemperatureSensor$sensorId ?p ?o .
+            }
+        """.trimIndent()
+
+        val updateRequest = UpdateFactory.create(query)
+        val fusekiEndpoint = "$tripleStore/update"
+        val updateProcessor = UpdateExecutionFactory.createRemote(updateRequest, fusekiEndpoint)
+
+        try {
+            updateProcessor.execute()
+            return true
+        } catch (e: Exception) {
+            return false
+        }
     }
 
     fun getSensor(sensorId: String): TemperatureHumiditySensor? {
-        // Implementation for retrieving a temperature and humidity sensor
+        val query = """
+            SELECT ?sensorId ?temperature ?humidity WHERE {
+                ?obj a prog:TemperatureHumiditySensor ;
+                    prog:TemperatureHumiditySensor_sensorId ?sensorId ;
+                    prog:TemperatureHumiditySensor_temperature ?temperature ;
+                    prog:TemperatureHumiditySensor_humidity ?humidity .
+            }
+        """.trimIndent()
+
+        val result: ResultSet? = repl.interpreter!!.query(query)
+        if (result == null || !result.hasNext()) {
+            return null
+        }
+
+        val solution = result.next()
+        val retrievedSensorId = solution.get("?sensorId").asLiteral().toString()
+        val temperature = if (solution.contains("?temperature")) {
+            solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble()
+        } else null
+        val humidity = if (solution.contains("?humidity")) {
+            solution.get("?humidity").asLiteral().toString().split("^^")[0].toDouble()
+        } else null
+        return TemperatureHumiditySensor(retrievedSensorId, temperature, humidity)
     }
 
     fun getAllSensors(): List<TemperatureHumiditySensor> {
-        // Implementation for retrieving all temperature and humidity sensors
+        val query = """
+            SELECT ?sensorId ?temperature ?humidity WHERE {
+                ?obj a prog:TemperatureHumiditySensor ;
+                    prog:TemperatureHumiditySensor_sensorId ?sensorId ;
+                    prog:TemperatureHumiditySensor_temperature ?temperature ;
+                    prog:TemperatureHumiditySensor_humidity ?humidity .
+            }
+        """.trimIndent()
+
+        val result: ResultSet? = repl.interpreter!!.query(query)
+        if (result == null || !result.hasNext()) {
+            return emptyList()
+        }
+
+        val sensors = mutableListOf<TemperatureHumiditySensor>()
+        while (result.hasNext()) {
+            val solution = result.next()
+            val sensorId = solution.get("?sensorId").asLiteral().toString()
+            val temperature = if (solution.contains("?temperature")) {
+                solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble()
+            } else null
+            val humidity = if (solution.contains("?humidity")) {
+                solution.get("?humidity").asLiteral().toString().split("^^")[0].toDouble()
+            } else null
+            sensors.add(TemperatureHumiditySensor(sensorId, temperature, humidity))
+        }
+        return sensors
     }
 }
