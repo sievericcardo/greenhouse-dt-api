@@ -2,14 +2,10 @@ package org.smolang.greenhouse.api.types
 
 data class CreatePlantRequest (
     val plantId: String,
-    val moisture: Double,
-    val healthState: String? = null,
     val status: String? = null
 )
 
 data class UpdatePlantRequest (
-    val newMoisture: Double? = null,
-    val newHealthState: String? = null,
     val newStatus: String? = null
 )
 
@@ -84,38 +80,38 @@ data class UpdatePotRequest (
     val pump: String? = null
 )
 
-data class CreateMoistureSensor (
+data class CreateMoistureSensorRequest (
     val sensorId: String,
     val sensorProperty: String,
 )
 
-data class UpdateMoistureSensor (
+data class UpdateMoistureSensorRequest (
     val sensorProperty: String?,
 )
 
-data class CreateNutrientSensor (
+data class CreateNutrientSensorRequest (
     val sensorId: String,
     val sensorProperty: String,
 )
 
-data class UpdateNutrientSensor (
+data class UpdateNutrientSensorRequest (
     val sensorProperty: String?,
 )
 
-data class CreateLightSensor (
+data class CreateLightSensorRequest (
     val sensorId: String,
     val sensorProperty: String,
 )
 
-data class UpdateLightSensor (
+data class UpdateLightSensorRequest (
     val sensorProperty: String?,
 )
 
-data class CreateTemperatureHumiditySensor (
+data class CreateTemperatureHumiditySensorRequest (
     val sensorId: String,
     val sensorProperty: String,
 )
 
-data class UpdateTemperatureHumiditySensor (
+data class UpdateTemperatureHumiditySensorRequest (
     val sensorProperty: String?,
 )
