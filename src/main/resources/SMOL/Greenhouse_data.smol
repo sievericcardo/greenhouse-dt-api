@@ -296,7 +296,7 @@ class Section extends Twin (String sectionId, List<Pot> pots)
     end
 end
 
-class Actuator extends Twin (String actuatorId, String actuatorProperty)
+class Actuator extends Twin (String actuatorId)
 end
 
 class LightSwitch extends Actuator (Double lightIntensity)
