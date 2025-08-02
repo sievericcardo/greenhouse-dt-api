@@ -94,9 +94,10 @@ class LightSensorService (
 
     fun getSensor(sensorId: String): LightSensor? {
         val query = """
-            SELECT ?sensorId ?lightLevel WHERE {
+            SELECT ?sensorId ?sensorProperty ?lightLevel WHERE {
                 ?obj a prog:LightSensor ;
                     prog:LightSensor_sensorId ?sensorId ;
+                    prog:LightSensor_sensorProperty ?sensorProperty ;
                     prog:LightSensor_lightLevel ?lightLevel .
             }
         """.trimIndent()
@@ -109,17 +110,19 @@ class LightSensorService (
 
         val solution = result.next()
         val retrievedSensorId = solution.get("?sensorId").asLiteral().toString()
+        val sensorProperty = solution.get("?sensorProperty").asLiteral().toString()
         val lightLevel = if (solution.contains("?lightLevel")) {
             solution.get("?lightLevel").asLiteral().toString().split("^^")[0].toDouble()
         } else null
-        return LightSensor(retrievedSensorId, lightLevel)
+        return LightSensor(retrievedSensorId, sensorProperty, lightLevel)
     }
 
     fun getAllSensors(): List<LightSensor> {
         val query = """
-            SELECT ?sensorId ?lightLevel WHERE {
+            SELECT ?sensorId ?sensorProperty ?lightLevel WHERE {
                 ?obj a prog:LightSensor ;
                     prog:LightSensor_sensorId ?sensorId ;
+                    prog:LightSensor_sensorProperty ?sensorProperty ;
                     prog:LightSensor_lightLevel ?lightLevel .
             }
         """.trimIndent()
@@ -130,10 +133,11 @@ class LightSensorService (
         while (result.hasNext()) {
             val solution = result.next()
             val sensorId = solution.get("?sensorId").asLiteral().toString()
+            val sensorProperty = solution.get("?sensorProperty").asLiteral().toString()
             val lightLevel = if (solution.contains("?lightLevel")) {
                 solution.get("?lightLevel").asLiteral().toString().split("^^")[0].toDouble()
             } else null
-            sensors.add(LightSensor(sensorId, lightLevel))
+            sensors.add(LightSensor(sensorId, sensorProperty, lightLevel))
         }
         return sensors
     }
