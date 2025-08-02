@@ -5,7 +5,7 @@ import org.apache.jena.update.UpdateExecutionFactory
 import org.apache.jena.update.UpdateFactory
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
-import org.smolang.greenhouse.api.model.nutrientSensor
+import org.smolang.greenhouse.api.model.NutrientSensor
 import org.springframework.stereotype.Service
 
 @Service
@@ -19,28 +19,132 @@ class NutrientSensorService (
     private val ttlPrefix = triplestoreProperties.ttlPrefix
     private val repl = replConfig.repl()
 
-    fun createSensor(sensor: nutrientSensor): Boolean {
-        // Implementation for creating a new nutrient sensor
-        return true // Placeholder return value
+    fun createSensor(request: CreateNutrientSensorRequest): NutrientSensor? {
+        val query = """
+            PREFIX ast: <$prefix>
+            INSERT DATA {
+                ast:nutrientSensor${request.sensorId} a :NutrientSensor ;
+                    ast:sensorId ${request.sensorId} ;
+                    ast:sensorProperty ${request.sensorProperty} .
+            }
+        """.trimIndent()
+
+        val updateRequest = UpdateFactory.create(query)
+        val fusekiEndpoint = "$tripleStore/update"
+        val updateProcessor = UpdateExecutionFactory.createRemote(updateRequest, fusekiEndpoint)
+
+        try {
+            updateProcessor.execute()
+            return NutrientSensor(request.sensorId, request.sensorProperty)
+        } catch (e: Exception) {
+            return null
+        }
     }
 
-    fun updateSensor(sensor: nutrientSensor): Boolean {
-        // Implementation for updating an existing nutrient sensor
-        return true // Placeholder return value
+    fun updateSensor(sensorId: String, request: UpdateNutrientSensorRequest): NutrientSensor? {
+        val query = """
+            PREFIX ast: <$prefix>
+
+            DELETE {
+                ?sensor ast:sensorProperty ?oldProperty .
+            }
+            INSERT {
+                ?sensor ast:sensorProperty ${request.sensorProperty} .
+            }
+            WHERE {
+                ?sensor a ast:NutrientSensor ;
+                    ast:sensorId "$sensorId" ;
+                    ast:sensorProperty ?oldProperty .
+            }
+        """.trimIndent()
+
+        val updateRequest = UpdateFactory.create(query)
+        val fusekiEndpoint = "$tripleStore/update"
+        val updateProcessor = UpdateExecutionFactory.createRemote(updateRequest, fusekiEndpoint)
+
+        try {
+            updateProcessor.execute()
+            return NutrientSensor(sensorId, request.sensorProperty)
+        } catch (e: Exception) {
+            return null
+        }
+    }
+
     }
 
     fun deleteSensor(sensorId: String): Boolean {
-        // Implementation for deleting a nutrient sensor
-        return true // Placeholder return value
+        val query = """
+            PREFIX ast: <$prefix>
+            DELETE WHERE {
+                ?sensor a ast:NutrientSensor ;
+                    ast:sensorId "$sensorId" .
+            }
+        """.trimIndent()
+
+        val updateRequest = UpdateFactory.create(query)
+        val fusekiEndpoint = "$tripleStore/update"
+        val updateProcessor = UpdateExecutionFactory.createRemote(updateRequest, fusekiEndpoint)
+
+        return try {
+            updateProcessor.execute()
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 
-    fun getSensor(sensorId: String): nutrientSensor? {
-        // Implementation for retrieving a nutrient sensor
-        return null // Placeholder return value
+    fun getSensor(sensorId: String): NutrientSensor? {
+        val query = """
+            SELECT ?sensorId ?sensorProperty ?nutrient WHERE {
+                ?obj a prog:NutrientSensor ;
+                    prog:NutrientSensor_sensorId ?sensorId ;
+                    prog:NutrientSensor_sensorProperty ?sensorProperty ;
+                    prog:NutrientSensor_nutrient ?nutrient .
+            }
+        """.trimIndent()
+
+        val result: ResultSet = repl.interpreter!!.query(query) ?: return null
+
+        if (!result.hasNext()) {
+            return null
+        }
+
+        val solution = result.next()
+        val sensorId = solution.get("?sensorId").asLiteral().toString()
+        val sensorProperty = solution.get("?sensorProperty").asLiteral().toString()
+        val nutrient = if (solution.contains("?nutrient")) {
+            solution.get("?nutrient").asLiteral().toString().split("^^")[0].toDouble()
+        } else null
+        return NutrientSensor(sensorId, sensorProperty, nutrient)
+    }
     }
 
-    fun getAllSensors(): List<nutrientSensor> {
-        // Implementation for retrieving all nutrient sensors
-        return emptyList() // Placeholder return value
+    fun getAllSensors(): List<NutrientSensor> {
+        val query = """
+            SELECT ?sensorId ?sensorProperty ?nutrient WHERE {
+                ?obj a prog:NutrientSensor ;
+                    prog:NutrientSensor_sensorId ?sensorId ;
+                    prog:NutrientSensor_sensorProperty ?sensorProperty ;
+                    prog:NutrientSensor_nutrient ?nutrient .
+            }
+        """.trimIndent()
+
+        val result: ResultSet = repl.interpreter!!.query(query) ?: return emptyList()
+
+        if (!result.hasNext()) {
+            return emptyList()
+        }
+
+        val sensors = mutableListOf<NutrientSensor>()
+        while (result.hasNext()) {
+            val solution = result.next()
+            val sensorId = solution.get("?sensorId").asLiteral().toString()
+            val sensorProperty = solution.get("?sensorProperty").asLiteral().toString()
+            val nutrient = if (solution.contains("?nutrient")) {
+                solution.get("?nutrient").asLiteral().toString().split("^^")[0].toDouble()
+            } else null
+            sensors.add(NutrientSensor(sensorId, sensorProperty, nutrient))
+        }
+        return sensors
     }
 }
