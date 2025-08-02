@@ -19,12 +19,13 @@ class TemperatureHumiditySensorService (
     private val ttlPrefix = triplestoreProperties.ttlPrefix
     private val repl = replConfig.repl()
 
-    fun createSensor(sensor: TemperatureHumiditySensor): TemperatureHumiditySensor? {
-        val query """
+    fun createSensor(request: CreateTemperatureHumiditySensorRequest): TemperatureHumiditySensor? {
+        val query = """
             PREFIX : <$prefix>
             INSERT DATA {
-                ast:humidityTemperatureSensor${sensor.sensorId} a :TemperatureHumiditySensor ;
-                    ast:sensorId ${sensor.sensorId} .
+                ast:humidityTemperatureSensor${request.sensorId} a :TemperatureHumiditySensor ;
+                    ast:sensorId ${request.sensorId} ;
+                    ast:sensorProperty ${request.sensorProperty} .
             }
         """.trimIndent()
         
@@ -40,19 +41,20 @@ class TemperatureHumiditySensorService (
         }
     }
 
-    fun updateSensor(sensor: TemperatureHumiditySensor): TemperatureHumiditySensor? {
+    fun updateSensor(sensorId: String, request: UpdateTemperatureHumiditySensorRequest): TemperatureHumiditySensor? {
         val query = """
             PREFIX ast: <$prefix>
 
             DELETE {
-                ast:humidityTemperatureSensor${sensor.sensorId} ?p ?o .
+                ast:humidityTemperatureSensor${sensorId} ?p ?o .
             }
             INSERT {
-                ast:humidityTemperatureSensor${sensor.sensorId} a ast:TemperatureHumiditySensor ;
-                    ast:sensorId ${sensor.sensorId} .
+                ast:humidityTemperatureSensor${sensorId} a ast:TemperatureHumiditySensor ;
+                    ast:sensorId ${sensorId} ;
+                    ast:sensorProperty ${request.sensorProperty} .
             }
             WHERE {
-                ast:humidityTemperatureSensor${sensor.sensorId} ?p ?o .
+                ast:humidityTemperatureSensor${sensorId} ?p ?o .
             }
         """.trimIndent()
 
@@ -94,9 +96,10 @@ class TemperatureHumiditySensorService (
 
     fun getSensor(sensorId: String): TemperatureHumiditySensor? {
         val query = """
-            SELECT ?sensorId ?temperature ?humidity WHERE {
+            SELECT ?sensorId ?sensorProperty ?temperature ?humidity WHERE {
                 ?obj a prog:TemperatureHumiditySensor ;
                     prog:TemperatureHumiditySensor_sensorId ?sensorId ;
+                    prog:TemperatureHumiditySensor_sensorProperty ?sensorProperty ;
                     prog:TemperatureHumiditySensor_temperature ?temperature ;
                     prog:TemperatureHumiditySensor_humidity ?humidity .
             }
@@ -109,13 +112,14 @@ class TemperatureHumiditySensorService (
 
         val solution = result.next()
         val retrievedSensorId = solution.get("?sensorId").asLiteral().toString()
+        val sensorProperty = solution.get("?sensorProperty").asLiteral().toString()
         val temperature = if (solution.contains("?temperature")) {
             solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble()
         } else null
         val humidity = if (solution.contains("?humidity")) {
             solution.get("?humidity").asLiteral().toString().split("^^")[0].toDouble()
         } else null
-        return TemperatureHumiditySensor(retrievedSensorId, temperature, humidity)
+        return TemperatureHumiditySensor(retrievedSensorId, sensorProperty, temperature, humidity)
     }
 
     fun getAllSensors(): List<TemperatureHumiditySensor> {
@@ -137,13 +141,14 @@ class TemperatureHumiditySensorService (
         while (result.hasNext()) {
             val solution = result.next()
             val sensorId = solution.get("?sensorId").asLiteral().toString()
+            val sensorProperty = solution.get("?sensorProperty").asLiteral().toString()
             val temperature = if (solution.contains("?temperature")) {
                 solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble()
             } else null
             val humidity = if (solution.contains("?humidity")) {
                 solution.get("?humidity").asLiteral().toString().split("^^")[0].toDouble()
             } else null
-            sensors.add(TemperatureHumiditySensor(sensorId, temperature, humidity))
+            sensors.add(TemperatureHumiditySensor(sensorId, sensorProperty, temperature, humidity))
         }
         return sensors
     }
