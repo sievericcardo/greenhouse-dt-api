@@ -19,12 +19,13 @@ class LightSensorService (
     private val ttlPrefix = triplestoreProperties.ttlPrefix
     private val repl = replConfig.repl()
 
-    fun createSensor(sensor: LightSensor): LightSensor? {
+    fun createSensor(request: CreateLightSensorRequest): LightSensor? {
         val query = """
             PREFIX : <$prefix>
             INSERT DATA {
-                ast:lightSensor${sensor.sensorId} a :LightSensor ;
-                    ast:sensorId ${sensor.sensorId} .
+                ast:lightSensor${request.sensorId} a :LightSensor ;
+                    ast:sensorId ${request.sensorId} ;
+                    ast:sensorProperty ${request.sensorProperty} .
             }
         """.trimIndent()
 
@@ -40,18 +41,19 @@ class LightSensorService (
         }
     }
 
-    fun updateSensor(sensor: LightSensor): LightSensor? {
+    fun updateSensor(sensorId: String, request: UpdateLightSensorRequest): LightSensor? {
         val query = """
             PREFIX : <$prefix>
             DELETE {
-                ast:lightSensor${sensor.sensorId} ?p ?o .
+                ast:lightSensor${sensorId} ?p ?o .
             }
             INSERT {
-                ast:lightSensor${sensor.sensorId} a :LightSensor ;
-                    ast:sensorId ${sensor.sensorId} .
+                ast:lightSensor${sensorId} a :LightSensor ;
+                    ast:sensorId ${sensorId} ;
+                    ast:sensorProperty ${request.sensorProperty} .
             }
             WHERE {
-                ast:lightSensor${sensor.sensorId} ?p ?o .
+                ast:lightSensor${sensorId} ?p ?o .
             }
         """.trimIndent()
 
