@@ -11,7 +11,8 @@ import org.springframework.stereotype.Service
 @Service
 class SectionService (
     private val replConfig: REPLConfig,
-    private val triplestoreProperties: TriplestoreProperties
+    private val triplestoreProperties: TriplestoreProperties,
+    private val potService: PotService
 ) {
 
     private val tripleStore = triplestoreProperties.tripleStore
@@ -19,7 +20,7 @@ class SectionService (
     private val ttlPrefix = triplestoreProperties.ttlPrefix
     private val repl = replConfig.repl()
 
-    fun createSection(sectionId: String): Boolean {
+    fun createSection(sectionId: String): Section? {
         val query = """
             PREFIX ast: <$prefix>
             
@@ -35,9 +36,10 @@ class SectionService (
 
         try {
             updateProcessor.execute()
-            return true
+            val pots = potService.getAllPots() ?: emptyList()
+            return Section(sectionId, pots)
         } catch (e: Exception) {
-            return false
+            return null
         }
     }
 
