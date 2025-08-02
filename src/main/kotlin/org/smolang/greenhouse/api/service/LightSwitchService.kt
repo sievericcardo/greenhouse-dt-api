@@ -21,7 +21,7 @@ class LightSwitchService (
 
     fun createLightSwitch(request: CreateLightSwitchRequest): LightSwitch? {
         val query = """
-            PREFIX : <$prefix>
+            PREFIX ast: <$prefix>
             INSERT DATA {
                 ast:lightSwitch${request.lightSwitchId} a :LightSwitch ;
                     ast:actuatorId ${request.lightSwitchId} .

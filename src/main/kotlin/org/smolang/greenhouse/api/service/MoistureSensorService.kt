@@ -21,9 +21,9 @@ class MoistureSensorService (
 
     fun createSensor(request: CreateMoistureSensorRequest): MoistureSensor? {
         val query = """
-            PREFIX : <$prefix>
+            PREFIX ast: <$prefix>
             INSERT DATA {
-                ast:moistureSensor${request.sensorId} a :MoistureSensor ;
+                ast:moistureSensor${request.sensorId} a ast:MoistureSensor ;
                     ast:sensorId ${request.sensorId} ;
                     ast:sensorProperty ${request.sensorProperty} .
             }
@@ -41,11 +41,19 @@ class MoistureSensorService (
         }
     }
 
-    fun updateSensor(request: UpdateMoistureSensorRequest): MoistureSensor? {
+    fun updateSensor(sensorId: String, request: UpdateMoistureSensorRequest): MoistureSensor? {
         val query = """
-            PREFIX : <$prefix>
-            DELETE WHERE {
-                ast:moistureSensor${request.sensorId} ?p ?o .
+            PREFIX ast: <$prefix>
+            DELETE {
+                ?sensor ast:sensorProperty ?oldProperty .
+            }
+            INSERT {
+                ?sensor ast:sensorProperty ${request.sensorProperty} .
+            }
+            WHERE {
+                ?sensor a ast:MoistureSensor ;
+                    ast:sensorId "$sensorId" ;
+                    ast:sensorProperty ?oldProperty .
             }
         """.trimIndent()
 
@@ -63,7 +71,7 @@ class MoistureSensorService (
 
     fun deleteSensor(sensorId: String): Boolean {
         val query = """
-            PREFIX : <$prefix>
+            PREFIX ast: <$prefix>
             DELETE WHERE {
                 ast:moistureSensor$sensorId ?p ?o .
             }

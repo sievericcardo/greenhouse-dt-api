@@ -21,7 +21,7 @@ class LightSensorService (
 
     fun createSensor(request: CreateLightSensorRequest): LightSensor? {
         val query = """
-            PREFIX : <$prefix>
+            PREFIX ast: <$prefix>
             INSERT DATA {
                 ast:lightSensor${request.sensorId} a :LightSensor ;
                     ast:sensorId ${request.sensorId} ;
@@ -43,7 +43,7 @@ class LightSensorService (
 
     fun updateSensor(sensorId: String, request: UpdateLightSensorRequest): LightSensor? {
         val query = """
-            PREFIX : <$prefix>
+            PREFIX ast: <$prefix>
             DELETE {
                 ast:lightSensor${sensorId} ?p ?o .
             }
@@ -71,7 +71,7 @@ class LightSensorService (
 
     fun deleteSensor(sensorId: String): Boolean {
         val query = """
-            PREFIX : <$prefix>
+            PREFIX ast: <$prefix>
             DELETE {
                 ast:lightSensor$sensorId ?p ?o .
             }

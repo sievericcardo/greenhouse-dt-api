@@ -21,7 +21,7 @@ class TemperatureHumiditySensorService (
 
     fun createSensor(request: CreateTemperatureHumiditySensorRequest): TemperatureHumiditySensor? {
         val query = """
-            PREFIX : <$prefix>
+            PREFIX ast: <$prefix>
             INSERT DATA {
                 ast:humidityTemperatureSensor${request.sensorId} a :TemperatureHumiditySensor ;
                     ast:sensorId ${request.sensorId} ;
