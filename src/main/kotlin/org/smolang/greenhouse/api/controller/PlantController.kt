@@ -37,6 +37,7 @@ class PlantController (
 
         val plant = Plant(
             createPlantRequest.plantId,
+            createPlantRequest.familyName,
             null,
             null,
             createPlantRequest.status

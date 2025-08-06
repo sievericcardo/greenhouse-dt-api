@@ -152,7 +152,7 @@ class PotService (
 
     private fun getPlantById(plantId: String): Plant? {
         val plantQuery = """
-            SELECT DISTINCT ?moisture ?healthState ?status WHERE {
+            SELECT DISTINCT ?familyName ?moisture ?healthState ?status WHERE {
                 ?plantObj a prog:Plant ;
                     prog:Plant_plantId "$plantId" ;
                     prog:Plant_moisture ?moisture .
@@ -167,11 +167,12 @@ class PotService (
         }
         
         val solution = result.next()
+        val familyName = solution.get("?familyName").asLiteral().toString()
         val moisture = solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble()
         val healthState = if (solution.contains("?healthState")) solution.get("?healthState").asLiteral().toString() else null
         val status = if (solution.contains("?status")) solution.get("?status").asLiteral().toString() else null
         
-        return Plant(plantId, moisture, healthState, status)
+        return Plant(plantId, familyName, moisture, healthState, status)
     }
 
     fun getPotByPotId (id: String) : Pot? {

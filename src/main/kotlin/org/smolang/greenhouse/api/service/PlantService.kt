@@ -29,6 +29,7 @@ class PlantService (
             INSERT DATA {
                 ast:plant${plant.plantId} a ast:Plant ;
                     ast:plantId "${plant.plantId}" ;
+                    ast:familyName "${plant.familyName}" ;
                     ast:moisture "${plant.moisture}"^^xsd:double .
             }
         """.trimIndent()
@@ -49,9 +50,10 @@ class PlantService (
     fun getAllPlants() : List<Plant>? {
         val plants =
             """
-             SELECT DISTINCT ?plantId ?moisture ?healthState ?status WHERE {
+             SELECT DISTINCT ?plantId ?familyName ?moisture ?healthState ?status WHERE {
                 ?obj a prog:Plant ;
                     prog:Plant_plantId ?plantId ;
+                    prog:Plant_familyName ?familyName ;
                     prog:Plant_moisture ?moisture .
                 OPTIONAL { ?obj prog:Plant_healthState ?healthState }
                 OPTIONAL { ?obj prog:Plant_status ?status }
@@ -67,11 +69,12 @@ class PlantService (
         while (result.hasNext()) {
             val solution : QuerySolution = result.next()
             val plantId = solution.get("?plantId").asLiteral().toString()
-            val moisture = solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble()
+            val familyName = solution.get("?familyName").asLiteral().toString()
+            val moisture = if (solution.contains("?moisture")) solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble() else null
             val healthState = if (solution.contains("?healthState")) solution.get("?healthState").asLiteral().toString() else null
             val status = if (solution.contains("?status")) solution.get("?status").asLiteral().toString() else null
 
-            plantsList.add(Plant(plantId, moisture, healthState, status))
+            plantsList.add(Plant(plantId, familyName, moisture, healthState, status))
         }
 
         return plantsList
@@ -79,9 +82,10 @@ class PlantService (
 
     fun getPlantByPlantId (plantId: String): Plant? {
         val query = """
-            SELECT DISTINCT ?moisture ?healthState ?status WHERE {
+            SELECT DISTINCT ?familyName ?moisture ?healthState ?status WHERE {
                 ?plant a prog:Plant ;
                     prog:Plant_plantId "$plantId" ;
+                    prog:Plant_familyName ?familyName ;
                     prog:Plant_moisture ?moisture .
                 OPTIONAL { ?plant prog:Plant_healthState ?healthState }
                 OPTIONAL { ?plant prog:Plant_status ?status }
@@ -94,11 +98,12 @@ class PlantService (
         }
 
         val solution : QuerySolution = result.next()
+        val familyName = solution.get("?familyName").asLiteral().toString()
         val moisture = solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble()
         val healthState = if (solution.contains("?healthState")) solution.get("?healthState").asLiteral().toString() else null
         val status = if (solution.contains("?status")) solution.get("?status").asLiteral().toString() else null
 
-        return Plant(plantId, moisture, healthState, status)
+        return Plant(plantId, familyName, moisture, healthState, status)
     }
 
     fun updatePlant(plant: Plant, newMoisture: Double? = null, newHealthState: String? = null, newStatus: String? = null): Boolean {
