@@ -6,6 +6,8 @@ import org.apache.jena.update.UpdateFactory
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
 import org.smolang.greenhouse.api.model.LightSensor
+import org.smolang.greenhouse.api.types.CreateLightSensorRequest
+import org.smolang.greenhouse.api.types.UpdateLightSensorRequest
 import org.springframework.stereotype.Service
 
 @Service
@@ -35,7 +37,7 @@ class LightSensorService (
 
         try {
             updateProcessor.execute()
-            return LightSensor(sensor.sensorId)
+            return LightSensor(request.sensorId)
         } catch (e: Exception) {
             return null
         }
@@ -63,7 +65,7 @@ class LightSensorService (
 
         try {
             updateProcessor.execute()
-            return LightSensor(sensor.sensorId)
+            return LightSensor(sensorId)
         } catch (e: Exception) {
             return null
         }

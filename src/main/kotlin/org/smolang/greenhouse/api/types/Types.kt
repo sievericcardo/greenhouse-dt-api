@@ -18,6 +18,7 @@ data class CreatePumpRequest(
 )
 
 data class UpdatePumpRequest (
+    val actuatorId: String? = null,
     val pumpChannel: Int? = null,
     val modelName: String? = null,
     val lifeTime: Int? = null,

@@ -6,6 +6,8 @@ import org.apache.jena.update.UpdateFactory
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
 import org.smolang.greenhouse.api.model.MoistureSensor
+import org.smolang.greenhouse.api.types.CreateMoistureSensorRequest
+import org.smolang.greenhouse.api.types.UpdateMoistureSensorRequest
 import org.springframework.stereotype.Service
 
 @Service
@@ -63,7 +65,7 @@ class MoistureSensorService (
 
         try {
             updateProcessor.execute()
-            return MoistureSensor(request.sensorId, request.sensorProperty)
+            return MoistureSensor(sensorId, request.sensorProperty)
         } catch (e: Exception) {
             return null
         }

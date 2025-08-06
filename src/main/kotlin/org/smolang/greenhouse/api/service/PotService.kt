@@ -47,7 +47,7 @@ class PotService (
     fun getPots() : List<Pot>? {
         val potsQuery =
             """
-             SELECT DISTINCT ?potId ?pumpId ?moistureSensorId ?moistureValue ?nutrientSensorId ?nutrientValue 
+             SELECT DISTINCT ?potId ?pumpId ?moistureSensorId ?moistureSensorProperty ?moistureValue ?nutrientSensorId ?nutrientSensorProperty ?nutrientValue 
                              ?pumpChannel ?modelName ?lifeTime ?temperature ?pumpStatus
                              ?plant1Id ?plant2Id ?plant3Id ?plant4Id ?plant5Id WHERE {
                  ?potObj a prog:Pot ;
@@ -66,12 +66,14 @@ class PotService (
                  OPTIONAL {
                      ?potObj prog:Pot_moistureSensor ?moistureSensorObj .
                      ?moistureSensorObj prog:MoistureSensor_sensorId ?moistureSensorId ;
+                                       prog:MoistureSensor_sensorProperty ?moistureSensorProperty ;
                                        prog:MoistureSensor_moisture ?moistureValue .
                  }
                  
                  OPTIONAL {
                      ?potObj prog:Pot_nutrientSensor ?nutrientSensorObj .
                      ?nutrientSensorObj prog:NutrientSensor_sensorId ?nutrientSensorId ;
+                                       prog:NutrientSensor_sensorProperty ?nutrientSensorProperty ;
                                        prog:NutrientSensor_nutrient ?nutrientValue .
                  }
                  
@@ -108,15 +110,17 @@ class PotService (
             // Build moisture sensor if present
             val moistureSensor = if (solution.contains("?moistureSensorId")) {
                 val sensorId = solution.get("?moistureSensorId").asLiteral().toString()
+                val sensorProperty = solution.get("?moistureSensorProperty").asLiteral().toString()
                 val moisture = solution.get("?moistureValue").asLiteral().toString().split("^^")[0].toDouble()
-                MoistureSensor(sensorId, moisture)
+                MoistureSensor(sensorId, sensorProperty, moisture)
             } else null
             
             // Build nutrient sensor if present
             val nutrientSensor = if (solution.contains("?nutrientSensorId")) {
                 val sensorId = solution.get("?nutrientSensorId").asLiteral().toString()
+                val sensorProperty = solution.get("?nutrientSensorProperty").asLiteral().toString()
                 val nutrient = solution.get("?nutrientValue").asLiteral().toString().split("^^")[0].toDouble()
-                NutrientSensor(sensorId, nutrient)
+                NutrientSensor(sensorId, sensorProperty, nutrient)
             } else null
             
             // Build pump
@@ -173,7 +177,7 @@ class PotService (
     fun getPotByPotId (id: String) : Pot? {
         val potsQuery =
             """
-             SELECT DISTINCT ?potId ?pumpId ?moistureSensorId ?moistureValue ?nutrientSensorId ?nutrientValue 
+             SELECT DISTINCT ?potId ?pumpId ?moistureSensorId ?moistureSensorProperty ?moistureValue ?nutrientSensorId ?nutrientSensorProperty ?nutrientValue 
                              ?pumpChannel ?modelName ?lifeTime ?temperature ?pumpStatus
                              ?plant1Id ?plant2Id ?plant3Id ?plant4Id ?plant5Id WHERE {
                  ?potObj a prog:Pot ;
@@ -192,12 +196,14 @@ class PotService (
                  OPTIONAL {
                      ?potObj prog:Pot_moistureSensor ?moistureSensorObj .
                      ?moistureSensorObj prog:MoistureSensor_sensorId ?moistureSensorId ;
+                                       prog:MoistureSensor_sensorProperty ?moistureSensorProperty ;
                                        prog:MoistureSensor_moisture ?moistureValue .
                  }
                  
                  OPTIONAL {
                      ?potObj prog:Pot_nutrientSensor ?nutrientSensorObj .
                      ?nutrientSensorObj prog:NutrientSensor_sensorId ?nutrientSensorId ;
+                                       prog:NutrientSensor_sensorProperty ?nutrientSensorProperty ;
                                        prog:NutrientSensor_nutrient ?nutrientValue .
                  }
                  
@@ -231,15 +237,17 @@ class PotService (
         // Build moisture sensor if present
         val moistureSensor = if (solution.contains("?moistureSensorId")) {
             val sensorId = solution.get("?moistureSensorId").asLiteral().toString()
+            val sensorProperty = solution.get("?moistureSensorProperty").asLiteral().toString()
             val moisture = solution.get("?moistureValue").asLiteral().toString().split("^^")[0].toDouble()
-            MoistureSensor(sensorId, moisture)
+            MoistureSensor(sensorId, sensorProperty, moisture)
         } else null
         
         // Build nutrient sensor if present
         val nutrientSensor = if (solution.contains("?nutrientSensorId")) {
             val sensorId = solution.get("?nutrientSensorId").asLiteral().toString()
+            val sensorProperty = solution.get("?nutrientSensorProperty").asLiteral().toString()
             val nutrient = solution.get("?nutrientValue").asLiteral().toString().split("^^")[0].toDouble()
-            NutrientSensor(sensorId, nutrient)
+            NutrientSensor(sensorId, sensorProperty, nutrient)
         } else null
         
         // Build pump

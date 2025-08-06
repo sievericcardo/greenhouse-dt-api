@@ -6,6 +6,8 @@ import org.apache.jena.update.UpdateFactory
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
 import org.smolang.greenhouse.api.model.TemperatureHumiditySensor
+import org.smolang.greenhouse.api.types.CreateTemperatureHumiditySensorRequest
+import org.smolang.greenhouse.api.types.UpdateTemperatureHumiditySensorRequest
 import org.springframework.stereotype.Service
 
 @Service
@@ -35,7 +37,7 @@ class TemperatureHumiditySensorService (
 
         try {
             updateProcessor.execute()
-            return TemperatureHumiditySensor(sensor.sensorId)
+            return TemperatureHumiditySensor(request.sensorId)
         } catch (e: Exception) {
             return null
         }
@@ -64,7 +66,7 @@ class TemperatureHumiditySensorService (
 
         try {
             updateProcessor.execute()
-            return TemperatureHumiditySensor(sensor.sensorId)
+            return TemperatureHumiditySensor(sensorId)
         } catch (e: Exception) {
             return null
         }

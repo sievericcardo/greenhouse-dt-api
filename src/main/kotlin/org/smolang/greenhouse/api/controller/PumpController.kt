@@ -1,8 +1,10 @@
 package org.smolang.greenhouse.api.controller
 
+import io.swagger.annotations.ApiParam
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
+import jakarta.validation.Valid
 import no.uio.microobject.runtime.REPL
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.model.Pump
@@ -149,11 +151,12 @@ class PumpController (
         ApiResponse(responseCode = "403", description = "Accessing the resource you were trying to reach is forbidden"),
         ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
     ])
-    @PatchMapping("/update")
-    fun updatePump(@SwaggerRequestBody(description = "Pump to be updated") @RequestBody pumpRequest: UpdatePumpRequest) : ResponseEntity<String> {
+    @PatchMapping("/{pumpId}")
+    fun updatePump(@ApiParam(value = "Pump ID", required = true) @Valid @PathVariable pumpId: String,
+                   @SwaggerRequestBody(description = "Pump to be updated") @RequestBody pumpRequest: UpdatePumpRequest) : ResponseEntity<String> {
         log.info("Updating pump pressure")
 
-        val updatedPump = Pump(pumpRequest.actuatorId, pumpRequest.pumpChannel ?: 0, pumpRequest.modelName, pumpRequest.lifeTime, pumpRequest.temperature, PumpState.Unknown)
+        val updatedPump = Pump(pumpId, pumpRequest.pumpChannel ?: 0, pumpRequest.modelName, pumpRequest.lifeTime, pumpRequest.temperature, PumpState.Unknown)
         log.info("Updated pump: $updatedPump")
 
         if (!pumpService.updatePump(updatedPump)) {
@@ -176,7 +179,7 @@ class PumpController (
     fun updateMultiplePumps(@SwaggerRequestBody(description = "Pumps to be updated") @RequestBody pumpRequests: List<UpdatePumpRequest>) : ResponseEntity<String> {
         log.info("Updating pumps pressure")
 
-        val updatedPumps = pumpRequests.map { Pump(it.actuatorId, it.pumpChannel ?: 0, it.modelName, it.lifeTime, it.temperature, PumpState.Unknown) }
+        val updatedPumps = pumpRequests.map { Pump(it.actuatorId!!, it.pumpChannel ?: 0, it.modelName, it.lifeTime, it.temperature, PumpState.Unknown) }
         log.info("Updated pumps: $updatedPumps")
 
         updatedPumps.forEach() {

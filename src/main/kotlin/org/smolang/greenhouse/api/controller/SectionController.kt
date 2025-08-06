@@ -33,7 +33,7 @@ class SectionController (
     fun createSection(@SwaggerRequestBody(description = "Request to add a new section") @RequestBody request: CreateSectionRequest) : ResponseEntity<String> {
         log.info("Creating section $request")
 
-        if(!sectionService.createSection(request.sectionId)) {
+        if(sectionService.createSection(request.sectionId) == null) {
             return ResponseEntity.badRequest().body("Failed to create section")
         }
         replConfig.regenerateSingleModel().invoke("sections")

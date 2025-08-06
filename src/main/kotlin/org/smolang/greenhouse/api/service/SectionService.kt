@@ -36,7 +36,7 @@ class SectionService (
 
         try {
             updateProcessor.execute()
-            val pots = potService.getAllPots() ?: emptyList()
+            val pots = potService.getPots() ?: emptyList()
             return Section(sectionId, pots)
         } catch (e: Exception) {
             return null

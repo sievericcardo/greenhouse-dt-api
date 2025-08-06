@@ -37,8 +37,8 @@ class PlantController (
 
         val plant = Plant(
             createPlantRequest.plantId,
-            createPlantRequest.moisture,
-            createPlantRequest.healthState,
+            null,
+            null,
             createPlantRequest.status
         )
 
@@ -101,7 +101,12 @@ class PlantController (
 
         val plant = plantService.getPlantByPlantId(plantId) ?: return ResponseEntity.notFound().build()
 
-        if (!plantService.updatePlant(plant, updatePlantRequest.newMoisture, updatePlantRequest.newHealthState, updatePlantRequest.newStatus)) {
+        if (plant.moisture == null || plant.healthState == null) {
+            log.severe("Plant moisture or health state is null")
+            return ResponseEntity.badRequest().build()
+        }
+
+        if (!plantService.updatePlant(plant, plant.moisture, plant.healthState, updatePlantRequest.newStatus)) {
             log.severe("Plant not updated")
             return ResponseEntity.badRequest().build()
         }

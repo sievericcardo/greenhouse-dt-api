@@ -44,19 +44,21 @@ class GreenHouseService (
 
     fun getAllGreenHouses(): List<GreenHouse>? {
         val greenHousesQuery = """
-            SELECT DISTINCT ?greenhouseId ?lightSensorId ?lightIntensity ?tempHumSensorId ?temperature ?humidity WHERE {
+            SELECT DISTINCT ?greenhouseId ?lightSensorId ?lightSensorProperty ?lightIntensity ?tempHumSensorId ?tempHumSensorProperty ?temperature ?humidity WHERE {
                 ?greenhouseObj a prog:GreenHouse ;
                     prog:GreenHouse_greenhouseId ?greenhouseId .
                 
                 OPTIONAL {
                     ?greenhouseObj prog:GreenHouse_lightSensor ?lightSensorObj .
                     ?lightSensorObj prog:LightSensor_sensorId ?lightSensorId ;
+                                   prog:LightSensor_sensorProperty ?lightSensorProperty ;
                                    prog:LightSensor_lightIntensity ?lightIntensity .
                 }
                 
                 OPTIONAL {
                     ?greenhouseObj prog:GreenHouse_temperatureHumiditySensor ?tempHumSensorObj .
                     ?tempHumSensorObj prog:TemperatureHumiditySensor_sensorId ?tempHumSensorId ;
+                                     prog:TemperatureHumiditySensor_sensorProperty ?tempHumSensorProperty ;
                                      prog:TemperatureHumiditySensor_temperature ?temperature ;
                                      prog:TemperatureHumiditySensor_humidity ?humidity .
                 }
@@ -83,22 +85,24 @@ class GreenHouseService (
             // Build light sensor if present
             val lightSensor = if (solution.contains("?lightSensorId")) {
                 val sensorId = solution.get("?lightSensorId").asLiteral().toString()
+                val sensorProperty = solution.get("?lightSensorProperty").asLiteral().toString()
                 val lightIntensity = solution.get("?lightIntensity").asLiteral().toString().split("^^")[0].toDouble()
-                LightSensor(sensorId, lightIntensity)
+                LightSensor(sensorId, sensorProperty, lightIntensity)
             } else {
                 // Default light sensor
-                LightSensor("default_light_$greenhouseId", 0.0)
+                LightSensor("default_light_$greenhouseId", "", 0.0)
             }
 
             // Build temperature humidity sensor if present
             val temperatureHumiditySensor = if (solution.contains("?tempHumSensorId")) {
                 val sensorId = solution.get("?tempHumSensorId").asLiteral().toString()
+                val sensorProperty = solution.get("?tempHumSensorProperty").asLiteral().toString()
                 val temperature = solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble()
                 val humidity = solution.get("?humidity").asLiteral().toString().split("^^")[0].toDouble()
-                TemperatureHumiditySensor(sensorId, temperature, humidity)
+                TemperatureHumiditySensor(sensorId, sensorProperty, temperature, humidity)
             } else {
                 // Default temperature humidity sensor
-                TemperatureHumiditySensor("default_temphum_$greenhouseId", 0.0, 0.0)
+                TemperatureHumiditySensor("default_temphum_$greenhouseId", "", 0.0, 0.0)
             }
 
             greenHousesList.add(GreenHouse(greenhouseId, sections, waterBuckets, lightSensor, temperatureHumiditySensor))
@@ -109,19 +113,21 @@ class GreenHouseService (
 
     fun getGreenHouseById(greenhouseId: String): GreenHouse? {
         val greenHouseQuery = """
-            SELECT DISTINCT ?lightSensorId ?lightIntensity ?tempHumSensorId ?temperature ?humidity WHERE {
+            SELECT DISTINCT ?lightSensorId ?lightSensorProperty ?lightIntensity ?tempHumSensorId ?tempHumSensorProperty ?temperature ?humidity WHERE {
                 ?greenhouseObj a prog:GreenHouse ;
                     prog:GreenHouse_greenhouseId "$greenhouseId" .
                 
                 OPTIONAL {
                     ?greenhouseObj prog:GreenHouse_lightSensor ?lightSensorObj .
                     ?lightSensorObj prog:LightSensor_sensorId ?lightSensorId ;
+                                   prog:LightSensor_sensorProperty ?lightSensorProperty .
                                    prog:LightSensor_lightIntensity ?lightIntensity .
                 }
                 
                 OPTIONAL {
                     ?greenhouseObj prog:GreenHouse_temperatureHumiditySensor ?tempHumSensorObj .
                     ?tempHumSensorObj prog:TemperatureHumiditySensor_sensorId ?tempHumSensorId ;
+                                     prog:TemperatureHumiditySensor_sensorProperty ?tempHumSensorProperty ;
                                      prog:TemperatureHumiditySensor_temperature ?temperature ;
                                      prog:TemperatureHumiditySensor_humidity ?humidity .
                 }
@@ -144,22 +150,24 @@ class GreenHouseService (
         // Build light sensor if present
         val lightSensor = if (solution.contains("?lightSensorId")) {
             val sensorId = solution.get("?lightSensorId").asLiteral().toString()
+            val sensorProperty = solution.get("?lightSensorProperty").asLiteral().toString()
             val lightIntensity = solution.get("?lightIntensity").asLiteral().toString().split("^^")[0].toDouble()
-            LightSensor(sensorId, lightIntensity)
+            LightSensor(sensorId, sensorProperty, lightIntensity)
         } else {
             // Default light sensor
-            LightSensor("default_light_$greenhouseId", 0.0)
+            LightSensor("default_light_$greenhouseId", "", 0.0)
         }
 
         // Build temperature humidity sensor if present
         val temperatureHumiditySensor = if (solution.contains("?tempHumSensorId")) {
             val sensorId = solution.get("?tempHumSensorId").asLiteral().toString()
+            val sensorProperty = solution.get("?tempHumSensorProperty").asLiteral().toString()
             val temperature = solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble()
             val humidity = solution.get("?humidity").asLiteral().toString().split("^^")[0].toDouble()
-            TemperatureHumiditySensor(sensorId, temperature, humidity)
+            TemperatureHumiditySensor(sensorId, sensorProperty, temperature, humidity)
         } else {
             // Default temperature humidity sensor
-            TemperatureHumiditySensor("default_temphum_$greenhouseId", 0.0, 0.0)
+            TemperatureHumiditySensor("default_temphum_$greenhouseId", "", 0.0, 0.0)
         }
 
         return GreenHouse(greenhouseId, sections, waterBuckets, lightSensor, temperatureHumiditySensor)
