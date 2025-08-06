@@ -24,11 +24,12 @@ end
  *
  *  Field this.decisions contains the control decision made by the last cycle.
  */
-class AssetModel extends Twin (List<Decision> decisions, AssetController ctrl, List<BaseModel> mods)
+// class AssetModel extends Twin (List<Decision> decisions, AssetController ctrl, List<BaseModel> mods)
+class AssetModel extends Twin (List<BaseModel> mods)
 
-    Unit decision()
-        this.ctrl.decision();
-    end
+    // Unit decision()
+    //     this.ctrl.decision();
+    // end
 
     Unit register(BaseModel m)
         this.mods = new List<BaseModel>(m, this.mods);
@@ -97,10 +98,11 @@ main
     dc.reconfigureModel(60.0); //this actually instantiated the FMU
 */
 //MBC End
-    DirectControl dc = new DirectControl(0.0, 0.0);                    //NON_MBC
-    AssetModel assetModel = new AssetModel(null, null, null);
-    AssetController ctrl = new AssetController(assetModel, dc);
-    assetModel.ctrl = ctrl;
+    //DirectControl dc = new DirectControl(0.0, 0.0);                    //NON_MBC
+    // AssetModel assetModel = new AssetModel(null, null, null);
+    // AssetController ctrl = new AssetController(assetModel, dc);
+    // assetModel.ctrl = ctrl;
+    AssetModel assetModel = new AssetModel(null);
 
     GreenHouseModel greenhouse = new GreenHouseModel("greenhouse");
     SectionModel sections = new SectionModel("sections");

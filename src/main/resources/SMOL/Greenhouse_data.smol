@@ -66,29 +66,29 @@ end
 class WaterStrategy extends Strategy(context Plant plant)
 end
 
-class HealthyStrategy extends WaterStrategy()
-classifies "<ast:HealthyStrategy>";
-end
+// class HealthyStrategy extends WaterStrategy()
+// classifies "<ast:HealthyStrategy>";
+// end
 
-class HealthyMoistStrategy extends WaterStrategy()
-classifies "<ast:HealthyMoistStrategy>";
-end
+// class HealthyMoistStrategy extends WaterStrategy()
+// classifies "<ast:HealthyMoistStrategy>";
+// end
 
-class HealthyThirstStrategy extends WaterStrategy()
-classifies "<ast:HealthyThirstStrategy>";
-end
+// class HealthyThirstStrategy extends WaterStrategy()
+// classifies "<ast:HealthyThirstStrategy>";
+// end
 
-class UnhealthyStrategy extends WaterStrategy()
-classifies "<ast:UnhealthyStrategy>";
-end
+// class UnhealthyStrategy extends WaterStrategy()
+// classifies "<ast:UnhealthyStrategy>";
+// end
 
-class UnhealthyMoistStrategy extends WaterStrategy()
-classifies "<ast:UnhealthyMoistStrategy>";
-end
+// class UnhealthyMoistStrategy extends WaterStrategy()
+// classifies "<ast:UnhealthyMoistStrategy>";
+// end
 
-class UnhealthyThirstyStrategy extends WaterStrategy()
-classifies "<ast:UnhealthyThirstyStrategy>";
-end
+// class UnhealthyThirstyStrategy extends WaterStrategy()
+// classifies "<ast:UnhealthyThirstyStrategy>";
+// end
 
 /**
  *  Models a physical plant. It is initially retrieved by
