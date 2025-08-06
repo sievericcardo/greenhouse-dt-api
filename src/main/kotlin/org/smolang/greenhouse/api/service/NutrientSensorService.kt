@@ -98,8 +98,8 @@ class NutrientSensorService (
             SELECT ?sensorId ?sensorProperty ?nutrient WHERE {
                 ?obj a prog:NutrientSensor ;
                     prog:NutrientSensor_sensorId ?sensorId ;
-                    prog:NutrientSensor_sensorProperty ?sensorProperty ;
-                    prog:NutrientSensor_nutrient ?nutrient .
+                    prog:NutrientSensor_sensorProperty ?sensorProperty .
+                OPTIONAL { ?obj prog:NutrientSensor_nutrient ?nutrient }
             }
         """.trimIndent()
 
@@ -123,8 +123,8 @@ class NutrientSensorService (
             SELECT ?sensorId ?sensorProperty ?nutrient WHERE {
                 ?obj a prog:NutrientSensor ;
                     prog:NutrientSensor_sensorId ?sensorId ;
-                    prog:NutrientSensor_sensorProperty ?sensorProperty ;
-                    prog:NutrientSensor_nutrient ?nutrient .
+                    prog:NutrientSensor_sensorProperty ?sensorProperty .
+                OPTIONAL { ?obj prog:NutrientSensor_nutrient ?nutrient }
             }
         """.trimIndent()
 

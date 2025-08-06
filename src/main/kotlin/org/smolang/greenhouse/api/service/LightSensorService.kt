@@ -99,8 +99,8 @@ class LightSensorService (
             SELECT ?sensorId ?sensorProperty ?lightLevel WHERE {
                 ?obj a prog:LightSensor ;
                     prog:LightSensor_sensorId ?sensorId ;
-                    prog:LightSensor_sensorProperty ?sensorProperty ;
-                    prog:LightSensor_lightLevel ?lightLevel .
+                    prog:LightSensor_sensorProperty ?sensorProperty .
+                OPTIONAL { ?obj prog:LightSensor_lightLevel ?lightLevel }
             }
         """.trimIndent()
 
@@ -124,8 +124,8 @@ class LightSensorService (
             SELECT ?sensorId ?sensorProperty ?lightLevel WHERE {
                 ?obj a prog:LightSensor ;
                     prog:LightSensor_sensorId ?sensorId ;
-                    prog:LightSensor_sensorProperty ?sensorProperty ;
-                    prog:LightSensor_lightLevel ?lightLevel .
+                    prog:LightSensor_sensorProperty ?sensorProperty .
+                OPTIONAL { ?obj prog:LightSensor_lightLevel ?lightLevel }
             }
         """.trimIndent()
 

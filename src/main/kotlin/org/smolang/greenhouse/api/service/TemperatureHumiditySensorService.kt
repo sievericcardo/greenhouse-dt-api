@@ -101,9 +101,9 @@ class TemperatureHumiditySensorService (
             SELECT ?sensorId ?sensorProperty ?temperature ?humidity WHERE {
                 ?obj a prog:TemperatureHumiditySensor ;
                     prog:TemperatureHumiditySensor_sensorId ?sensorId ;
-                    prog:TemperatureHumiditySensor_sensorProperty ?sensorProperty ;
-                    prog:TemperatureHumiditySensor_temperature ?temperature ;
-                    prog:TemperatureHumiditySensor_humidity ?humidity .
+                    prog:TemperatureHumiditySensor_sensorProperty ?sensorProperty .
+                OPTIONAL { ?obj prog:TemperatureHumiditySensor_temperature ?temperature }
+                OPTIONAL { ?obj prog:TemperatureHumiditySensor_humidity ?humidity }
             }
         """.trimIndent()
 
@@ -126,11 +126,12 @@ class TemperatureHumiditySensorService (
 
     fun getAllSensors(): List<TemperatureHumiditySensor> {
         val query = """
-            SELECT ?sensorId ?temperature ?humidity WHERE {
+            SELECT ?sensorId ?sensorProperty ?temperature ?humidity WHERE {
                 ?obj a prog:TemperatureHumiditySensor ;
                     prog:TemperatureHumiditySensor_sensorId ?sensorId ;
-                    prog:TemperatureHumiditySensor_temperature ?temperature ;
-                    prog:TemperatureHumiditySensor_humidity ?humidity .
+                    prog:TemperatureHumiditySensor_sensorProperty ?sensorProperty .
+                OPTIONAL { ?obj prog:TemperatureHumiditySensor_temperature ?temperature }
+                OPTIONAL { ?obj prog:TemperatureHumiditySensor_humidity ?humidity }
             }
         """.trimIndent()
 

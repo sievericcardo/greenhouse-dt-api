@@ -96,8 +96,8 @@ class MoistureSensorService (
             SELECT ?sensorId ?sensorProperty ?moisture WHERE {
                 ?obj a prog:MoistureSensor ;
                     prog:MoistureSensor_sensorId ?sensorId ;
-                    prog:MoistureSensor_sensorProperty ?sensorProperty ;
-                    prog:MoistureSensor_moisture ?moisture .
+                    prog:MoistureSensor_sensorProperty ?sensorProperty .
+                OPTIONAL { ?obj prog:MoistureSensor_moisture ?moisture }
             }
         """.trimIndent()
 
@@ -121,8 +121,8 @@ class MoistureSensorService (
             SELECT ?sensorId ?sensorProperty ?moisture WHERE {
                 ?obj a prog:MoistureSensor ;
                     prog:MoistureSensor_sensorId ?sensorId ;
-                    prog:MoistureSensor_sensorProperty ?sensorProperty ;
-                    prog:MoistureSensor_moisture ?moisture .
+                    prog:MoistureSensor_sensorProperty ?sensorProperty .
+                OPTIONAL { ?obj prog:MoistureSensor_moisture ?moisture }
             }
         """.trimIndent()
 

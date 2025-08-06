@@ -101,6 +101,7 @@ class PumpService (
                 OPTIONAL { ?obj prog:Pump_modelName ?modelName }
                 OPTIONAL { ?obj prog:Pump_lifeTime ?lifeTime }
                 OPTIONAL { ?obj prog:Pump_temperature ?temperature }
+                OPTIONAL { ?obj prog:Pump_pumpStatus ?pumpStatus }
              }""".trimIndent()
 
         val result: ResultSet = repl.interpreter!!.query(pumps)!!
@@ -116,8 +117,15 @@ class PumpService (
             val modelName = if (solution.contains("?modelName")) solution.get("?modelName").asLiteral().toString() else null
             val lifeTime = if (solution.contains("?lifeTime")) solution.get("?lifeTime").asLiteral().toString().split("^^")[0].toInt() else null
             val temperature = if (solution.contains("?temperature")) solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble() else null
+            val pumpStatus = if (solution.contains("?pumpStatus")) {
+                try {
+                    PumpState.valueOf(solution.get("?pumpStatus").asLiteral().toString())
+                } catch (e: IllegalArgumentException) {
+                    null
+                }
+            } else null
 
-            pumpsList.add(Pump(actuatorId, pumpChannel, modelName, lifeTime, temperature, status))
+            pumpsList.add(Pump(actuatorId, pumpChannel, modelName, lifeTime, temperature, pumpStatus))
         }
 
         return pumpsList
@@ -134,22 +142,22 @@ class PumpService (
 
         // Build dynamic update based on what fields are not null
         if (updatedPump.temperature != null) {
-            deleteClause += "?pump ast:temperature ?oldTemperature .\n"
+            deleteClause += "OPTIONAL { ?pump ast:temperature ?oldTemperature } .\n"
             insertClause += "?pump ast:temperature \"${updatedPump.temperature}\"^^xsd:double .\n"
         }
         
         if (updatedPump.lifeTime != null) {
-            deleteClause += "?pump ast:lifeTime ?oldLifeTime .\n"
+            deleteClause += "OPTIONAL { ?pump ast:lifeTime ?oldLifeTime } .\n"
             insertClause += "?pump ast:lifeTime ${updatedPump.lifeTime} .\n"
         }
 
         if (updatedPump.modelName != null) {
-            deleteClause += "?pump ast:modelName ?oldModelName .\n"
+            deleteClause += "OPTIONAL { ?pump ast:modelName ?oldModelName } .\n"
             insertClause += "?pump ast:modelName \"${updatedPump.modelName}\" .\n"
         }
 
         if (updatedPump.pumpStatus != null) {
-            deleteClause += "?pump ast:pumpStatus ?oldStatus .\n"
+            deleteClause += "OPTIONAL { ?pump ast:pumpStatus ?oldStatus } .\n"
             insertClause += "?pump ast:pumpStatus \"${updatedPump.pumpStatus}\" .\n"
         }
 
@@ -161,11 +169,16 @@ class PumpService (
             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
             PREFIX ast: <$prefix>
             
-            ${if (deleteClause.isNotEmpty()) "DELETE {\n$deleteClause}" else ""}
-            ${if (insertClause.isNotEmpty()) "INSERT {\n$insertClause}" else ""}
+            DELETE {
+                ${if (updatedPump.temperature != null) "?pump ast:temperature ?oldTemperature .\n" else ""}${if (updatedPump.lifeTime != null) "?pump ast:lifeTime ?oldLifeTime .\n" else ""}${if (updatedPump.modelName != null) "?pump ast:modelName ?oldModelName .\n" else ""}${if (updatedPump.pumpStatus != null) "?pump ast:pumpStatus ?oldStatus .\n" else ""}
+            }
+            INSERT {
+                $insertClause
+            }
             WHERE {
                 ?pump a ast:Pump ;
                     ast:actuatorId "${updatedPump.actuatorId}" .
+                $deleteClause
             }
         """
 

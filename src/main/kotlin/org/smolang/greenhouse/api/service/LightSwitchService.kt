@@ -65,8 +65,8 @@ class LightSwitchService (
         val query = """
             SELECT ?lightSwitchId ?lightIntensity WHERE {
                 ?obj a prog:LightSwitch ;
-                    prog:LightSwitch_actuatorId ?lightSwitchId ;
-                    prog:LightSwitch_lightIntensity ?lightIntensity .
+                    prog:LightSwitch_actuatorId ?lightSwitchId .
+                OPTIONAL { ?obj prog:LightSwitch_lightIntensity ?lightIntensity }
             }
         """.trimIndent()
 
@@ -88,8 +88,8 @@ class LightSwitchService (
         val query = """
             SELECT ?lightSwitchId ?lightIntensity WHERE {
                 ?obj a prog:LightSwitch ;
-                    prog:LightSwitch_actuatorId ?lightSwitchId ;
-                    prog:LightSwitch_lightIntensity ?lightIntensity .
+                    prog:LightSwitch_actuatorId ?lightSwitchId .
+                OPTIONAL { ?obj prog:LightSwitch_lightIntensity ?lightIntensity }
             }
         """.trimIndent()
 
