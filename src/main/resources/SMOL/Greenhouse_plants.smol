@@ -26,6 +26,7 @@ class PlantModel extends BaseModel()
                 newPlant.ndvi = newPlant.getNdvi();
 
                 if newPlant.ndvi != null then
+                    print("RECONFIG> Plant to adapt with NDVI: " ++ doubleToString(newPlant.ndvi));
                     newPlant.healthState = classify(newPlant);
                 end
                 // newPlant.waterStrategy = classify(newPlant);
@@ -176,7 +177,7 @@ class PlantModel extends BaseModel()
                     plant.printInfo();
                 end
 
-                if plant.healthState != null then
+                if plant.healthState != null && plant.ndvi != null then
                     adapt(plant.healthState);
                     plant.healthState.printInfo();
                 end
