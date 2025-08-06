@@ -171,8 +171,10 @@ class PlantModel extends BaseModel()
 
                 print("ADAPT> Adapting plant " ++ plant.plantId);
 
-                adapt(plant);
-                plant.printInfo();
+                if plant.moisture != null then
+                    adapt(plant);
+                    plant.printInfo();
+                end
 
                 if plant.healthState != null then
                     adapt(plant.healthState);
