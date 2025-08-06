@@ -49,10 +49,10 @@ class MoistureSensorController (
         ApiResponse(responseCode = "404", description = "The moisture sensor you were trying to reach is not found")
     ])
     @GetMapping("/{sensorId}", produces = ["application/json"])
-    fun getMoistureSensorById(@PathVariable sensorId: String): ResponseEntity<MoistureSensorResponse> {
+    fun getMoistureSensorById(@PathVariable sensorId: String): ResponseEntity<MoistureSensor> {
         log.info("Retrieving moisture sensor $sensorId")
 
-        val sensor = moistureSensorService.getSensorById(sensorId) ?: return ResponseEntity.notFound().build()
+        val sensor = moistureSensorService.getSensor(sensorId) ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok(sensor)
     }
 
@@ -64,7 +64,7 @@ class MoistureSensorController (
         ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
     ])
     @GetMapping(produces = ["application/json"])
-    fun getAllMoistureSensors(): ResponseEntity<List<MoistureSensorResponse>> {
+    fun getAllMoistureSensors(): ResponseEntity<List<MoistureSensor>> {
         log.info("Retrieving all moisture sensors")
 
         val sensors = moistureSensorService.getAllSensors() ?: return ResponseEntity.noContent().build()

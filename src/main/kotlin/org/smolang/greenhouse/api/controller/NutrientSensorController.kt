@@ -52,7 +52,7 @@ class NutrientSensorController (
     fun getNutrientSensorById(@PathVariable sensorId: String): ResponseEntity<NutrientSensor> {
         log.info("Retrieving nutrient sensor $sensorId")
 
-        val sensor = nutrientSensorService.getSensorById(sensorId) ?: return ResponseEntity.notFound().build()
+        val sensor = nutrientSensorService.getSensor(sensorId) ?: return ResponseEntity.notFound().build()
         return ResponseEntity.ok(sensor)
     }
 

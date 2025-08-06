@@ -9,14 +9,6 @@ data class UpdatePlantRequest (
     val newStatus: String? = null
 )
 
-data class CreatePotRequest (
-    val potId: String
-)
-
-data class UpdatePotRequest (
-    val potId: String?
-)
-
 data class CreatePumpRequest(
     val actuatorId: String,
     val pumpChannel: Int,

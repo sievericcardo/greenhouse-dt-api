@@ -34,7 +34,7 @@ class WaterBucketController (
     fun createWaterBucket(@SwaggerRequestBody(description = "Request to add a new water bucket") @RequestBody request: CreateWaterBucketRequest) : ResponseEntity<String> {
         log.info("Creating water bucket $request")
 
-        if(!waterBucketService.createWaterBucket(request.bucketId, request.waterLevel)) {
+        if(!waterBucketService.createWaterBucket(request.bucketId)) {
             return ResponseEntity.badRequest().body("Failed to create water bucket")
         }
         replConfig.regenerateSingleModel().invoke("waterbuckets")
@@ -88,9 +88,10 @@ class WaterBucketController (
     @PatchMapping("/{bucketId}", produces = ["application/json"])
     fun updateWaterBucket(@PathVariable bucketId: String,
                           @SwaggerRequestBody(description = "Water bucket to be updated") @RequestBody updateRequest: UpdateWaterBucketRequest) : ResponseEntity<WaterBucket> {
+        return ResponseEntity.notFound().build()
         log.info("Updating water bucket: $bucketId")
 
-        if (!waterBucketService.updateWaterBucket(bucketId, updateRequest.newWaterLevel)) {
+        if (waterBucketService.updateWaterBucket(bucketId, 0.0) != null) {
             log.severe("Water bucket not updated")
             return ResponseEntity.badRequest().build()
         }

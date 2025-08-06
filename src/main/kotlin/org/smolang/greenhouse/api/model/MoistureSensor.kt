@@ -2,8 +2,9 @@ package org.smolang.greenhouse.api.model
 
 class MoistureSensor(
     sensorId: String,
-    val moisture: Double
-) : Sensor(sensorId) {
+    sensorProperty: String? = null,
+    val moisture: Double? = null
+) : Sensor(sensorId, sensorProperty) {
     override fun toString(): String {
         return "MoistureSensor(sensorId='$sensorId', moisture=$moisture)"
     }

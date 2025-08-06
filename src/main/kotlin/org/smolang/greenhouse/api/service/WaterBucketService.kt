@@ -19,15 +19,14 @@ class WaterBucketService (
     private val ttlPrefix = triplestoreProperties.ttlPrefix
     private val repl = replConfig.repl()
 
-    fun createWaterBucket(bucketId: String, waterLevel: Double): Boolean {
+    fun createWaterBucket(bucketId: String): Boolean {
         val query = """
             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
             PREFIX ast: <$prefix>
             
             INSERT DATA {
                 ast:bucket$bucketId a ast:WaterBucket ;
-                    ast:bucketId "$bucketId" ;
-                    ast:waterLevel "$waterLevel"^^xsd:double .
+                    ast:bucketId "$bucketId" .
             }
         """.trimIndent()
 
@@ -119,7 +118,7 @@ class WaterBucketService (
         return WaterBucket(bucketId, waterLevel)
     }
 
-    fun updateWaterBucket(bucketId: String, newWaterLevel: Double): Boolean {
+    fun updateWaterBucket(bucketId: String, newWaterLevel: Double): WaterBucket? {
         val query = """
             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
             PREFIX ast: <$prefix>
@@ -143,9 +142,9 @@ class WaterBucketService (
 
         try {
             updateProcessor.execute()
-            return true
+            return WaterBucket(bucketId, newWaterLevel)
         } catch (e: Exception) {
-            return false
+            return null
         }
     }
 

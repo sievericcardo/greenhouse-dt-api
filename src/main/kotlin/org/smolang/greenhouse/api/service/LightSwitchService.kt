@@ -6,6 +6,7 @@ import org.apache.jena.update.UpdateFactory
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
 import org.smolang.greenhouse.api.model.LightSwitch
+import org.smolang.greenhouse.api.types.CreateLightSwitchRequest
 import org.springframework.stereotype.Service
 
 @Service
@@ -23,8 +24,8 @@ class LightSwitchService (
         val query = """
             PREFIX ast: <$prefix>
             INSERT DATA {
-                ast:lightSwitch${request.lightSwitchId} a :LightSwitch ;
-                    ast:actuatorId ${request.lightSwitchId} .
+                ast:lightSwitch${request.actuatorId} a :LightSwitch ;
+                    ast:actuatorId ${request.actuatorId} .
             }
         """.trimIndent()
 
@@ -34,7 +35,7 @@ class LightSwitchService (
 
         try {
             updateProcessor.execute()
-            return LightSwitch(request.lightSwitchId)
+            return LightSwitch(request.actuatorId)
         } catch (e: Exception) {
             return null
         }
@@ -81,8 +82,6 @@ class LightSwitchService (
             solution.get("?lightIntensity").asLiteral().toString().split("^^")[0].toDouble()
         } else null
         return LightSwitch(lightSwitchId, lightIntensity)
-    }
-
     }
 
     fun getAllLightSwitches(): List<LightSwitch> {

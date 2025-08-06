@@ -17,7 +17,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBod
 @RequestMapping("/api/actuators/light")
 class LightSwitchController (
     private val replConfig: REPLConfig,
-    private val lightSensorService: LightSensorService
+    private val lightSwitchService: LightSwitchService
 ) {
 
     private val log: Logger = Logger.getLogger(LightSwitchController::class.java.name)
@@ -34,10 +34,10 @@ class LightSwitchController (
     fun createLightSwitch(@SwaggerRequestBody(description = "Request to add a new light switch") @RequestBody request: CreateLightSwitchRequest) : ResponseEntity<String> {
         log.info("Creating light switch $request")
 
-        val lightSwitch = lightSensorService.createLightSwitch(request) ?: return ResponseEntity.badRequest().body("Failed to create light switch")
+        val lightSwitch = lightSwitchService.createLightSwitch(request) ?: return ResponseEntity.badRequest().body("Failed to create light switch")
         replConfig.regenerateSingleModel().invoke("lightSwitches")
 
-        return ResponseEntity.ok("Light switch ${lightSwitch.lightSwitchId} created successfully")
+        return ResponseEntity.ok("Light switch ${lightSwitch.actuatorId} created successfully")
     }
 
     @Operation(summary = "Retrieve a light switch by ID")
@@ -51,7 +51,7 @@ class LightSwitchController (
     fun getLightSwitchById(@PathVariable lightSwitchId: String): ResponseEntity<LightSwitch> {
         log.info("Getting light switch by ID: $lightSwitchId")
 
-        val lightSwitch = lightSensorService.getLightSwitch(lightSwitchId) ?: return ResponseEntity.notFound().build()
+        val lightSwitch = lightSwitchService.getLightSwitch(lightSwitchId) ?: return ResponseEntity.notFound().build()
 
         log.info("Light switch: $lightSwitch")
 
@@ -69,7 +69,7 @@ class LightSwitchController (
     fun getLightSwitches(): ResponseEntity<List<LightSwitch>> {
         log.info("Getting all light switches")
 
-        val lightSwitches = lightSensorService.getAllLightSwitches() ?: return ResponseEntity.noContent().build()
+        val lightSwitches = lightSwitchService.getAllLightSwitches() ?: return ResponseEntity.noContent().build()
 
         log.info("Light switches: $lightSwitches")
 
@@ -89,7 +89,7 @@ class LightSwitchController (
     fun deleteLightSwitch(@PathVariable lightSwitchId: String): ResponseEntity<String> {
         log.info("Deleting light switch with ID $lightSwitchId")
 
-        if (!lightSensorService.deleteLightSwitch(lightSwitchId)) {
+        if (!lightSwitchService.deleteLightSwitch(lightSwitchId)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Failed to delete light switch")
         }
         replConfig.regenerateSingleModel().invoke("lightSwitches")

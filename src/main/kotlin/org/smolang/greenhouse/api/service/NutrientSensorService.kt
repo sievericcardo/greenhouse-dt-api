@@ -6,6 +6,8 @@ import org.apache.jena.update.UpdateFactory
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
 import org.smolang.greenhouse.api.model.NutrientSensor
+import org.smolang.greenhouse.api.types.CreateNutrientSensorRequest
+import org.smolang.greenhouse.api.types.UpdateNutrientSensorRequest
 import org.springframework.stereotype.Service
 
 @Service
@@ -70,8 +72,6 @@ class NutrientSensorService (
         }
     }
 
-    }
-
     fun deleteSensor(sensorId: String): Boolean {
         val query = """
             PREFIX ast: <$prefix>
@@ -116,7 +116,6 @@ class NutrientSensorService (
             solution.get("?nutrient").asLiteral().toString().split("^^")[0].toDouble()
         } else null
         return NutrientSensor(sensorId, sensorProperty, nutrient)
-    }
     }
 
     fun getAllSensors(): List<NutrientSensor> {
