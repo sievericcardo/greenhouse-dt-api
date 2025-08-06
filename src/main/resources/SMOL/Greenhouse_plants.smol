@@ -177,7 +177,7 @@ class PlantModel extends BaseModel()
                     plant.printInfo();
                 end
 
-                if plant.healthState != null && plant.ndvi != null then
+                if plant.ndvi != null then
                     adapt(plant.healthState);
                     plant.healthState.printInfo();
                 end
