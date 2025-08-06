@@ -128,11 +128,14 @@ models "a ast:Plant ; domain:familyName %familyName ; domain:moisture %moisture 
             tmpMoisture = influxReturn.content;
         end
 
+        print("No moisture found for plant " ++ this.plantId);
+
         return tmpMoisture;
     end
 
     Double getNdvi()
         String id = this.plantId ++ ".0";
+        Double tmpNdvi = -1.0;
         List<Double> influxReturn = access(
             "from(bucket: \"GreenHouse\")
                 |> range(start: -30d)
@@ -145,10 +148,12 @@ models "a ast:Plant ; domain:familyName %familyName ; domain:moisture %moisture 
         id);
 
         if influxReturn != null then
-            this.ndvi = influxReturn.content;
+            return influxReturn.content;
         end
 
-        return this.ndvi;
+        print("No NDVI found for plant " ++ this.plantId);
+
+        return tmpNdvi;
     end
 end
 
