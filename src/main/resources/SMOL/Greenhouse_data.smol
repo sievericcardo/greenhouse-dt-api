@@ -111,7 +111,7 @@ models "a ast:Plant ; domain:familyName %familyName ; domain:moisture %moisture 
 
     Double getPotMoisture()
         String id = this.plantId ++ ".0";
-        Double moisture = -1.0;
+        Double tmpMoisture = -1.0;
         List<Double> influxReturn = access(
             "from(bucket: \"GreenHouse\")
                 |> range(start: -30d)
@@ -124,10 +124,10 @@ models "a ast:Plant ; domain:familyName %familyName ; domain:moisture %moisture 
             id);
 
         if influxReturn != null then
-            moisture = influxReturn.content;
+            tmpMoisture = influxReturn.content;
         end
 
-        return moisture;
+        return tmpMoisture;
     end
 
     Double getNdvi()
@@ -146,6 +146,7 @@ models "a ast:Plant ; domain:familyName %familyName ; domain:moisture %moisture 
         if influxReturn != null then
             this.ndvi = influxReturn.content;
         end
+
         return this.ndvi;
     end
 end
