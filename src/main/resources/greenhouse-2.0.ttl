@@ -1075,9 +1075,6 @@ ast:nutrientSensor1 rdf:type owl:NamedIndividual ,
 ast:plant1 rdf:type owl:NamedIndividual ,
                     ast:Basil ;
            ast:familyName "Ocimum basilicum" ;
-           ast:idealMoisture "80.0"^^xsd:double ;
-           ast:moisture "50.0"^^xsd:double ;
-           ast:ndvi "0.6"^^xsd:double ;
            ast:plantId "Riccardo" .
 
 
