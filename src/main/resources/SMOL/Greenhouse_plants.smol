@@ -3,10 +3,9 @@ class PlantModel extends BaseModel()
     override Unit adaptAddition()
         List<Plant> newPlants = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
-            SELECT ?plantId ?familyName ?moisture ?status {
+            SELECT ?plantId ?familyName ?status {
                 ?entity rdf:type ?t ;
                     ast:plantId ?plantId ;
-                    ast:moisture ?moisture ;
                     ast:familyName ?familyName ;
                 OPTIONAL {
                     ?entity ast:status ?status .
