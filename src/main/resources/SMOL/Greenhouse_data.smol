@@ -109,9 +109,11 @@ models "a ast:Plant ; domain:familyName %familyName ; domain:moisture %moisture 
         print("Plant: " ++ this.plantId ++ " has current moisture: " ++ doubleToString(this.moisture) ++ ".");
     end
 
-    Double getPotMoisture()
+    Unit setPotMoisture()
         String id = this.plantId ++ ".0";
-        Double tmpMoisture = -1.0;
+        if this.moisture == null then
+            this.moisture = -1.0;
+        end
         List<Double> influxReturn = access(
             "from(bucket: \"GreenHouse\")
                 |> range(start: -30d)
@@ -125,17 +127,17 @@ models "a ast:Plant ; domain:familyName %familyName ; domain:moisture %moisture 
 
         if influxReturn != null then
             print("Found moisture for plant " ++ this.plantId ++ ": " ++ doubleToString(influxReturn.content));
-            tmpMoisture = influxReturn.content;
+            this.moisture = influxReturn.content;
         end
 
         print("No moisture found for plant " ++ this.plantId);
-
-        return tmpMoisture;
     end
 
-    Double getNdvi()
+    Unit setNdvi()
         String id = this.plantId ++ ".0";
-        Double tmpNdvi = -1.0;
+        if this.ndvi == null then
+            this.ndvi = -1.0;
+        end
         List<Double> influxReturn = access(
             "from(bucket: \"GreenHouse\")
                 |> range(start: -30d)
@@ -148,12 +150,10 @@ models "a ast:Plant ; domain:familyName %familyName ; domain:moisture %moisture 
         id);
 
         if influxReturn != null then
-            return influxReturn.content;
+            this.ndvi = influxReturn.content;
         end
 
         print("No NDVI found for plant " ++ this.plantId);
-
-        return tmpNdvi;
     end
 end
 
@@ -344,7 +344,7 @@ retrieves "SELECT DISTINCT ?powerOutput WHERE {
   FILTER (?model = ?modelName) .
 }";
     override Unit printInfo()
-        print("Pump: " ++ this.actuatorId ++ " is in maintenance. Set power to " ++ this.powerOutput ++ ".");
+        print("Pump: " ++ this.actuatorId ++ " is in maintenance. Set power to " ++ intToString(this.powerOutput) ++ ".");
     end
 end
 

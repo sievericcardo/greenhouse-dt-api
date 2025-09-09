@@ -3,9 +3,10 @@ class PlantModel extends BaseModel()
     override Unit adaptAddition()
         List<Plant> newPlants = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
-            SELECT ?plantId ?familyName ?status {
+            SELECT ?plantId ?familyName ?moisture ?status {
                 ?entity rdf:type ?t ;
                     ast:plantId ?plantId ;
+                    ast:moisture ?moisture ;
                     ast:familyName ?familyName ;
                 OPTIONAL {
                     ?entity ast:status ?status .
@@ -22,11 +23,11 @@ class PlantModel extends BaseModel()
 
             while newPlants != null do
                 Plant newPlant = newPlants.content;
-                newPlant.moisture = newPlant.getPotMoisture();
-                newPlant.ndvi = newPlant.getNdvi();
+                newPlant.setPotMoisture();
+                newPlant.setNdvi();
 
                 if newPlant.ndvi != null then
-                    print("RECONFIG> Adapting plant " ++ newPlant.plantId ++ " with NDVI: " ++ doubleToString(newPlant.ndvi) + " and moisture: " ++ doubleToString(newPlant.moisture));
+                    print("RECONFIG> Adapting plant " ++ newPlant.plantId ++ " with NDVI: " ++ doubleToString(newPlant.ndvi) ++ " and moisture: " ++ doubleToString(newPlant.moisture));
                     newPlant.healthState = classify(newPlant);
                 end
                 // newPlant.waterStrategy = classify(newPlant);
@@ -178,7 +179,7 @@ class PlantModel extends BaseModel()
                 end
 
                 if plant.ndvi != null then
-                    print("ADAPT> Adapting plant " ++ plant.plantId ++ " with NDVI: " ++ doubleToString(plant.ndvi) + " and moisture: " ++ doubleToString(plant.moisture));
+                    print("ADAPT> Adapting plant " ++ plant.plantId ++ " with NDVI: " ++ doubleToString(plant.ndvi) ++ " and moisture: " ++ doubleToString(plant.moisture));
                     adapt(plant.healthState);
                     plant.healthState.printInfo();
                 end
