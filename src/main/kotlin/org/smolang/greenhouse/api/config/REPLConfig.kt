@@ -8,19 +8,23 @@ import no.uio.microobject.runtime.REPL
 import no.uio.microobject.type.STRINGTYPE
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import java.security.MessageDigest
 
 @Configuration
 open class REPLConfig {
 
     private lateinit var repl: REPL
+    private val md = MessageDigest.getInstance("MD5")
 
     @PostConstruct
     fun initRepl() {
         val verbose = false
-        val materialize = false
+        val materialize = true
         val liftedStateOutputPath = System.getenv("LIFTED_STATE_OUTPUT_PATH") ?: "./"
         val progPrefix = "https://github.com/Edkamb/SemanticObjects/Program#"
-        val runPrefix = "https://github.com/Edkamb/SemanticObjects/Run" + System.currentTimeMillis() + "#"
+        // Use the md5 of "GreenhouseDT" as run ID to ensure it remains the same across runs
+        val runId = md.digest("GreenhouseDT".toByteArray()).joinToString("") { String.format("%02x", it) }
+        val runPrefix = "https://github.com/Edkamb/SemanticObjects/Run$runId#"
         val langPrefix = "https://github.com/Edkamb/SemanticObjects#"
         val extraPrefixes = HashMap<String, String>()
         val useQueryType = false
