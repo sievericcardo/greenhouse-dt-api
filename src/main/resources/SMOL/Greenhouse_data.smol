@@ -98,10 +98,14 @@ end
 class Plant extends Twin (
     hidden String plantId,
     domain String familyName,
+    hidden String familyNameOut,
     domain Double moisture,
+    hidden Double moistureOut,
     domain Double ndvi,
+    hidden Double ndviOut,
     hidden HealthState healthState,
     domain String status,
+    hidden String statusOut,
     hidden WaterStrategy waterStrategy
 )
 models "a ast:Plant ; domain:familyName %familyName ; domain:moisture %moisture ; domain:ndvi %ndvi";
