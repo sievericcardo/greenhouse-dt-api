@@ -50,13 +50,31 @@ class PlantService (
     fun getAllPlants() : List<Plant>? {
         val plants =
             """
-             SELECT DISTINCT ?plantId ?familyName ?moisture ?healthState ?status WHERE {
-                ?obj a prog:Plant ;
-                    prog:Plant_plantId ?plantId ;
-                    prog:Plant_familyName ?familyName ;
-                    prog:Plant_moisture ?moisture .
-                OPTIONAL { ?obj prog:Plant_healthState ?healthState }
-                OPTIONAL { ?obj prog:Plant_status ?status }
+             SELECT ?plantId ?familyName ?moisture ?healthState ?status WHERE {
+                {
+                    ?obj a prog:Plant ;
+                        prog:Plant_plantId ?plantId ;
+                        prog:Plant_familyNameOut ?familyName ;
+                        prog:Plant_moistureOut ?moisture .
+                    OPTIONAL { ?obj prog:Plant_healthState ?healthState }
+                    OPTIONAL { ?obj prog:Plant_statusOut ?status }
+                }
+                UNION {
+                    ?obj a prog:ThirstyPlant ;
+                        prog:ThirstyPlant_plantId ?plantId ;
+                        prog:ThirstyPlant_familyNameOut ?familyName ;
+                        prog:ThirstyPlant_moistureOut ?moisture .
+                    OPTIONAL { ?obj prog:ThirstyPlant_healthState ?healthState }
+                    OPTIONAL { ?obj prog:ThirstyPlant_statusOut ?status }
+                }
+                UNION {
+                    ?obj a prog:MoistPlant ;
+                        prog:MoistPlant_plantId ?plantId ;
+                        prog:MoistPlant_familyNameOut ?familyName ;
+                        prog:MoistPlant_moistureOut ?moisture .
+                    OPTIONAL { ?obj prog:MoistPlant_healthState ?healthState }
+                    OPTIONAL { ?obj prog:MoistPlant_statusOut ?status }
+                }
              }"""
 
         val result : ResultSet = repl.interpreter!!.query(plants)!!
@@ -71,11 +89,16 @@ class PlantService (
             val plantId = solution.get("?plantId").asLiteral().toString()
             val familyName = solution.get("?familyName").asLiteral().toString()
             val moisture = if (solution.contains("?moisture")) solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble() else null
-            val healthState = if (solution.contains("?healthState")) solution.get("?healthState").asLiteral().toString() else null
+//            val healthState = if (solution.contains("?healthState")) solution.get("?healthState").asLiteral().toString() else null
+            val healthState = null
             val status = if (solution.contains("?status")) solution.get("?status").asLiteral().toString() else null
 
             plantsList.add(Plant(plantId, familyName, moisture, healthState, status))
         }
+
+        val uniquePlants = plantsList.distinctBy { it.plantId }
+        plantsList.clear()
+        plantsList.addAll(uniquePlants)
 
         return plantsList
     }
@@ -83,12 +106,30 @@ class PlantService (
     fun getPlantByPlantId (plantId: String): Plant? {
         val query = """
             SELECT DISTINCT ?familyName ?moisture ?healthState ?status WHERE {
-                ?plant a prog:Plant ;
-                    prog:Plant_plantId "$plantId" ;
-                    prog:Plant_familyName ?familyName ;
-                    prog:Plant_moisture ?moisture .
-                OPTIONAL { ?plant prog:Plant_healthState ?healthState }
-                OPTIONAL { ?plant prog:Plant_status ?status }
+                {
+                    ?plant a prog:Plant ;
+                        prog:Plant_plantId "$plantId" ;
+                        prog:Plant_familyName ?familyName ;
+                        prog:Plant_moisture ?moisture .
+                    OPTIONAL { ?plant prog:Plant_healthState ?healthState }
+                    OPTIONAL { ?plant prog:Plant_status ?status }
+                }
+                UNION {
+                    ?plant a prog:ThirstyPlant ;
+                        prog:ThirstyPlant_plantId "$plantId" ;
+                        prog:ThirstyPlant_familyName ?familyName ;
+                        prog:ThirstyPlant_moisture ?moisture .
+                    OPTIONAL { ?plant prog:ThirstyPlant_healthState ?healthState }
+                    OPTIONAL { ?plant prog:ThirstyPlant_status ?status }
+                }
+                UNION {
+                    ?plant a prog:MoistPlant ;
+                        prog:MoistPlant_plantId "$plantId" ;
+                        prog:MoistPlant_familyName ?familyName ;
+                        prog:MoistPlant_moisture ?moisture .
+                    OPTIONAL { ?plant prog:MoistPlant_healthState ?healthState }
+                    OPTIONAL { ?plant prog:MoistPlant_status ?status }
+                }
             }
         """.trimIndent()
 
@@ -100,7 +141,8 @@ class PlantService (
         val solution : QuerySolution = result.next()
         val familyName = solution.get("?familyName").asLiteral().toString()
         val moisture = solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble()
-        val healthState = if (solution.contains("?healthState")) solution.get("?healthState").asLiteral().toString() else null
+//        val healthState = if (solution.contains("?healthState")) solution.get("?healthState").asLiteral().toString() else null
+        val healthState = null
         val status = if (solution.contains("?status")) solution.get("?status").asLiteral().toString() else null
 
         return Plant(plantId, familyName, moisture, healthState, status)
