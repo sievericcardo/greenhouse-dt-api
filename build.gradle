@@ -84,6 +84,9 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:${jacksonVersion}")
     implementation("com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}")
+    // Hoplite for YAML parsing (same version as in SemanticObjects)
+    implementation("com.sksamuel.hoplite:hoplite-core:1.4.1")
+    implementation("com.sksamuel.hoplite:hoplite-yaml:1.4.1")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     // DevTools
     runtimeOnly("org.springframework.boot:spring-boot-devtools:${springBootVersion}")
