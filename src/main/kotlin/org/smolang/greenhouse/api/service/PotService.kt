@@ -3,6 +3,7 @@ package org.smolang.greenhouse.api.service
 import org.apache.jena.query.ResultSet
 import org.apache.jena.update.UpdateExecutionFactory
 import org.apache.jena.update.UpdateFactory
+import org.slf4j.LoggerFactory
 import org.smolang.greenhouse.api.config.ComponentsConfig
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
@@ -19,6 +20,8 @@ class PotService(
     private val nutrientSensorService: NutrientSensorService,
     private val pumpService: PumpService
 ) {
+
+    private val logger = LoggerFactory.getLogger(PotService::class.java)
 
     private val tripleStore = triplestoreProperties.tripleStore
     private val prefix = triplestoreProperties.prefix
@@ -59,7 +62,7 @@ class PotService(
         // Basic pot info: only ids for sensors and pump. Plants will be queried per-pot and resolved via PlantService.
         val potsQuery =
             """
-             SELECT DISTINCT ?potId ?pumpId ?moistureSensorId ?nutrientSensorId WHERE {
+             SELECT ?potId ?pumpId ?moistureSensorId ?nutrientSensorId WHERE {
                  ?potObj a prog:Pot ;
                         prog:Pot_potId ?potId .
 
@@ -105,13 +108,16 @@ class PotService(
             // Build pump: try cache first, then PumpService
             val pump = if (solution.contains("?pumpId")) {
                 val pumpId = solution.get("?pumpId").asLiteral().toString()
-                // try components cache
-                componentsConfig.getPumpById(pumpId) ?: run {
-                    // fallback to searching pumps via PumpService
-                    pumpService.getPumpByPumpId(pumpId) ?: return null
-                }
+                // try components cache, then PumpService
+                componentsConfig.getPumpById(pumpId) ?: pumpService.getPumpByPumpId(pumpId)
             } else {
-                return null
+                null
+            }
+
+            if (pump == null) {
+                // Missing pump is critical for the pot representation. Skip this pot and log a warning.
+                logger.warn("Skipping pot $potId because pump was not found (pot query may be incomplete)")
+                continue
             }
 
             potsList.add(Pot(potId, moistureSensor, nutrientSensor, pump))
