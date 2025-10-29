@@ -9,6 +9,7 @@ import org.apache.jena.update.UpdateRequest
 import org.smolang.greenhouse.api.config.ComponentsConfig
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
+import org.slf4j.LoggerFactory
 import org.smolang.greenhouse.api.model.Plant
 import org.smolang.greenhouse.api.types.PlantMoistureState
 import org.springframework.stereotype.Service
@@ -21,6 +22,7 @@ class PlantService(
     private val potService: PotService
 ) {
 
+    private val logger = LoggerFactory.getLogger(PlantService::class.java)
     private val tripleStore = triplestoreProperties.tripleStore
     private val prefix = triplestoreProperties.prefix
     private val ttlPrefix = triplestoreProperties.ttlPrefix

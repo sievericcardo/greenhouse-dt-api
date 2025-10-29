@@ -6,6 +6,7 @@ import org.apache.jena.update.UpdateFactory
 import org.smolang.greenhouse.api.config.ComponentsConfig
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
+import org.slf4j.LoggerFactory
 import org.smolang.greenhouse.api.model.TemperatureHumiditySensor
 import org.smolang.greenhouse.api.types.CreateTemperatureHumiditySensorRequest
 import org.smolang.greenhouse.api.types.UpdateTemperatureHumiditySensorRequest
@@ -17,6 +18,8 @@ class TemperatureHumiditySensorService(
     private val triplestoreProperties: TriplestoreProperties,
     private val componentsConfig: ComponentsConfig
 ) {
+
+    private val logger = LoggerFactory.getLogger(TemperatureHumiditySensorService::class.java)
 
     private val tripleStore = triplestoreProperties.tripleStore
     private val prefix = triplestoreProperties.prefix

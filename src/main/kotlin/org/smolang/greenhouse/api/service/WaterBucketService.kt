@@ -6,6 +6,7 @@ import org.apache.jena.update.UpdateFactory
 import org.smolang.greenhouse.api.config.ComponentsConfig
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
+import org.slf4j.LoggerFactory
 import org.smolang.greenhouse.api.model.WaterBucket
 import org.springframework.stereotype.Service
 
@@ -16,6 +17,7 @@ class WaterBucketService(
     private val componentsConfig: ComponentsConfig
 ) {
 
+    private val logger = LoggerFactory.getLogger(WaterBucketService::class.java)
     private val tripleStore = triplestoreProperties.tripleStore
     private val prefix = triplestoreProperties.prefix
     private val ttlPrefix = triplestoreProperties.ttlPrefix

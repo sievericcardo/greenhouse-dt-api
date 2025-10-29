@@ -6,6 +6,7 @@ import org.apache.jena.update.UpdateFactory
 import org.smolang.greenhouse.api.config.ComponentsConfig
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
+import org.slf4j.LoggerFactory
 import org.smolang.greenhouse.api.model.NutrientSensor
 import org.smolang.greenhouse.api.types.CreateNutrientSensorRequest
 import org.smolang.greenhouse.api.types.UpdateNutrientSensorRequest
@@ -17,6 +18,8 @@ class NutrientSensorService(
     private val triplestoreProperties: TriplestoreProperties,
     private val componentsConfig: ComponentsConfig
 ) {
+
+    private val logger = LoggerFactory.getLogger(NutrientSensorService::class.java)
 
     private val tripleStore = triplestoreProperties.tripleStore
     private val prefix = triplestoreProperties.prefix
@@ -109,12 +112,14 @@ class NutrientSensorService(
     fun getSensor(sensorId: String): NutrientSensor? {
         // Return cached sensor if present
         componentsConfig.getNutrientSensorById(sensorId)?.let { return it }
+        // Restrict query to the requested sensorId to avoid returning an unrelated sensor
         val query = """
             SELECT ?sensorId ?sensorProperty ?nutrient WHERE {
                 ?obj a prog:NutrientSensor ;
-                    prog:NutrientSensor_sensorId ?sensorId ;
+                    prog:NutrientSensor_sensorId "$sensorId" ;
                     prog:NutrientSensor_sensorProperty ?sensorProperty .
                 OPTIONAL { ?obj prog:NutrientSensor_nutrient ?nutrient }
+                BIND("$sensorId" AS ?sensorId)
             }
         """.trimIndent()
 
