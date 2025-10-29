@@ -9,6 +9,7 @@ import org.apache.jena.update.UpdateRequest
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
 import org.smolang.greenhouse.api.model.Plant
+import org.smolang.greenhouse.api.types.PlantMoistureState
 import org.springframework.stereotype.Service
 
 @Service
@@ -50,7 +51,7 @@ class PlantService (
     fun getAllPlants() : List<Plant>? {
         val plants =
             """
-             SELECT ?plantId ?familyName ?moisture ?healthState ?status WHERE {
+             SELECT ?plantId ?familyName ?moisture ?healthState ?status ?moistureState WHERE {
                 {
                     ?obj a prog:Plant ;
                         prog:Plant_plantId ?plantId ;
@@ -58,6 +59,7 @@ class PlantService (
                         prog:Plant_moistureOut ?moisture .
                     OPTIONAL { ?obj prog:Plant_healthState ?healthState }
                     OPTIONAL { ?obj prog:Plant_statusOut ?status }
+                    BIND "unknown" AS ?moistureState
                 }
                 UNION {
                     ?obj a prog:ThirstyPlant ;
@@ -66,6 +68,7 @@ class PlantService (
                         prog:ThirstyPlant_moistureOut ?moisture .
                     OPTIONAL { ?obj prog:ThirstyPlant_healthState ?healthState }
                     OPTIONAL { ?obj prog:ThirstyPlant_statusOut ?status }
+                    BIND "thirsty" AS ?moistureState
                 }
                 UNION {
                     ?obj a prog:MoistPlant ;
@@ -74,6 +77,7 @@ class PlantService (
                         prog:MoistPlant_moistureOut ?moisture .
                     OPTIONAL { ?obj prog:MoistPlant_healthState ?healthState }
                     OPTIONAL { ?obj prog:MoistPlant_statusOut ?status }
+                    BIND "moist" AS ?moistureState
                 }
              }"""
 
@@ -92,8 +96,15 @@ class PlantService (
 //            val healthState = if (solution.contains("?healthState")) solution.get("?healthState").asLiteral().toString() else null
             val healthState = null
             val status = if (solution.contains("?status")) solution.get("?status").asLiteral().toString() else null
+            val retrievedState = solution.get("?moistureState").asLiteral().toString().uppercase()
+            val moistureState = when (retrievedState) {
+                "thirst" -> PlantMoistureState.THIRSTY
+                "moist" -> PlantMoistureState.MOIST
+                "overwatered" -> PlantMoistureState.OVERWATERED
+                else -> PlantMoistureState.UNKNOWN
+            }
 
-            plantsList.add(Plant(plantId, familyName, moisture, healthState, status))
+            plantsList.add(Plant(plantId, familyName, moisture, healthState, status, moistureState))
         }
 
         val uniquePlants = plantsList.distinctBy { it.plantId }
@@ -105,7 +116,7 @@ class PlantService (
 
     fun getPlantByPlantId (plantId: String): Plant? {
         val query = """
-            SELECT DISTINCT ?familyName ?moisture ?healthState ?status WHERE {
+            SELECT DISTINCT ?familyName ?moisture ?healthState ?status ?moistureState WHERE {
                 {
                     ?plant a prog:Plant ;
                         prog:Plant_plantId "$plantId" ;
@@ -113,6 +124,7 @@ class PlantService (
                         prog:Plant_moisture ?moisture .
                     OPTIONAL { ?plant prog:Plant_healthState ?healthState }
                     OPTIONAL { ?plant prog:Plant_status ?status }
+                    BIND "unknown" AS ?moistureState
                 }
                 UNION {
                     ?plant a prog:ThirstyPlant ;
@@ -121,6 +133,7 @@ class PlantService (
                         prog:ThirstyPlant_moisture ?moisture .
                     OPTIONAL { ?plant prog:ThirstyPlant_healthState ?healthState }
                     OPTIONAL { ?plant prog:ThirstyPlant_status ?status }
+                    BIND "thirsty" AS ?moistureState
                 }
                 UNION {
                     ?plant a prog:MoistPlant ;
@@ -129,6 +142,7 @@ class PlantService (
                         prog:MoistPlant_moisture ?moisture .
                     OPTIONAL { ?plant prog:MoistPlant_healthState ?healthState }
                     OPTIONAL { ?plant prog:MoistPlant_status ?status }
+                    BIND "moist" AS ?moistureState
                 }
             }
         """.trimIndent()
@@ -144,8 +158,15 @@ class PlantService (
 //        val healthState = if (solution.contains("?healthState")) solution.get("?healthState").asLiteral().toString() else null
         val healthState = null
         val status = if (solution.contains("?status")) solution.get("?status").asLiteral().toString() else null
+        val retrievedState = solution.get("?moistureState").asLiteral().toString().uppercase()
+        val moistureState = when (retrievedState) {
+            "thirst" -> PlantMoistureState.THIRSTY
+            "moist" -> PlantMoistureState.MOIST
+            "overwatered" -> PlantMoistureState.OVERWATERED
+            else -> PlantMoistureState.UNKNOWN
+        }
 
-        return Plant(plantId, familyName, moisture, healthState, status)
+        return Plant(plantId, familyName, moisture, healthState, status, moistureState)
     }
 
     fun updatePlant(plant: Plant, newMoisture: Double? = null, newHealthState: String? = null, newStatus: String? = null): Boolean {
