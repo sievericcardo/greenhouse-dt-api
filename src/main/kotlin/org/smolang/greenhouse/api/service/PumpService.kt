@@ -59,13 +59,47 @@ class PumpService(
         val pumps =
             """
              SELECT DISTINCT ?actuatorId ?pumpChannel ?modelName ?lifeTime ?temperature ?pumpStatus WHERE {
-                ?obj a prog:Pump ;
-                    prog:Pump_actuatorId ?actuatorId ;
-                    prog:Pump_pumpChannel ?pumpChannel .
-                OPTIONAL { ?obj prog:Pump_modelName ?modelName }
-                OPTIONAL { ?obj prog:Pump_lifeTime ?lifeTime }
-                OPTIONAL { ?obj prog:Pump_temperature ?temperature }
-                OPTIONAL { ?obj prog:Pump_pumpStatus ?pumpStatus }
+                {
+                    ?obj a prog:Pump ;
+                        prog:Pump_actuatorId ?actuatorId ;
+                        prog:Pump_pumpChannel ?pumpChannel .
+                    OPTIONAL { ?obj prog:Pump_modelName ?modelName }
+                    OPTIONAL { ?obj prog:Pump_lifeTime ?lifeTime }
+                    OPTIONAL { ?obj prog:Pump_temperature ?temperature }
+                    OPTIONAL { ?obj prog:Pump_pumpStatus ?pumpStatus }
+                } UNION {
+                    ?obj a prog:OperatingPump ;
+                        prog:OperatingPump_actuatorId ?actuatorId ;
+                        prog:OperatingPump_pumpChannel ?pumpChannel .
+                    OPTIONAL { ?obj prog:OperatingPump_modelName ?modelName }
+                    OPTIONAL { ?obj prog:OperatingPump_lifeTime ?lifeTime }
+                    OPTIONAL { ?obj prog:OperatingPump_temperature ?temperature }
+                    OPTIONAL { ?obj prog:OperatingPump_pumpStatus ?pumpStatus }
+                } UNION {
+                    ?obj a prog:MaintenancePump ;
+                        prog:MaintenancePump_actuatorId ?actuatorId ;
+                        prog:MaintenancePump_pumpChannel ?pumpChannel .
+                    OPTIONAL { ?obj prog:MaintenancePump_modelName ?modelName }
+                    OPTIONAL { ?obj prog:MaintenancePump_lifeTime ?lifeTime }
+                    OPTIONAL { ?obj prog:MaintenancePump_temperature ?temperature }
+                    OPTIONAL { ?obj prog:MaintenancePump_pumpStatus ?pumpStatus }
+                } UNION {
+                    ?obj a prog:OverheatingPump ;
+                        prog:OverheatingPump_actuatorId ?actuatorId ;
+                        prog:OverheatingPump_pumpChannel ?pumpChannel .
+                    OPTIONAL { ?obj prog:OverheatingPump_modelName ?modelName }
+                    OPTIONAL { ?obj prog:OverheatingPump_lifeTime ?lifeTime }
+                    OPTIONAL { ?obj prog:OverheatingPump_temperature ?temperature }
+                    OPTIONAL { ?obj prog:OverheatingPump_pumpStatus ?pumpStatus }
+                } UNION {
+                    ?obj a prog:UnderheatingPump ;
+                        prog:UnderheatingPump_actuatorId ?actuatorId ;
+                        prog:UnderheatingPump_pumpChannel ?pumpChannel .
+                    OPTIONAL { ?obj prog:UnderheatingPump_modelName ?modelName }
+                    OPTIONAL { ?obj prog:UnderheatingPump_lifeTime ?lifeTime }
+                    OPTIONAL { ?obj prog:UnderheatingPump_temperature ?temperature }
+                    OPTIONAL { ?obj prog:UnderheatingPump_pumpStatus ?pumpStatus }
+                }
              }""".trimIndent()
 
         val result: ResultSet = repl.interpreter!!.query(pumps)!!
@@ -96,6 +130,83 @@ class PumpService(
         }
 
         return pumpsList
+    }
+
+    fun getPumpByPumpId(pumpId: String): Pump? {
+        componentsConfig.getPumpById(pumpId)?.let { return it }
+        val pumps =
+            """
+             SELECT ?pumpChannel ?modelName ?lifeTime ?temperature ?pumpStatus WHERE {
+                {
+                    ?obj a prog:Pump ;
+                        prog:Pump_actuatorId "$pumpId" ;
+                        prog:Pump_pumpChannel ?pumpChannel .
+                    OPTIONAL { ?obj prog:Pump_modelName ?modelName }
+                    OPTIONAL { ?obj prog:Pump_lifeTime ?lifeTime }
+                    OPTIONAL { ?obj prog:Pump_temperature ?temperature }
+                    OPTIONAL { ?obj prog:Pump_pumpStatus ?pumpStatus }
+                } UNION {
+                    ?obj a prog:OperatingPump ;
+                        prog:OperatingPump_actuatorId "$pumpId" ;
+                        prog:OperatingPump_pumpChannel ?pumpChannel .
+                    OPTIONAL { ?obj prog:OperatingPump_modelName ?modelName }
+                    OPTIONAL { ?obj prog:OperatingPump_lifeTime ?lifeTime }
+                    OPTIONAL { ?obj prog:OperatingPump_temperature ?temperature }
+                    OPTIONAL { ?obj prog:OperatingPump_pumpStatus ?pumpStatus }
+                } UNION {
+                    ?obj a prog:MaintenancePump ;
+                        prog:MaintenancePump_actuatorId "$pumpId" ;
+                        prog:MaintenancePump_pumpChannel ?pumpChannel .
+                    OPTIONAL { ?obj prog:MaintenancePump_modelName ?modelName }
+                    OPTIONAL { ?obj prog:MaintenancePump_lifeTime ?lifeTime }
+                    OPTIONAL { ?obj prog:MaintenancePump_temperature ?temperature }
+                    OPTIONAL { ?obj prog:MaintenancePump_pumpStatus ?pumpStatus }
+                } UNION {
+                    ?obj a prog:OverheatingPump ;
+                        prog:OverheatingPump_actuatorId "$pumpId" ;
+                        prog:OverheatingPump_pumpChannel ?pumpChannel .
+                    OPTIONAL { ?obj prog:OverheatingPump_modelName ?modelName }
+                    OPTIONAL { ?obj prog:OverheatingPump_lifeTime ?lifeTime }
+                    OPTIONAL { ?obj prog:OverheatingPump_temperature ?temperature }
+                    OPTIONAL { ?obj prog:OverheatingPump_pumpStatus ?pumpStatus }
+                } UNION {
+                    ?obj a prog:UnderheatingPump ;
+                        prog:UnderheatingPump_actuatorId "$pumpId" ;
+                        prog:UnderheatingPump_pumpChannel ?pumpChannel .
+                    OPTIONAL { ?obj prog:UnderheatingPump_modelName ?modelName }
+                    OPTIONAL { ?obj prog:UnderheatingPump_lifeTime ?lifeTime }
+                    OPTIONAL { ?obj prog:UnderheatingPump_temperature ?temperature }
+                    OPTIONAL { ?obj prog:UnderheatingPump_pumpStatus ?pumpStatus }
+                }
+             }""".trimIndent()
+
+        val result: ResultSet = repl.interpreter!!.query(pumps)!!
+
+        if (!result.hasNext()) {
+            return null
+        }
+
+        val solution: QuerySolution = result.next()
+        val pumpChannel = solution.get("?pumpChannel").asLiteral().toString().split("^^")[0].toInt()
+        val modelName =
+            if (solution.contains("?modelName")) solution.get("?modelName").asLiteral().toString() else null
+        val lifeTime = if (solution.contains("?lifeTime")) solution.get("?lifeTime").asLiteral().toString()
+            .split("^^")[0].toInt() else null
+        val temperature = if (solution.contains("?temperature")) solution.get("?temperature").asLiteral().toString()
+            .split("^^")[0].toDouble() else null
+        val pumpStatus = if (solution.contains("?pumpStatus")) {
+            try {
+                PumpState.valueOf(solution.get("?pumpStatus").asLiteral().toString())
+            } catch (e: IllegalArgumentException) {
+                null
+            }
+        } else null
+
+        val pump = Pump(pumpId, pumpChannel, modelName, lifeTime, temperature, pumpStatus)
+        // Update cache
+        componentsConfig.addPumpToCache(pump)
+
+        return pump
     }
 
     fun getPumpsByStatus(status: PumpState): List<Pump>? {
