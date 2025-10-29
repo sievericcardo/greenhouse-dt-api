@@ -52,6 +52,9 @@ class PlantService (
     }
 
     fun getAllPlants() : List<Plant>? {
+        // Return cached plants if available
+        val cached = componentsConfig.getPlantCache()
+        if (cached.isNotEmpty()) return cached.values.toList()
         val plants =
             """
              SELECT ?plantId ?familyName ?moisture ?healthState ?status ?moistureState WHERE {

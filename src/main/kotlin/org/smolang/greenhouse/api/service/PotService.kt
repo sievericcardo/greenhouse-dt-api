@@ -51,6 +51,9 @@ class PotService (
     }
 
     fun getPots() : List<Pot>? {
+        // Return cached pots if available
+        val cached = componentsConfig.getPotCache()
+        if (cached.isNotEmpty()) return cached.values.toList()
         val potsQuery =
             """
              SELECT DISTINCT ?potId ?pumpId ?moistureSensorId ?moistureSensorProperty ?moistureValue ?nutrientSensorId ?nutrientSensorProperty ?nutrientValue 

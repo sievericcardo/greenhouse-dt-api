@@ -52,6 +52,9 @@ class PumpService (
     }
 
     fun getAllPumps() : List<Pump>? {
+        // Return cached pumps if available
+        val cached = componentsConfig.getPumpCache()
+        if (cached.isNotEmpty()) return cached.values.toList()
         val pumpsList = mutableListOf<Pump>()
         val pumps =
             """

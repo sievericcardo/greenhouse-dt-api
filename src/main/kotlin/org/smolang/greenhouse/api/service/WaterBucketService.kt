@@ -75,6 +75,9 @@ class WaterBucketService (
     }
 
     fun getAllWaterBuckets(): List<WaterBucket>? {
+        // Return cached water buckets if available
+        val cached = componentsConfig.getWaterBucketCache()
+        if (cached.isNotEmpty()) return cached.values.toList()
         val waterBucketsQuery = """
             SELECT DISTINCT ?bucketId ?waterLevel WHERE {
                 ?bucketObj a prog:WaterBucket ;

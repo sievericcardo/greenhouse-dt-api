@@ -142,6 +142,9 @@ class TemperatureHumiditySensorService (
     }
 
     fun getAllSensors(): List<TemperatureHumiditySensor> {
+        // Return cached sensors if available
+        val cached = componentsConfig.getTemperatureHumiditySensorCache()
+        if (cached.isNotEmpty()) return cached.values.toList()
         val query = """
             SELECT ?sensorId ?sensorProperty ?temperature ?humidity WHERE {
                 ?obj a prog:TemperatureHumiditySensor ;

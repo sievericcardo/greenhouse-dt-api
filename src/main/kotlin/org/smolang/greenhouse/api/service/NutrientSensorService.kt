@@ -136,6 +136,9 @@ class NutrientSensorService (
     }
 
     fun getAllSensors(): List<NutrientSensor> {
+        // Return cached sensors if available
+        val cached = componentsConfig.getNutrientSensorCache()
+        if (cached.isNotEmpty()) return cached.values.toList()
         val query = """
             SELECT ?sensorId ?sensorProperty ?nutrient WHERE {
                 ?obj a prog:NutrientSensor ;

@@ -138,6 +138,9 @@ class LightSensorService (
     }
 
     fun getAllSensors(): List<LightSensor> {
+        // Return cached sensors if available
+        val cached = componentsConfig.getLightSensorCache()
+        if (cached.isNotEmpty()) return cached.values.toList()
         val query = """
             SELECT ?sensorId ?sensorProperty ?lightLevel WHERE {
                 ?obj a prog:LightSensor ;

@@ -53,6 +53,9 @@ class SectionService (
     }
 
     fun getAllSections(): List<Section>? {
+        // Return cached sections if available
+        val cached = componentsConfig.getSectionCache()
+        if (cached.isNotEmpty()) return cached.values.toList()
         val sectionsQuery = """
             SELECT DISTINCT ?sectionId WHERE {
                 ?sectionObj a prog:Section ;

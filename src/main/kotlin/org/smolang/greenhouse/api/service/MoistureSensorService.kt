@@ -135,6 +135,9 @@ class MoistureSensorService (
     }
 
     fun getAllSensors(): List<MoistureSensor> {
+        // Return cached sensors if available
+        val cached = componentsConfig.getMoistureSensorCache()
+        if (cached.isNotEmpty()) return cached.values.toList()
         val query = """
             SELECT ?sensorId ?sensorProperty ?moisture WHERE {
                 ?obj a prog:MoistureSensor ;
