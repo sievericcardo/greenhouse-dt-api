@@ -9,7 +9,7 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 @Component
-class DecisionTasks (
+class DecisionTasks(
     private val decisionService: DecisionService,
     private val messagePublisher: MessagePublisher,
 ) {
@@ -22,30 +22,30 @@ class DecisionTasks (
 //    @Scheduled(cron = "0 0 */6 * * *") // Execute every 6 hours
     @Operation(summary = "Make a decision every 6 hours")
     fun makeDecision() {
-        log.info( "Start decision process")
+        log.info("Start decision process")
         decisionService.waterControl()
-        log.info( "End decision process")
+        log.info("End decision process")
     }
 
     // Schedule every 3 minutes
 //    @Scheduled(cron = "0 0/3 * * * ?") // Execute every 3 minutes
     @Operation(summary = "Make a decision every 6 hours")
     fun promptQueue() {
-        log.info( "Alive message")
-        messagePublisher.publish("controller.keepalive","SMOL Scheduler is alive: ${System.currentTimeMillis()}")
-        log.info( "End message")
+        log.info("Alive message")
+        messagePublisher.publish("controller.keepalive", "SMOL Scheduler is alive: ${System.currentTimeMillis()}")
+        log.info("End message")
     }
 
-//    @Scheduled(cron = "* * * * * *") // Execute every 3 minutes
+    //    @Scheduled(cron = "* * * * * *") // Execute every 3 minutes
     @Operation(summary = "Make a decision every 6 hours")
     fun spamMsg() {
-        log.info( "Alive message")
+        log.info("Alive message")
         for (i in 1..4) {
-            log.info( "Sending message to actuator.$i.water")
-            messagePublisher.publish("actuator.$i.water","[WATER]18 2")
+            log.info("Sending message to actuator.$i.water")
+            messagePublisher.publish("actuator.$i.water", "[WATER]18 2")
         }
         // wait 3 hours
         Thread.sleep(1000 * 60 * 3) // 3 minutes
-        log.info( "End message")
+        log.info("End message")
     }
 }

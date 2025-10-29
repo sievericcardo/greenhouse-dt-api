@@ -3,8 +3,8 @@ package org.smolang.greenhouse.api.service
 import org.apache.jena.query.ResultSet
 import org.apache.jena.update.UpdateExecutionFactory
 import org.apache.jena.update.UpdateFactory
-import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.ComponentsConfig
+import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
 import org.smolang.greenhouse.api.model.LightSensor
 import org.smolang.greenhouse.api.types.CreateLightSensorRequest
@@ -12,7 +12,7 @@ import org.smolang.greenhouse.api.types.UpdateLightSensorRequest
 import org.springframework.stereotype.Service
 
 @Service
-class LightSensorService (
+class LightSensorService(
     private val replConfig: REPLConfig,
     private val triplestoreProperties: TriplestoreProperties,
     private val componentsConfig: ComponentsConfig

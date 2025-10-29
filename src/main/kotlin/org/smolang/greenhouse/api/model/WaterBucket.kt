@@ -1,6 +1,6 @@
 package org.smolang.greenhouse.api.model
 
-class WaterBucket (
+class WaterBucket(
     val bucketId: String,
     val waterLevel: Double? = null,
 )

@@ -1,10 +1,9 @@
 package org.smolang.greenhouse.api.config
 
-import jakarta.annotation.PostConstruct
 import org.apache.activemq.ActiveMQConnectionFactory
-import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory as ArtemisConnectionFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory as ArtemisConnectionFactory
 
 @Configuration
 open class QueueConfig {

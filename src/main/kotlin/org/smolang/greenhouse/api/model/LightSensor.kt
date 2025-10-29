@@ -1,6 +1,6 @@
 package org.smolang.greenhouse.api.model
 
-class LightSensor (
+class LightSensor(
     sensorId: String,
     sensorProperty: String? = null,
     val lightIntensity: Double? = null,

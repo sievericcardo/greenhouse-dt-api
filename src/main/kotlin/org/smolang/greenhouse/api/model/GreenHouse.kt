@@ -1,6 +1,6 @@
 package org.smolang.greenhouse.api.model
 
-class GreenHouse (
+class GreenHouse(
     val greenhouseId: String,
     val sections: List<Section>,
     val waterBuckets: List<WaterBucket>,

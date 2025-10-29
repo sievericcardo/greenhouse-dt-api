@@ -1,18 +1,17 @@
 package org.smolang.greenhouse.api.service
 
-import org.apache.jena.query.QuerySolution
 import org.apache.jena.query.ResultSet
 import org.apache.jena.update.UpdateExecutionFactory
 import org.apache.jena.update.UpdateFactory
-import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.ComponentsConfig
+import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
 import org.smolang.greenhouse.api.model.*
 import org.smolang.greenhouse.api.types.PumpState
 import org.springframework.stereotype.Service
 
 @Service
-class PotService (
+class PotService(
     private val replConfig: REPLConfig,
     private val triplestoreProperties: TriplestoreProperties,
     private val componentsConfig: ComponentsConfig,
@@ -24,7 +23,7 @@ class PotService (
     private val ttlPrefix = triplestoreProperties.ttlPrefix
     private val repl = replConfig.repl()
 
-    fun createPot (potId: String): Boolean {
+    fun createPot(potId: String): Boolean {
         val query = """
             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
             PREFIX ast: <$prefix>
@@ -51,7 +50,7 @@ class PotService (
         }
     }
 
-    fun getPots() : List<Pot>? {
+    fun getPots(): List<Pot>? {
         // Return cached pots if available
         val cached = componentsConfig.getPotCache()
         if (cached.isNotEmpty()) return cached.values.toList()
@@ -105,7 +104,7 @@ class PotService (
         while (result.hasNext()) {
             val solution = result.next()
             val potId = solution.get("?potId").asLiteral().toString()
-            
+
             // Build plants list
             val plants = mutableListOf<Plant>()
             for (i in 1..5) {
@@ -116,7 +115,7 @@ class PotService (
                     plantService.getPlantByPlantId(plantId)?.let { plants.add(it) }
                 }
             }
-            
+
             // Build moisture sensor if present
             val moistureSensor = if (solution.contains("?moistureSensorId")) {
                 val sensorId = solution.get("?moistureSensorId").asLiteral().toString()
@@ -124,7 +123,7 @@ class PotService (
                 val moisture = solution.get("?moistureValue").asLiteral().toString().split("^^")[0].toDouble()
                 MoistureSensor(sensorId, sensorProperty, moisture)
             } else null
-            
+
             // Build nutrient sensor if present
             val nutrientSensor = if (solution.contains("?nutrientSensorId")) {
                 val sensorId = solution.get("?nutrientSensorId").asLiteral().toString()
@@ -132,14 +131,18 @@ class PotService (
                 val nutrient = solution.get("?nutrientValue").asLiteral().toString().split("^^")[0].toDouble()
                 NutrientSensor(sensorId, sensorProperty, nutrient)
             } else null
-            
+
             // Build pump
             val pump = if (solution.contains("?pumpId")) {
                 val pumpId = solution.get("?pumpId").asLiteral().toString()
                 val pumpChannel = solution.get("?pumpChannel").asLiteral().toString().toInt()
-                val modelName = if (solution.contains("?modelName")) solution.get("?modelName").asLiteral().toString() else null
-                val lifeTime = if (solution.contains("?lifeTime")) solution.get("?lifeTime").asLiteral().toString().toInt() else null
-                val temperature = if (solution.contains("?temperature")) solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble() else null
+                val modelName =
+                    if (solution.contains("?modelName")) solution.get("?modelName").asLiteral().toString() else null
+                val lifeTime = if (solution.contains("?lifeTime")) solution.get("?lifeTime").asLiteral().toString()
+                    .toInt() else null
+                val temperature =
+                    if (solution.contains("?temperature")) solution.get("?temperature").asLiteral().toString()
+                        .split("^^")[0].toDouble() else null
                 val pumpStatus = if (solution.contains("?pumpStatus")) {
                     try {
                         PumpState.valueOf(solution.get("?pumpStatus").asLiteral().toString())
@@ -147,7 +150,7 @@ class PotService (
                         null
                     }
                 } else null
-                
+
                 Pump(pumpId, pumpChannel, modelName, lifeTime, temperature, pumpStatus)
             } else {
                 // Default pump if none found
@@ -160,7 +163,7 @@ class PotService (
         return potsList
     }
 
-    fun getPotByPotId (id: String) : Pot? {
+    fun getPotByPotId(id: String): Pot? {
         // Try cache first
         componentsConfig.getPotById(id)?.let { return it }
         val potsQuery =
@@ -211,7 +214,7 @@ class PotService (
 
         val solution = result.next()
         val potId = solution.get("?potId").asLiteral().toString()
-        
+
         // Build plants list
         val plants = mutableListOf<Plant>()
         for (i in 1..5) {
@@ -221,7 +224,7 @@ class PotService (
                 plantService.getPlantByPlantId(plantId)?.let { plants.add(it) }
             }
         }
-        
+
         // Build moisture sensor if present
         val moistureSensor = if (solution.contains("?moistureSensorId")) {
             val sensorId = solution.get("?moistureSensorId").asLiteral().toString()
@@ -229,7 +232,7 @@ class PotService (
             val moisture = solution.get("?moistureValue").asLiteral().toString().split("^^")[0].toDouble()
             MoistureSensor(sensorId, sensorProperty, moisture)
         } else null
-        
+
         // Build nutrient sensor if present
         val nutrientSensor = if (solution.contains("?nutrientSensorId")) {
             val sensorId = solution.get("?nutrientSensorId").asLiteral().toString()
@@ -237,14 +240,17 @@ class PotService (
             val nutrient = solution.get("?nutrientValue").asLiteral().toString().split("^^")[0].toDouble()
             NutrientSensor(sensorId, sensorProperty, nutrient)
         } else null
-        
+
         // Build pump
         val pump = if (solution.contains("?pumpId")) {
             val pumpId = solution.get("?pumpId").asLiteral().toString()
             val pumpChannel = solution.get("?pumpChannel").asLiteral().toString().toInt()
-            val modelName = if (solution.contains("?modelName")) solution.get("?modelName").asLiteral().toString() else null
-            val lifeTime = if (solution.contains("?lifeTime")) solution.get("?lifeTime").asLiteral().toString().toInt() else null
-            val temperature = if (solution.contains("?temperature")) solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble() else null
+            val modelName =
+                if (solution.contains("?modelName")) solution.get("?modelName").asLiteral().toString() else null
+            val lifeTime =
+                if (solution.contains("?lifeTime")) solution.get("?lifeTime").asLiteral().toString().toInt() else null
+            val temperature = if (solution.contains("?temperature")) solution.get("?temperature").asLiteral().toString()
+                .split("^^")[0].toDouble() else null
             val pumpStatus = if (solution.contains("?pumpStatus")) {
                 try {
                     PumpState.valueOf(solution.get("?pumpStatus").asLiteral().toString())
@@ -252,7 +258,7 @@ class PotService (
                     null
                 }
             } else null
-            
+
             Pump(pumpId, pumpChannel, modelName, lifeTime, temperature, pumpStatus)
         } else {
             // Default pump if none found
@@ -262,7 +268,7 @@ class PotService (
         return Pot(potId, plants, moistureSensor, nutrientSensor, pump)
     }
 
-    fun deletePot(potId: String) : Boolean {
+    fun deletePot(potId: String): Boolean {
         val query = """
             PREFIX ast: <$prefix>
             

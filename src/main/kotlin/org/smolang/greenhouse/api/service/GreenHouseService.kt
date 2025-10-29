@@ -1,6 +1,5 @@
 package org.smolang.greenhouse.api.service
 
-import org.apache.jena.query.QuerySolution
 import org.apache.jena.query.ResultSet
 import org.apache.jena.update.UpdateExecutionFactory
 import org.apache.jena.update.UpdateFactory
@@ -10,7 +9,7 @@ import org.smolang.greenhouse.api.model.*
 import org.springframework.stereotype.Service
 
 @Service
-class GreenHouseService (
+class GreenHouseService(
     private val replConfig: REPLConfig,
     private val triplestoreProperties: TriplestoreProperties
 ) {
@@ -78,7 +77,7 @@ class GreenHouseService (
 
             // Get sections for this greenhouse - simplified for now
             val sections = getSectionsByGreenHouseId(greenhouseId)
-            
+
             // Get water buckets for this greenhouse - simplified for now
             val waterBuckets = getWaterBucketsByGreenHouseId(greenhouseId)
 
@@ -111,7 +110,15 @@ class GreenHouseService (
                 TemperatureHumiditySensor("default_temphum_$greenhouseId", "", null, null)
             }
 
-            greenHousesList.add(GreenHouse(greenhouseId, sections, waterBuckets, lightSensor, temperatureHumiditySensor))
+            greenHousesList.add(
+                GreenHouse(
+                    greenhouseId,
+                    sections,
+                    waterBuckets,
+                    lightSensor,
+                    temperatureHumiditySensor
+                )
+            )
         }
 
         return greenHousesList
@@ -149,11 +156,11 @@ class GreenHouseService (
 
         // Get sections for this greenhouse - simplified for now
         val sections = getSectionsByGreenHouseId(greenhouseId)
-        
+
         // Get water buckets for this greenhouse - simplified for now  
         val waterBuckets = getWaterBucketsByGreenHouseId(greenhouseId)
 
-                // Build light sensor if present
+        // Build light sensor if present
         val lightSensor = if (solution.contains("?lightSensorId")) {
             val sensorId = solution.get("?lightSensorId").asLiteral().toString()
             val sensorProperty = solution.get("?lightSensorProperty").asLiteral().toString()

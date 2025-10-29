@@ -6,15 +6,15 @@ import org.apache.jena.update.UpdateExecutionFactory
 import org.apache.jena.update.UpdateFactory
 import org.apache.jena.update.UpdateProcessor
 import org.apache.jena.update.UpdateRequest
-import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.ComponentsConfig
+import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
-import org.smolang.greenhouse.api.types.PumpState
 import org.smolang.greenhouse.api.model.Pump
+import org.smolang.greenhouse.api.types.PumpState
 import org.springframework.stereotype.Service
 
 @Service
-class PumpService (
+class PumpService(
     private val replConfig: REPLConfig,
     private val triplestoreProperties: TriplestoreProperties,
     private val componentsConfig: ComponentsConfig
@@ -25,7 +25,7 @@ class PumpService (
     private val ttlPrefix = triplestoreProperties.ttlPrefix
     private val repl = replConfig.repl()
 
-    fun createPump(newPump: Pump) : Boolean {
+    fun createPump(newPump: Pump): Boolean {
         val query = """
             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
             PREFIX ast: <$prefix>
@@ -51,7 +51,7 @@ class PumpService (
         return true
     }
 
-    fun getAllPumps() : List<Pump>? {
+    fun getAllPumps(): List<Pump>? {
         // Return cached pumps if available
         val cached = componentsConfig.getPumpCache()
         if (cached.isNotEmpty()) return cached.values.toList()
@@ -78,9 +78,12 @@ class PumpService (
             val solution: QuerySolution = result.next()
             val actuatorId = solution.get("?actuatorId").asLiteral().toString()
             val pumpChannel = solution.get("?pumpChannel").asLiteral().toString().split("^^")[0].toInt()
-            val modelName = if (solution.contains("?modelName")) solution.get("?modelName").asLiteral().toString() else null
-            val lifeTime = if (solution.contains("?lifeTime")) solution.get("?lifeTime").asLiteral().toString().split("^^")[0].toInt() else null
-            val temperature = if (solution.contains("?temperature")) solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble() else null
+            val modelName =
+                if (solution.contains("?modelName")) solution.get("?modelName").asLiteral().toString() else null
+            val lifeTime = if (solution.contains("?lifeTime")) solution.get("?lifeTime").asLiteral().toString()
+                .split("^^")[0].toInt() else null
+            val temperature = if (solution.contains("?temperature")) solution.get("?temperature").asLiteral().toString()
+                .split("^^")[0].toDouble() else null
             val pumpStatus = if (solution.contains("?pumpStatus")) {
                 try {
                     PumpState.valueOf(solution.get("?pumpStatus").asLiteral().toString())
@@ -95,7 +98,7 @@ class PumpService (
         return pumpsList
     }
 
-    fun getPumpsByStatus(status: PumpState) : List<Pump>? {
+    fun getPumpsByStatus(status: PumpState): List<Pump>? {
         val pumpsList = mutableListOf<Pump>()
         val pumps =
             """
@@ -120,9 +123,12 @@ class PumpService (
             val solution: QuerySolution = result.next()
             val actuatorId = solution.get("?actuatorId").asLiteral().toString()
             val pumpChannel = solution.get("?pumpChannel").asLiteral().toString().split("^^")[0].toInt()
-            val modelName = if (solution.contains("?modelName")) solution.get("?modelName").asLiteral().toString() else null
-            val lifeTime = if (solution.contains("?lifeTime")) solution.get("?lifeTime").asLiteral().toString().split("^^")[0].toInt() else null
-            val temperature = if (solution.contains("?temperature")) solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble() else null
+            val modelName =
+                if (solution.contains("?modelName")) solution.get("?modelName").asLiteral().toString() else null
+            val lifeTime = if (solution.contains("?lifeTime")) solution.get("?lifeTime").asLiteral().toString()
+                .split("^^")[0].toInt() else null
+            val temperature = if (solution.contains("?temperature")) solution.get("?temperature").asLiteral().toString()
+                .split("^^")[0].toDouble() else null
             val pumpStatus = if (solution.contains("?pumpStatus")) {
                 try {
                     PumpState.valueOf(solution.get("?pumpStatus").asLiteral().toString())
@@ -137,12 +143,12 @@ class PumpService (
         return pumpsList
     }
 
-    fun getOperatingPumps() : List<Pump>? = getPumpsByStatus(PumpState.Operating)
-    fun getMaintenancePumps() : List<Pump>? = getPumpsByStatus(PumpState.Maintenance)
-    fun getOverheatingPumps() : List<Pump>? = getPumpsByStatus(PumpState.Overheating)
-    fun getUnderheatingPumps() : List<Pump>? = getPumpsByStatus(PumpState.Underheating)
+    fun getOperatingPumps(): List<Pump>? = getPumpsByStatus(PumpState.Operating)
+    fun getMaintenancePumps(): List<Pump>? = getPumpsByStatus(PumpState.Maintenance)
+    fun getOverheatingPumps(): List<Pump>? = getPumpsByStatus(PumpState.Overheating)
+    fun getUnderheatingPumps(): List<Pump>? = getPumpsByStatus(PumpState.Underheating)
 
-    fun updatePump(updatedPump: Pump) : Boolean {
+    fun updatePump(updatedPump: Pump): Boolean {
         var deleteClause = ""
         var insertClause = ""
 
@@ -151,7 +157,7 @@ class PumpService (
             deleteClause += "OPTIONAL { ?pump ast:temperature ?oldTemperature } .\n"
             insertClause += "?pump ast:temperature \"${updatedPump.temperature}\"^^xsd:double .\n"
         }
-        
+
         if (updatedPump.lifeTime != null) {
             deleteClause += "OPTIONAL { ?pump ast:lifeTime ?oldLifeTime } .\n"
             insertClause += "?pump ast:lifeTime ${updatedPump.lifeTime} .\n"
@@ -216,7 +222,7 @@ class PumpService (
         return true
     }
 
-    fun deletePump(actuatorId: String) : Boolean {
+    fun deletePump(actuatorId: String): Boolean {
         val deletePump = """
             PREFIX ast: <$prefix>
             

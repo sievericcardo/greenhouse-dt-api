@@ -1,16 +1,16 @@
 package org.smolang.greenhouse.api.service
 
 import jakarta.jms.JMSException
-import org.apache.jena.query.ResultSet
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.smolang.greenhouse.api.config.EnvironmentConfig
 import org.smolang.greenhouse.api.config.QueueConfig
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.types.PlantMoistureState
 import org.springframework.stereotype.Service
-import org.slf4j.Logger
 
 @Service
-class DecisionService (
+class DecisionService(
     private val replConfig: REPLConfig,
     private val environmentConfig: EnvironmentConfig,
     private val queueConfig: QueueConfig,
@@ -22,7 +22,7 @@ class DecisionService (
 ) {
 
     private val repl = replConfig.repl()
-    private val log : Logger = Logger.getLogger(DecisionService::class.java.name)
+    private val log: Logger = LoggerFactory.getLogger(DecisionService::class.java.name)
 
     @Throws(JMSException::class)
     fun waterControl() {
@@ -107,11 +107,11 @@ class DecisionService (
             log.info("No pumps to activate - skipping")
             return
         }
-        
+
         // We are not going to connect to any machines if we are in local
         val mode = environmentConfig.getOrDefault("MODE", "remote")
         log.info("MODE environment variable: $mode")
-        
+
         if (mode == "remote") {
             for (pump in pumpPinsToActivate) {
                 try {
@@ -121,7 +121,7 @@ class DecisionService (
                     messagePublisher.publish("actuator.${pump.second}.water", command)
                     log.info("Message published successfully to actuator.${pump.second}.water")
                 } catch (e: Exception) {
-                    log.severe("Failed to publish message for pump ${pump.second}: ${e.message}")
+                    log.error("Failed to publish message for pump ${pump.second}: ${e.message}")
                     e.printStackTrace()
                 }
             }

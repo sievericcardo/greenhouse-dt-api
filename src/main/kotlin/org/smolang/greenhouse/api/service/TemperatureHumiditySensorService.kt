@@ -3,8 +3,8 @@ package org.smolang.greenhouse.api.service
 import org.apache.jena.query.ResultSet
 import org.apache.jena.update.UpdateExecutionFactory
 import org.apache.jena.update.UpdateFactory
-import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.ComponentsConfig
+import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
 import org.smolang.greenhouse.api.model.TemperatureHumiditySensor
 import org.smolang.greenhouse.api.types.CreateTemperatureHumiditySensorRequest
@@ -12,7 +12,7 @@ import org.smolang.greenhouse.api.types.UpdateTemperatureHumiditySensorRequest
 import org.springframework.stereotype.Service
 
 @Service
-class TemperatureHumiditySensorService (
+class TemperatureHumiditySensorService(
     private val replConfig: REPLConfig,
     private val triplestoreProperties: TriplestoreProperties,
     private val componentsConfig: ComponentsConfig
@@ -32,7 +32,7 @@ class TemperatureHumiditySensorService (
                     ast:sensorProperty ${request.sensorProperty} .
             }
         """.trimIndent()
-        
+
         val updateRequest = UpdateFactory.create(query)
         val fusekiEndpoint = "$tripleStore/update"
         val updateProcessor = UpdateExecutionFactory.createRemote(updateRequest, fusekiEndpoint)
@@ -75,7 +75,12 @@ class TemperatureHumiditySensorService (
             val sensor = if (cached == null) {
                 TemperatureHumiditySensor(sensorId, request.sensorProperty, null, null)
             } else {
-                TemperatureHumiditySensor(cached.sensorId, request.sensorProperty ?: cached.sensorProperty, cached.temperature, cached.humidity)
+                TemperatureHumiditySensor(
+                    cached.sensorId,
+                    request.sensorProperty ?: cached.sensorProperty,
+                    cached.temperature,
+                    cached.humidity
+                )
             }
             componentsConfig.addTemperatureHumiditySensorToCache(sensor)
             return sensor

@@ -6,15 +6,15 @@ import org.apache.jena.update.UpdateExecutionFactory
 import org.apache.jena.update.UpdateFactory
 import org.apache.jena.update.UpdateProcessor
 import org.apache.jena.update.UpdateRequest
-import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.ComponentsConfig
+import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
 import org.smolang.greenhouse.api.model.Plant
 import org.smolang.greenhouse.api.types.PlantMoistureState
 import org.springframework.stereotype.Service
 
 @Service
-class PlantService (
+class PlantService(
     private val replConfig: REPLConfig,
     private val triplestoreProperties: TriplestoreProperties,
     private val componentsConfig: ComponentsConfig
@@ -51,7 +51,7 @@ class PlantService (
         return true
     }
 
-    fun getAllPlants() : List<Plant>? {
+    fun getAllPlants(): List<Plant>? {
         // Return cached plants if available
         val cached = componentsConfig.getPlantCache()
         if (cached.isNotEmpty()) return cached.values.toList()
@@ -87,7 +87,7 @@ class PlantService (
                 }
              }"""
 
-        val result : ResultSet = repl.interpreter!!.query(plants)!!
+        val result: ResultSet = repl.interpreter!!.query(plants)!!
         if (!result.hasNext()) {
             return null
         }
@@ -95,10 +95,11 @@ class PlantService (
         val plantsList = mutableListOf<Plant>()
 
         while (result.hasNext()) {
-            val solution : QuerySolution = result.next()
+            val solution: QuerySolution = result.next()
             val plantId = solution.get("?plantId").asLiteral().toString()
             val familyName = solution.get("?familyName").asLiteral().toString()
-            val moisture = if (solution.contains("?moisture")) solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble() else null
+            val moisture = if (solution.contains("?moisture")) solution.get("?moisture").asLiteral().toString()
+                .split("^^")[0].toDouble() else null
 //            val healthState = if (solution.contains("?healthState")) solution.get("?healthState").asLiteral().toString() else null
             val healthState = null
             val status = if (solution.contains("?status")) solution.get("?status").asLiteral().toString() else null
@@ -120,7 +121,7 @@ class PlantService (
         return plantsList
     }
 
-    fun getPlantByPlantId (plantId: String): Plant? {
+    fun getPlantByPlantId(plantId: String): Plant? {
         // Return cached plant if present
         componentsConfig.getPlantById(plantId)?.let { return it }
         val query = """
@@ -155,12 +156,12 @@ class PlantService (
             }
         """.trimIndent()
 
-        val result : ResultSet = repl.interpreter!!.query(query)!!
+        val result: ResultSet = repl.interpreter!!.query(query)!!
         if (!result.hasNext()) {
             return null
         }
 
-        val solution : QuerySolution = result.next()
+        val solution: QuerySolution = result.next()
         val familyName = solution.get("?familyName").asLiteral().toString()
         val moisture = solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble()
 //        val healthState = if (solution.contains("?healthState")) solution.get("?healthState").asLiteral().toString() else null
@@ -179,8 +180,13 @@ class PlantService (
         return plant
     }
 
-    fun updatePlant(plant: Plant, newMoisture: Double? = null, newHealthState: String? = null, newStatus: String? = null): Boolean {
-        var setClause = ""
+    fun updatePlant(
+        plant: Plant,
+        newMoisture: Double? = null,
+        newHealthState: String? = null,
+        newStatus: String? = null
+    ): Boolean {
+        ""
         var whereClause = """
             ?plant rdf:type ?t ;
                 ast:plantId "${plant.plantId}" .
@@ -261,7 +267,7 @@ class PlantService (
         return true
     }
 
-    fun deletePlant(plantId: String) : Boolean {
+    fun deletePlant(plantId: String): Boolean {
         val query = """
             PREFIX ast: <$prefix>
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>

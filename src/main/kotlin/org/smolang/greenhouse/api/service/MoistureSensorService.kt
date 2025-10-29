@@ -3,8 +3,8 @@ package org.smolang.greenhouse.api.service
 import org.apache.jena.query.ResultSet
 import org.apache.jena.update.UpdateExecutionFactory
 import org.apache.jena.update.UpdateFactory
-import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.ComponentsConfig
+import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
 import org.smolang.greenhouse.api.model.MoistureSensor
 import org.smolang.greenhouse.api.types.CreateMoistureSensorRequest
@@ -12,7 +12,7 @@ import org.smolang.greenhouse.api.types.UpdateMoistureSensorRequest
 import org.springframework.stereotype.Service
 
 @Service
-class MoistureSensorService (
+class MoistureSensorService(
     private val replConfig: REPLConfig,
     private val triplestoreProperties: TriplestoreProperties,
     private val componentsConfig: ComponentsConfig

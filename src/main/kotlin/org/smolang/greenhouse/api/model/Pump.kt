@@ -2,7 +2,7 @@ package org.smolang.greenhouse.api.model
 
 import org.smolang.greenhouse.api.types.PumpState
 
-class Pump (
+class Pump(
     actuatorId: String,
     val pumpChannel: Int,
     val modelName: String?,

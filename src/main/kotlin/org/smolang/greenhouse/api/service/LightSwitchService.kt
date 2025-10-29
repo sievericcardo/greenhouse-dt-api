@@ -10,7 +10,7 @@ import org.smolang.greenhouse.api.types.CreateLightSwitchRequest
 import org.springframework.stereotype.Service
 
 @Service
-class LightSwitchService (
+class LightSwitchService(
     private val replConfig: REPLConfig,
     private val triplestoreProperties: TriplestoreProperties
 ) {

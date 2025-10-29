@@ -21,7 +21,8 @@ open class SecurityConfig {
                     "/swagger-ui.html",
                     "/swagger-ui/**",
                     "/v*/api-docs",
-                    "/swagger-resources/**").permitAll()
+                    "/swagger-resources/**"
+                ).permitAll()
                 .anyRequest().authenticated()
         }
 
@@ -29,7 +30,7 @@ open class SecurityConfig {
     }
 
     @Bean
-    open fun webSecurityCustomizer () : WebSecurityCustomizer {
+    open fun webSecurityCustomizer(): WebSecurityCustomizer {
         return WebSecurityCustomizer { webSecurity ->
             webSecurity.ignoring().requestMatchers(
                 "/websocket",

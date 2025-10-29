@@ -1,14 +1,6 @@
 package org.smolang.greenhouse.api.config
 
-import org.smolang.greenhouse.api.model.LightSensor
-import org.smolang.greenhouse.api.model.MoistureSensor
-import org.smolang.greenhouse.api.model.NutrientSensor
-import org.smolang.greenhouse.api.model.TemperatureHumiditySensor
-import org.smolang.greenhouse.api.model.Plant
-import org.smolang.greenhouse.api.model.Pot
-import org.smolang.greenhouse.api.model.Pump
-import org.smolang.greenhouse.api.model.Section
-import org.smolang.greenhouse.api.model.WaterBucket
+import org.smolang.greenhouse.api.model.*
 import org.springframework.context.annotation.Configuration
 
 typealias LightSensorCache = MutableMap<String, LightSensor>
@@ -169,7 +161,7 @@ open class ComponentsConfig {
     open fun removeSectionFromCache(sectionId: String): Section? {
         return sectionCache.remove(sectionId)
     }
-
+    
     open fun getWaterBucketCache(): WaterBucketCache {
         return waterBucketCache
     }

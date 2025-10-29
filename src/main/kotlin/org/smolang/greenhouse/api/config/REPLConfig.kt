@@ -2,8 +2,8 @@ package org.smolang.greenhouse.api.config
 
 import jakarta.annotation.PostConstruct
 import no.uio.microobject.ast.expr.LiteralExpr
-import no.uio.microobject.main.Settings
 import no.uio.microobject.main.ReasonerMode
+import no.uio.microobject.main.Settings
 import no.uio.microobject.runtime.REPL
 import no.uio.microobject.type.STRINGTYPE
 import org.springframework.context.annotation.Bean
@@ -72,7 +72,7 @@ open class REPLConfig {
     }
 
     @Bean
-    open fun regenerateSingleModel() : (String) -> Unit = { modelName: String ->
+    open fun regenerateSingleModel(): (String) -> Unit = { modelName: String ->
         val escapedModelName = "\"$modelName\""
         repl.interpreter!!.tripleManager.regenerateTripleStoreModel()
         repl.interpreter!!.evalCall(
@@ -90,7 +90,7 @@ open class REPLConfig {
     }
 
     @Bean
-    open fun reclassifySingleModel() : (String) -> Unit = { modelName: String ->
+    open fun reclassifySingleModel(): (String) -> Unit = { modelName: String ->
         val escapedModelName = "\"$modelName\""
         repl.interpreter!!.evalCall(
             repl.interpreter!!.getObjectNames("AssetModel")[0],
