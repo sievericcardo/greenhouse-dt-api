@@ -6,10 +6,10 @@ import org.apache.jena.update.UpdateExecutionFactory
 import org.apache.jena.update.UpdateFactory
 import org.apache.jena.update.UpdateProcessor
 import org.apache.jena.update.UpdateRequest
+import org.slf4j.LoggerFactory
 import org.smolang.greenhouse.api.config.ComponentsConfig
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
-import org.slf4j.LoggerFactory
 import org.smolang.greenhouse.api.model.Pump
 import org.smolang.greenhouse.api.types.PumpState
 import org.springframework.stereotype.Service
@@ -129,9 +129,9 @@ class PumpService(
                 try {
                     PumpState.valueOf(solution.get("?pumpStatus").asLiteral().toString())
                 } catch (e: IllegalArgumentException) {
-                    null
+                    PumpState.Unknown
                 }
-            } else null
+            } else PumpState.Unknown
 
             pumpsList.add(Pump(actuatorId, pumpChannel, modelName, lifeTime, temperature, pumpStatus))
         }
@@ -208,9 +208,9 @@ class PumpService(
             try {
                 PumpState.valueOf(solution.get("?pumpStatus").asLiteral().toString())
             } catch (e: IllegalArgumentException) {
-                null
+                PumpState.Unknown
             }
-        } else null
+        } else PumpState.Unknown
 
         val pump = Pump(pumpId, pumpChannel, modelName, lifeTime, temperature, pumpStatus)
         // Update cache

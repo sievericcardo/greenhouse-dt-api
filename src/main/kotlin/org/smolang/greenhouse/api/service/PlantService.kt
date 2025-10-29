@@ -6,10 +6,10 @@ import org.apache.jena.update.UpdateExecutionFactory
 import org.apache.jena.update.UpdateFactory
 import org.apache.jena.update.UpdateProcessor
 import org.apache.jena.update.UpdateRequest
+import org.slf4j.LoggerFactory
 import org.smolang.greenhouse.api.config.ComponentsConfig
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
-import org.slf4j.LoggerFactory
 import org.smolang.greenhouse.api.model.Plant
 import org.smolang.greenhouse.api.types.PlantMoistureState
 import org.springframework.stereotype.Service
@@ -128,7 +128,7 @@ class PlantService(
                 else -> PlantMoistureState.UNKNOWN
             }
 
-            plantsList.add(Plant(plantId, familyName,  pot, moisture, healthState, status, moistureState))
+            plantsList.add(Plant(plantId, familyName, pot, moisture, healthState, status, moistureState))
         }
 
         val uniquePlants = plantsList.distinctBy { it.plantId }

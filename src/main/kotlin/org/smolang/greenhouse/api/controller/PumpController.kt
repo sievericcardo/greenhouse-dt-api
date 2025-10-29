@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import jakarta.validation.Valid
-import no.uio.microobject.runtime.REPL
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.smolang.greenhouse.api.config.REPLConfig
@@ -40,7 +39,7 @@ class PumpController(
             ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
         ]
     )
-    @PostMapping("/create")
+    @PostMapping("")
     fun createPump(@SwaggerRequestBody(description = "Pump to be created") @RequestBody pumpRequest: CreatePumpRequest): ResponseEntity<String> {
         log.info("Creating a new pump")
 
@@ -75,7 +74,7 @@ class PumpController(
             ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
         ]
     )
-    @GetMapping("/retrieve")
+    @GetMapping("")
     fun getPumps(): ResponseEntity<List<Pump>> {
         log.info("Getting all pumps")
 

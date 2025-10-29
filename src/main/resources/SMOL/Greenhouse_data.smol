@@ -240,11 +240,25 @@ class Pot extends Twin (
             SELECT ?obj {
                 ?pot a ast:Pot ;
                      ast:potId %1 ;
-                     ast:hasPump ?pump .
+                     ast:wateredBy ?pump .
                 ?pump a ast:Pump ;
-                     ast:pumpId ?pumpId .
-                ?obj a prog:Pump ;
-                     prog:Pump_pumpId ?pumpId .
+                     ast:actuatorId ?pumpId .
+                {
+                    ?obj a prog:Pump ;
+                        prog:Pump_actuatorId ?pumpId .
+                } UNION {
+                    ?obj a prog:OperatingPump ;
+                        prog:OperatingPump_actuatorId ?pumpId .
+                } UNION {
+                    ?obj a prog:MaintenancePump ;
+                        prog:MaintenancePump_actuatorId ?pumpId .
+                } UNION {
+                    ?obj a prog:OverheatingPump ;
+                        prog:OverheatingPump_actuatorId ?pumpId .
+                } UNION {
+                    ?obj a prog:UnderheatingPump ;
+                        prog:UnderheatingPump_actuatorId ?pumpId .
+                }
             }", this.potId);
 
         if pumps == null then

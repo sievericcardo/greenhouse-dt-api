@@ -68,12 +68,25 @@ class PotService(
             """
              SELECT ?potId ?pumpId ?moistureSensorId ?nutrientSensorId WHERE {
                  ?potObj a prog:Pot ;
-                        prog:Pot_potId ?potId .
-
-                 OPTIONAL {
-                     ?potObj prog:Pot_pump ?pumpObj .
-                     ?pumpObj prog:Pump_actuatorId ?pumpId .
-                 }
+                        prog:Pot_potId ?potId ;
+                        prog:Pot_pump ?pumpObj .
+                        
+                 {
+                    ?pumpObj a prog:Pump;
+                        prog:Pump_actuatorId ?pumpId .
+                 } UNION {
+                    ?pumpObj a prog:OperatingPump ;
+                        prog:OperatingPump_actuatorId ?pumpId .
+                } UNION {
+                    ?pumpObj a prog:MaintenancePump ;
+                        prog:MaintenancePump_actuatorId ?pumpId .
+                } UNION {
+                    ?pumpObj a prog:OverheatingPump ;
+                        prog:OverheatingPump_actuatorId ?pumpId .
+                } UNION {
+                    ?pumpObj a prog:UnderheatingPump ;
+                        prog:UnderheatingPump_actuatorId ?pumpId .
+                }
 
                  OPTIONAL {
                      ?potObj prog:Pot_moistureSensor ?moistureSensorObj .
@@ -120,14 +133,8 @@ class PotService(
                 }
             } else null
 
-            // Build pump: try cache first, then PumpService
-            val pump = if (solution.contains("?pumpId")) {
-                val pumpId = solution.get("?pumpId").asLiteral().toString()
-                // try components cache, then PumpService
-                componentsConfig.getPumpById(pumpId) ?: pumpService.getPumpByPumpId(pumpId)
-            } else {
-                null
-            }
+            val pumpId = solution.get("?pumpId").asLiteral().toString()
+            val pump = componentsConfig.getPumpById(pumpId) ?: pumpService.getPumpByPumpId(pumpId)
 
             if (pump == null) {
                 // Missing pump is critical for the pot representation. Skip this pot and log a warning.
@@ -154,8 +161,22 @@ class PotService(
                         prog:Pot_potId "$id" ;
                         prog:Pot_pump ?pumpObj .
                  
-                 ?pumpObj a prog:Pump ;
-                          prog:Pump_actuatorId ?pumpId .
+                 {
+                    ?pumpObj a prog:Pump;
+                        prog:Pump_actuatorId ?pumpId .
+                 } UNION {
+                    ?pumpObj a prog:OperatingPump ;
+                        prog:OperatingPump_actuatorId ?pumpId .
+                } UNION {
+                    ?pumpObj a prog:MaintenancePump ;
+                        prog:MaintenancePump_actuatorId ?pumpId .
+                } UNION {
+                    ?pumpObj a prog:OverheatingPump ;
+                        prog:OverheatingPump_actuatorId ?pumpId .
+                } UNION {
+                    ?pumpObj a prog:UnderheatingPump ;
+                        prog:UnderheatingPump_actuatorId ?pumpId .
+                }
 
                  OPTIONAL {
                      ?potObj prog:Pot_moistureSensor ?moistureSensorObj .
@@ -191,12 +212,8 @@ class PotService(
         } else null
 
         // Build pump
-        val pump = if (solution.contains("?pumpId")) {
-            val pumpId = solution.get("?pumpId").asLiteral().toString()
-            pumpService.getPumpByPumpId(pumpId) ?: return null
-        } else {
-            return null
-        }
+        val pumpId = solution.get("?pumpId").asLiteral().toString()
+        val pump = componentsConfig.getPumpById(pumpId) ?: pumpService.getPumpByPumpId(pumpId)!!
 
         logger.debug("getPotByPotId: retrieved pot $potId")
         return Pot(potId, moistureSensor, nutrientSensor, pump)

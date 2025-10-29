@@ -13,10 +13,10 @@ class PlantModel extends BaseModel()
                 }
                 ?t rdfs:subClassOf* ast:Plant .
 
-                ?pot a prog:Pot ;
-                    prog:Pot_potId ?potId .
                 ?potOnto a ast:Pot ;
                     ast:potId ?potId .
+                ?pot a prog:Pot ;
+                    prog:Pot_potId ?potId .
 
                 FILTER NOT EXISTS {
                     ?y a prog:Plant ;
@@ -33,7 +33,7 @@ class PlantModel extends BaseModel()
                 newPlant.setNdvi();
 
                 if newPlant.ndvi != null then
-                    print("RECONFIG> Adding plant " ++ newPlant.plantId ++ ", " ++ newPlant.familyName ++ " " ++ " with NDVI: " ++ doubleToString(newPlant.ndvi) ++ " and moisture: " ++ doubleToString(newPlant.moisture));
+                    print("RECONFIG> Adding plant " ++ newPlant.plantId ++ ", " ++ newPlant.familyName ++ " " ++ " with NDVI: " ++ doubleToString(newPlant.ndvi) ++ " and moisture: " ++ doubleToString(newPlant.moisture) ++ " in pot " ++ newPlant.pot.potId);
                     newPlant.healthState = classify(newPlant);
                 end
                 // newPlant.waterStrategy = classify(newPlant);
