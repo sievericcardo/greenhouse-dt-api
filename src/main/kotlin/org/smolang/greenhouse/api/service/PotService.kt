@@ -15,7 +15,8 @@ import org.springframework.stereotype.Service
 class PotService (
     private val replConfig: REPLConfig,
     private val triplestoreProperties: TriplestoreProperties,
-    private val componentsConfig: ComponentsConfig
+    private val componentsConfig: ComponentsConfig,
+    private val plantService: PlantService
 ) {
 
     private val tripleStore = triplestoreProperties.tripleStore
@@ -112,7 +113,7 @@ class PotService (
                 if (solution.contains(plantIdVar)) {
                     val plantId = solution.get(plantIdVar).asLiteral().toString()
                     // Get full plant details using separate query
-                    getPlantById(plantId)?.let { plants.add(it) }
+                    plantService.getPlantByPlantId(plantId)?.let { plants.add(it) }
                 }
             }
             
@@ -157,35 +158,6 @@ class PotService (
         }
 
         return potsList
-    }
-
-    private fun getPlantById(plantId: String): Plant? {
-        // Check cache first
-        componentsConfig.getPlantById(plantId)?.let { return it }
-        val plantQuery = """
-            SELECT DISTINCT ?familyName ?moisture ?healthState ?status WHERE {
-                ?plantObj a prog:Plant ;
-                    prog:Plant_plantId "$plantId" ;
-                    prog:Plant_moisture ?moisture .
-                OPTIONAL { ?plantObj prog:Plant_healthState ?healthState }
-                OPTIONAL { ?plantObj prog:Plant_status ?status }
-            }
-        """
-        
-        val result = repl.interpreter!!.query(plantQuery)
-        if (result == null || !result.hasNext()) {
-            return null
-        }
-        
-        val solution = result.next()
-        val familyName = solution.get("?familyName").asLiteral().toString()
-        val moisture = solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble()
-        val healthState = if (solution.contains("?healthState")) solution.get("?healthState").asLiteral().toString() else null
-        val status = if (solution.contains("?status")) solution.get("?status").asLiteral().toString() else null
-        
-        val plant = Plant(plantId, familyName, moisture, healthState, status)
-        componentsConfig.addPlantToCache(plant)
-        return plant
     }
 
     fun getPotByPotId (id: String) : Pot? {
@@ -246,7 +218,7 @@ class PotService (
             val plantIdVar = "?plant${i}Id"
             if (solution.contains(plantIdVar)) {
                 val plantId = solution.get(plantIdVar).asLiteral().toString()
-                getPlantById(plantId)?.let { plants.add(it) }
+                plantService.getPlantByPlantId(plantId)?.let { plants.add(it) }
             }
         }
         

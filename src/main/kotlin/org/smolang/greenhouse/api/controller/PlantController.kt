@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBod
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.model.Plant
 import org.smolang.greenhouse.api.service.PlantService
+import org.smolang.greenhouse.api.types.PlantMoistureState
 import org.springframework.http.ResponseEntity
 import java.util.logging.Logger
 import org.smolang.greenhouse.api.types.CreatePlantRequest
@@ -40,7 +41,8 @@ class PlantController (
             createPlantRequest.familyName,
             null,
             null,
-            createPlantRequest.status
+            createPlantRequest.status,
+            PlantMoistureState.UNKNOWN
         )
 
         if (!plantService.createPlant(plant)) {
