@@ -25,6 +25,7 @@ class SectionService(
     private val repl = replConfig.repl()
 
     fun createSection(sectionId: String): Section? {
+        logger.info("createSection: creating section $sectionId")
         val query = """
             PREFIX ast: <$prefix>
             
@@ -43,8 +44,10 @@ class SectionService(
             val pots = potService.getPots() ?: emptyList()
             val section = Section(sectionId, pots)
             componentsConfig.addSectionToCache(section)
+            logger.info("createSection: created section $sectionId with ${pots.size} pots")
             return section
         } catch (e: Exception) {
+            logger.error("createSection: failed to create section $sectionId: ${e.message}", e)
             return null
         }
     }
@@ -67,6 +70,7 @@ class SectionService(
 
         val result: ResultSet? = repl.interpreter!!.query(sectionsQuery)
         if (result == null || !result.hasNext()) {
+            logger.debug("getAllSections: no sections found")
             return null
         }
 
@@ -81,16 +85,21 @@ class SectionService(
             sectionsList.add(Section(sectionId, emptyList()))
         }
 
+        logger.debug("getAllSections: retrieved ${sectionsList.size} sections")
         return sectionsList
     }
 
     fun getSectionById(sectionId: String): Section? {
         // Check cache first
         componentsConfig.getSectionById(sectionId)?.let { return it }
-        return getAllSections()?.find { it.sectionId == sectionId }?.also { componentsConfig.addSectionToCache(it) }
+        val section = getAllSections()?.find { it.sectionId == sectionId }
+        section?.let { componentsConfig.addSectionToCache(it) }
+        if (section == null) logger.debug("getSectionById: section $sectionId not found") else logger.debug("getSectionById: retrieved section $sectionId")
+        return section
     }
 
     fun deleteSection(sectionId: String): Boolean {
+        logger.info("deleteSection: deleting section $sectionId")
         val query = """
             PREFIX ast: <$prefix>
             
@@ -112,8 +121,10 @@ class SectionService(
         try {
             updateProcessor.execute()
             componentsConfig.removeSectionFromCache(sectionId)
+            logger.info("deleteSection: deleted section $sectionId")
             return true
         } catch (e: Exception) {
+            logger.error("deleteSection: failed to delete section $sectionId: ${e.message}", e)
             return false
         }
     }

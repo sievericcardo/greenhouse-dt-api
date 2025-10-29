@@ -23,6 +23,7 @@ class LightSwitchService(
     private val repl = replConfig.repl()
 
     fun createLightSwitch(request: CreateLightSwitchRequest): LightSwitch? {
+        logger.info("createLightSwitch: creating light switch ${request.actuatorId}")
         val query = """
             PREFIX ast: <$prefix>
             INSERT DATA {
@@ -39,11 +40,13 @@ class LightSwitchService(
             updateProcessor.execute()
             return LightSwitch(request.actuatorId)
         } catch (e: Exception) {
+            logger.error("createLightSwitch: failed to create light switch ${request.actuatorId}: ${e.message}", e)
             return null
         }
     }
 
     fun deleteLightSwitch(lightSwitchId: String): Boolean {
+        logger.info("deleteLightSwitch: deleting light switch $lightSwitchId")
         val query = """
             PREFIX ast: <$prefix>
             DELETE WHERE {
@@ -57,13 +60,16 @@ class LightSwitchService(
 
         return try {
             updateProcessor.execute()
+            logger.info("deleteLightSwitch: deleted light switch $lightSwitchId")
             true
         } catch (e: Exception) {
+            logger.error("deleteLightSwitch: failed to delete light switch $lightSwitchId: ${e.message}", e)
             false
         }
     }
 
     fun getLightSwitch(lightSwitchId: String): LightSwitch? {
+        logger.debug("getLightSwitch: retrieving light switch $lightSwitchId")
         val query = """
             SELECT ?lightSwitchId ?lightIntensity WHERE {
                 ?obj a prog:LightSwitch ;
@@ -75,6 +81,7 @@ class LightSwitchService(
         val result: ResultSet = repl.interpreter!!.query(query) ?: return null
 
         if (!result.hasNext()) {
+            logger.debug("getLightSwitch: light switch $lightSwitchId not found")
             return null
         }
 
@@ -83,10 +90,12 @@ class LightSwitchService(
         val lightIntensity = if (solution.contains("?lightIntensity")) {
             solution.get("?lightIntensity").asLiteral().toString().split("^^")[0].toDouble()
         } else null
+        logger.debug("getLightSwitch: retrieved light switch $lightSwitchId")
         return LightSwitch(lightSwitchId, lightIntensity)
     }
 
     fun getAllLightSwitches(): List<LightSwitch> {
+        logger.debug("getAllLightSwitches: retrieving all light switches")
         val query = """
             SELECT ?lightSwitchId ?lightIntensity WHERE {
                 ?obj a prog:LightSwitch ;
@@ -98,6 +107,7 @@ class LightSwitchService(
         val result: ResultSet = repl.interpreter!!.query(query) ?: return emptyList()
 
         if (!result.hasNext()) {
+            logger.debug("getAllLightSwitches: no light switches found")
             return emptyList()
         }
 
@@ -110,6 +120,7 @@ class LightSwitchService(
             } else null
             switches.add(LightSwitch(lightSwitchId, lightIntensity))
         }
+        logger.debug("getAllLightSwitches: retrieved ${switches.size} light switches")
         return switches
     }
 }

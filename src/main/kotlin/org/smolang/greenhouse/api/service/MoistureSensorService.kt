@@ -26,6 +26,7 @@ class MoistureSensorService(
     private val repl = replConfig.repl()
 
     fun createSensor(request: CreateMoistureSensorRequest): MoistureSensor? {
+        logger.info("createSensor: creating moisture sensor ${request.sensorId}")
         val query = """
             PREFIX ast: <$prefix>
             INSERT DATA {
@@ -43,13 +44,16 @@ class MoistureSensorService(
             updateProcessor.execute()
             val sensor = MoistureSensor(request.sensorId, request.sensorProperty)
             componentsConfig.addMoistureSensorToCache(sensor)
+            logger.info("createSensor: created moisture sensor ${request.sensorId}")
             return sensor
         } catch (e: Exception) {
+            logger.error("createSensor: failed to create moisture sensor ${request.sensorId}: ${e.message}", e)
             return null
         }
     }
 
     fun updateSensor(sensorId: String, request: UpdateMoistureSensorRequest): MoistureSensor? {
+        logger.info("updateSensor: updating moisture sensor $sensorId")
         val query = """
             PREFIX ast: <$prefix>
             DELETE {
@@ -80,13 +84,16 @@ class MoistureSensorService(
                 MoistureSensor(cached.sensorId, request.sensorProperty ?: cached.sensorProperty, cached.moisture)
             }
             componentsConfig.addMoistureSensorToCache(sensor)
+            logger.info("updateSensor: updated moisture sensor $sensorId")
             return sensor
         } catch (e: Exception) {
+            logger.error("updateSensor: failed to update moisture sensor $sensorId: ${e.message}", e)
             return null
         }
     }
 
     fun deleteSensor(sensorId: String): Boolean {
+        logger.info("deleteSensor: deleting moisture sensor $sensorId")
         val query = """
             PREFIX ast: <$prefix>
             DELETE WHERE {
@@ -101,13 +108,16 @@ class MoistureSensorService(
         return try {
             updateProcessor.execute()
             componentsConfig.removeMoistureSensorFromCache(sensorId)
+            logger.info("deleteSensor: deleted moisture sensor $sensorId")
             true
         } catch (e: Exception) {
+            logger.error("deleteSensor: failed to delete moisture sensor $sensorId: ${e.message}", e)
             false
         }
     }
 
     fun getSensor(sensorId: String): MoistureSensor? {
+        logger.debug("getSensor: retrieving moisture sensor $sensorId")
         // Return cached sensor if present
         componentsConfig.getMoistureSensorById(sensorId)?.let { return it }
         val query = """
@@ -133,10 +143,12 @@ class MoistureSensorService(
         } else null
         val sensor = MoistureSensor(sensorId, sensorProperty, moisture)
         componentsConfig.addMoistureSensorToCache(sensor)
+        logger.debug("getSensor: retrieved moisture sensor $sensorId")
         return sensor
     }
 
     fun getAllSensors(): List<MoistureSensor> {
+        logger.debug("getAllSensors: retrieving all moisture sensors")
         // Return cached sensors if available
         val cached = componentsConfig.getMoistureSensorCache()
         if (cached.isNotEmpty()) return cached.values.toList()
@@ -161,6 +173,7 @@ class MoistureSensorService(
             } else null
             sensors.add(MoistureSensor(sensorId, sensorProperty, moisture))
         }
+        logger.debug("getAllSensors: retrieved ${sensors.size} moisture sensors")
         return sensors
     }
 }

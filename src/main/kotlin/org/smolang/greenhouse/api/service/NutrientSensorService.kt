@@ -27,6 +27,7 @@ class NutrientSensorService(
     private val repl = replConfig.repl()
 
     fun createSensor(request: CreateNutrientSensorRequest): NutrientSensor? {
+        logger.info("createSensor: creating nutrient sensor ${request.sensorId}")
         val query = """
             PREFIX ast: <$prefix>
             INSERT DATA {
@@ -44,13 +45,16 @@ class NutrientSensorService(
             updateProcessor.execute()
             val sensor = NutrientSensor(request.sensorId, request.sensorProperty)
             componentsConfig.addNutrientSensorToCache(sensor)
+            logger.info("createSensor: created nutrient sensor ${request.sensorId}")
             return sensor
         } catch (e: Exception) {
+            logger.error("createSensor: failed to create nutrient sensor ${request.sensorId}: ${e.message}", e)
             return null
         }
     }
 
     fun updateSensor(sensorId: String, request: UpdateNutrientSensorRequest): NutrientSensor? {
+        logger.info("updateSensor: updating nutrient sensor $sensorId")
         val query = """
             PREFIX ast: <$prefix>
 
@@ -81,13 +85,16 @@ class NutrientSensorService(
                 NutrientSensor(cached.sensorId, request.sensorProperty ?: cached.sensorProperty, cached.nutrient)
             }
             componentsConfig.addNutrientSensorToCache(sensor)
+            logger.info("updateSensor: updated nutrient sensor $sensorId")
             return sensor
         } catch (e: Exception) {
+            logger.error("updateSensor: failed to update nutrient sensor $sensorId: ${e.message}", e)
             return null
         }
     }
 
     fun deleteSensor(sensorId: String): Boolean {
+        logger.info("deleteSensor: deleting nutrient sensor $sensorId")
         val query = """
             PREFIX ast: <$prefix>
             DELETE WHERE {
@@ -103,13 +110,16 @@ class NutrientSensorService(
         return try {
             updateProcessor.execute()
             componentsConfig.removeNutrientSensorFromCache(sensorId)
+            logger.info("deleteSensor: deleted nutrient sensor $sensorId")
             true
         } catch (e: Exception) {
+            logger.error("deleteSensor: failed to delete nutrient sensor $sensorId: ${e.message}", e)
             false
         }
     }
 
     fun getSensor(sensorId: String): NutrientSensor? {
+        logger.debug("getSensor: retrieving nutrient sensor $sensorId")
         // Return cached sensor if present
         componentsConfig.getNutrientSensorById(sensorId)?.let { return it }
         // Restrict query to the requested sensorId to avoid returning an unrelated sensor
@@ -137,10 +147,12 @@ class NutrientSensorService(
         } else null
         val sensor = NutrientSensor(sensorId, sensorProperty, nutrient)
         componentsConfig.addNutrientSensorToCache(sensor)
+        logger.debug("getSensor: retrieved nutrient sensor $sensorId")
         return sensor
     }
 
     fun getAllSensors(): List<NutrientSensor> {
+        logger.debug("getAllSensors: retrieving all nutrient sensors")
         // Return cached sensors if available
         val cached = componentsConfig.getNutrientSensorCache()
         if (cached.isNotEmpty()) return cached.values.toList()
@@ -169,6 +181,7 @@ class NutrientSensorService(
             } else null
             sensors.add(NutrientSensor(sensorId, sensorProperty, nutrient))
         }
+        logger.debug("getAllSensors: retrieved ${sensors.size} nutrient sensors")
         return sensors
     }
 }

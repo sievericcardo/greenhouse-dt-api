@@ -26,6 +26,7 @@ class LightSensorService(
     private val repl = replConfig.repl()
 
     fun createSensor(request: CreateLightSensorRequest): LightSensor? {
+        logger.info("createSensor: creating light sensor ${request.sensorId}")
         val query = """
             PREFIX ast: <$prefix>
             INSERT DATA {
@@ -43,13 +44,16 @@ class LightSensorService(
             updateProcessor.execute()
             val sensor = LightSensor(request.sensorId)
             componentsConfig.addLightSensorToCache(sensor)
+            logger.info("createSensor: created light sensor ${request.sensorId}")
             return sensor
         } catch (e: Exception) {
+            logger.error("createSensor: failed to create light sensor ${request.sensorId}: ${e.message}", e)
             return null
         }
     }
 
     fun updateSensor(sensorId: String, request: UpdateLightSensorRequest): LightSensor? {
+        logger.info("updateSensor: updating light sensor $sensorId")
         val query = """
             PREFIX ast: <$prefix>
             DELETE {
@@ -80,13 +84,16 @@ class LightSensorService(
                 LightSensor(sensorId)
             }
             componentsConfig.addLightSensorToCache(sensor)
+            logger.info("updateSensor: updated light sensor $sensorId")
             return sensor
         } catch (e: Exception) {
+            logger.error("updateSensor: failed to update light sensor $sensorId: ${e.message}", e)
             return null
         }
     }
 
     fun deleteSensor(sensorId: String): Boolean {
+        logger.info("deleteSensor: deleting light sensor $sensorId")
         val query = """
             PREFIX ast: <$prefix>
             DELETE {
@@ -104,13 +111,16 @@ class LightSensorService(
         try {
             updateProcessor.execute()
             componentsConfig.removeLightSensorFromCache(sensorId)
+            logger.info("deleteSensor: deleted light sensor $sensorId")
             return true
         } catch (e: Exception) {
+            logger.error("deleteSensor: failed to delete light sensor $sensorId: ${e.message}", e)
             return false
         }
     }
 
     fun getSensor(sensorId: String): LightSensor? {
+        logger.debug("getSensor: retrieving light sensor $sensorId")
         // Return cached sensor if available
         componentsConfig.getLightSensorById(sensorId)?.let { return it }
         val query = """
@@ -136,10 +146,12 @@ class LightSensorService(
         } else null
         val sensor = LightSensor(retrievedSensorId, sensorProperty, lightLevel)
         componentsConfig.addLightSensorToCache(sensor)
+        logger.debug("getSensor: retrieved light sensor $sensorId")
         return sensor
     }
 
     fun getAllSensors(): List<LightSensor> {
+        logger.debug("getAllSensors: retrieving all light sensors")
         // Return cached sensors if available
         val cached = componentsConfig.getLightSensorCache()
         if (cached.isNotEmpty()) return cached.values.toList()
@@ -164,6 +176,7 @@ class LightSensorService(
             } else null
             sensors.add(LightSensor(sensorId, sensorProperty, lightLevel))
         }
+        logger.debug("getAllSensors: retrieved ${sensors.size} light sensors")
         return sensors
     }
 }

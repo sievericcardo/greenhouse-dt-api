@@ -44,6 +44,7 @@ class GreenHouseService(
     }
 
     fun getAllGreenHouses(): List<GreenHouse>? {
+        logger.debug("getAllGreenHouses: retrieving all greenhouses")
         val greenHousesQuery = """
             SELECT DISTINCT ?greenhouseId ?lightSensorId ?lightSensorProperty ?lightIntensity ?tempHumSensorId ?tempHumSensorProperty ?temperature ?humidity WHERE {
                 ?greenhouseObj a prog:GreenHouse ;
@@ -68,6 +69,7 @@ class GreenHouseService(
 
         val result: ResultSet? = repl.interpreter!!.query(greenHousesQuery)
         if (result == null || !result.hasNext()) {
+            logger.debug("getAllGreenHouses: no greenhouses found")
             return null
         }
 
@@ -123,6 +125,7 @@ class GreenHouseService(
             )
         }
 
+        logger.debug("getAllGreenHouses: retrieved ${greenHousesList.size} greenhouses")
         return greenHousesList
     }
 
@@ -151,6 +154,7 @@ class GreenHouseService(
 
         val result = repl.interpreter!!.query(greenHouseQuery)
         if (result == null || !result.hasNext()) {
+            logger.debug("getGreenHouseById: greenhouse $greenhouseId not found")
             return null
         }
 
@@ -191,6 +195,7 @@ class GreenHouseService(
             TemperatureHumiditySensor("default_temphum_$greenhouseId", "", null, null)
         }
 
+        logger.debug("getGreenHouseById: retrieved greenhouse $greenhouseId")
         return GreenHouse(greenhouseId, sections, waterBuckets, lightSensor, temperatureHumiditySensor)
     }
 
@@ -230,6 +235,7 @@ class GreenHouseService(
     }
 
     fun deleteGreenHouse(greenhouseId: String): Boolean {
+        logger.info("deleteGreenHouse: deleting greenhouse $greenhouseId")
         val query = """
             PREFIX ast: <$prefix>
             
@@ -250,8 +256,10 @@ class GreenHouseService(
 
         try {
             updateProcessor.execute()
+            logger.info("deleteGreenHouse: deleted greenhouse $greenhouseId")
             return true
         } catch (e: Exception) {
+            logger.error("deleteGreenHouse: failed to delete greenhouse $greenhouseId: ${e.message}", e)
             return false
         }
     }

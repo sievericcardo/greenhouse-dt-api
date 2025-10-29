@@ -29,6 +29,7 @@ class PlantService(
     private val repl = replConfig.repl()
 
     fun createPlant(plant: Plant): Boolean {
+        logger.info("createPlant: creating plant ${plant.plantId}")
         val query = """
             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
             PREFIX ast: <$prefix>
@@ -47,7 +48,9 @@ class PlantService(
         try {
             updateProcessor.execute()
             componentsConfig.addPlantToCache(plant)
+            logger.info("createPlant: created plant ${plant.plantId}")
         } catch (e: Exception) {
+            logger.error("createPlant: failed to create plant ${plant.plantId}: ${e.message}", e)
             return false
         }
 
@@ -55,6 +58,7 @@ class PlantService(
     }
 
     fun getAllPlants(): List<Plant>? {
+        logger.debug("getAllPlants: retrieving all plants")
         // Return cached plants if available
         val cached = componentsConfig.getPlantCache()
         if (cached.isNotEmpty()) return cached.values.toList()
@@ -98,6 +102,7 @@ class PlantService(
 
         val result: ResultSet = repl.interpreter!!.query(plants)!!
         if (!result.hasNext()) {
+            logger.debug("getAllPlants: no plants found")
             return null
         }
 
@@ -130,10 +135,12 @@ class PlantService(
         plantsList.clear()
         plantsList.addAll(uniquePlants)
 
+        logger.debug("getAllPlants: retrieved ${plantsList.size} plants")
         return plantsList
     }
 
     fun getPlantByPlantId(plantId: String): Plant? {
+        logger.debug("getPlantByPlantId: retrieving plant $plantId")
         // Return cached plant if present
         componentsConfig.getPlantById(plantId)?.let { return it }
         val query = """
@@ -176,6 +183,7 @@ class PlantService(
 
         val result: ResultSet = repl.interpreter!!.query(query)!!
         if (!result.hasNext()) {
+            logger.debug("getPlantByPlantId: plant $plantId not found")
             return null
         }
 
@@ -198,6 +206,7 @@ class PlantService(
 
         val plant = Plant(plantId, familyName, pot, moisture, healthState, status, moistureState)
         componentsConfig.addPlantToCache(plant)
+        logger.debug("getPlantByPlantId: retrieved plant $plantId")
         return plant
     }
 
@@ -258,6 +267,7 @@ class PlantService(
         val updateProcessor: UpdateProcessor = UpdateExecutionFactory.createRemote(updateRequest, fusekiEndpoint)
 
         try {
+            logger.info("updatePlant: updating plant ${plant.plantId}")
             updateProcessor.execute()
             // merge with cache if present
             val cached = componentsConfig.getPlantById(plant.plantId)
@@ -283,7 +293,9 @@ class PlantService(
                 )
             }
             componentsConfig.addPlantToCache(updatedPlant)
+            logger.info("updatePlant: updated plant ${plant.plantId}")
         } catch (e: Exception) {
+            logger.error("updatePlant: failed to update plant ${plant.plantId}: ${e.message}", e)
             return false
         }
 
@@ -311,9 +323,12 @@ class PlantService(
         val updateProcessor: UpdateProcessor = UpdateExecutionFactory.createRemote(updateRequest, fusekiEndpoint)
 
         try {
+            logger.info("deletePlant: deleting plant $plantId")
             updateProcessor.execute()
             componentsConfig.removePlantFromCache(plantId)
+            logger.info("deletePlant: deleted plant $plantId")
         } catch (e: Exception) {
+            logger.error("deletePlant: failed to delete plant $plantId: ${e.message}", e)
             return false
         }
 

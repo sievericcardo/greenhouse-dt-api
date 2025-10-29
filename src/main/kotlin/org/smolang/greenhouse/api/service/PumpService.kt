@@ -28,6 +28,7 @@ class PumpService(
     private val repl = replConfig.repl()
 
     fun createPump(newPump: Pump): Boolean {
+        logger.info("createPump: creating pump ${newPump.actuatorId}")
         val query = """
             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
             PREFIX ast: <$prefix>
@@ -46,7 +47,9 @@ class PumpService(
         try {
             updateProcessor.execute()
             componentsConfig.addPumpToCache(newPump)
+            logger.info("createPump: created pump ${newPump.actuatorId}")
         } catch (e: Exception) {
+            logger.error("createPump: failed to create pump ${newPump.actuatorId}: ${e.message}", e)
             return false
         }
 
@@ -54,6 +57,7 @@ class PumpService(
     }
 
     fun getAllPumps(): List<Pump>? {
+        logger.debug("getAllPumps: retrieving all pumps")
         // Return cached pumps if available
         val cached = componentsConfig.getPumpCache()
         if (cached.isNotEmpty()) return cached.values.toList()
@@ -107,6 +111,7 @@ class PumpService(
         val result: ResultSet = repl.interpreter!!.query(pumps)!!
 
         if (!result.hasNext()) {
+            logger.debug("getAllPumps: no pumps found")
             return null
         }
 
@@ -131,10 +136,12 @@ class PumpService(
             pumpsList.add(Pump(actuatorId, pumpChannel, modelName, lifeTime, temperature, pumpStatus))
         }
 
+        logger.debug("getAllPumps: retrieved ${pumpsList.size} pumps")
         return pumpsList
     }
 
     fun getPumpByPumpId(pumpId: String): Pump? {
+        logger.debug("getPumpByPumpId: retrieving pump $pumpId")
         componentsConfig.getPumpById(pumpId)?.let { return it }
         val pumps =
             """
@@ -185,6 +192,7 @@ class PumpService(
         val result: ResultSet = repl.interpreter!!.query(pumps)!!
 
         if (!result.hasNext()) {
+            logger.debug("getPumpByPumpId: pump $pumpId not found")
             return null
         }
 
@@ -207,11 +215,12 @@ class PumpService(
         val pump = Pump(pumpId, pumpChannel, modelName, lifeTime, temperature, pumpStatus)
         // Update cache
         componentsConfig.addPumpToCache(pump)
-
+        logger.debug("getPumpByPumpId: retrieved pump $pumpId")
         return pump
     }
 
     fun getPumpsByStatus(status: PumpState): List<Pump>? {
+        logger.debug("getPumpsByStatus: retrieving pumps with status $status")
         val pumpsList = mutableListOf<Pump>()
         val pumps =
             """
@@ -229,6 +238,7 @@ class PumpService(
         val result: ResultSet = repl.interpreter!!.query(pumps)!!
 
         if (!result.hasNext()) {
+            logger.debug("getPumpsByStatus: no pumps found with status $status")
             return null
         }
 
@@ -253,6 +263,7 @@ class PumpService(
             pumpsList.add(Pump(actuatorId, pumpChannel, modelName, lifeTime, temperature, pumpStatus))
         }
 
+        logger.debug("getPumpsByStatus: retrieved ${pumpsList.size} pumps with status $status")
         return pumpsList
     }
 

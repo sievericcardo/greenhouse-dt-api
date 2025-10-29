@@ -24,6 +24,7 @@ class WaterBucketService(
     private val repl = replConfig.repl()
 
     fun createWaterBucket(bucketId: String): Boolean {
+        logger.info("createWaterBucket: creating water bucket $bucketId")
         val query = """
             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
             PREFIX ast: <$prefix>
@@ -41,13 +42,16 @@ class WaterBucketService(
         try {
             updateProcessor.execute()
             componentsConfig.addWaterBucketToCache(WaterBucket(bucketId, null))
+            logger.info("createWaterBucket: created water bucket $bucketId")
             return true
         } catch (e: Exception) {
+            logger.error("createWaterBucket: failed to create water bucket $bucketId: ${e.message}", e)
             return false
         }
     }
 
     fun getWaterBucketsByGreenHouseId(greenhouseId: String): List<WaterBucket>? {
+        logger.debug("getWaterBucketsByGreenHouseId: retrieving buckets for greenhouse $greenhouseId")
         val waterBucketsQuery = """
             SELECT DISTINCT ?bucketId ?waterLevel WHERE {
                 ?greenhouseObj a prog:GreenHouse ;
@@ -60,6 +64,7 @@ class WaterBucketService(
 
         val result: ResultSet? = repl.interpreter!!.query(waterBucketsQuery)
         if (result == null || !result.hasNext()) {
+            logger.debug("getWaterBucketsByGreenHouseId: no buckets found for greenhouse $greenhouseId")
             return null
         }
 
@@ -73,10 +78,12 @@ class WaterBucketService(
             waterBucketsList.add(WaterBucket(bucketId, waterLevel))
         }
 
+        logger.debug("getWaterBucketsByGreenHouseId: retrieved ${waterBucketsList.size} buckets for greenhouse $greenhouseId")
         return waterBucketsList
     }
 
     fun getAllWaterBuckets(): List<WaterBucket>? {
+        logger.debug("getAllWaterBuckets: retrieving all water buckets")
         // Return cached water buckets if available
         val cached = componentsConfig.getWaterBucketCache()
         if (cached.isNotEmpty()) return cached.values.toList()
@@ -90,6 +97,7 @@ class WaterBucketService(
 
         val result: ResultSet? = repl.interpreter!!.query(waterBucketsQuery)
         if (result == null || !result.hasNext()) {
+            logger.debug("getAllWaterBuckets: no water buckets found")
             return null
         }
 
@@ -103,10 +111,12 @@ class WaterBucketService(
             waterBucketsList.add(WaterBucket(bucketId, waterLevel))
         }
 
+        logger.debug("getAllWaterBuckets: retrieved ${waterBucketsList.size} water buckets")
         return waterBucketsList
     }
 
     fun getWaterBucketById(bucketId: String): WaterBucket? {
+        logger.debug("getWaterBucketById: retrieving bucket $bucketId")
         // Try cache first
         componentsConfig.getWaterBucketById(bucketId)?.let { return it }
         val waterBucketQuery = """
@@ -119,6 +129,7 @@ class WaterBucketService(
 
         val result = repl.interpreter!!.query(waterBucketQuery)
         if (result == null || !result.hasNext()) {
+            logger.debug("getWaterBucketById: bucket $bucketId not found")
             return null
         }
 
@@ -127,10 +138,12 @@ class WaterBucketService(
 
         val bucket = WaterBucket(bucketId, waterLevel)
         componentsConfig.addWaterBucketToCache(bucket)
+        logger.debug("getWaterBucketById: retrieved bucket $bucketId")
         return bucket
     }
 
     fun updateWaterBucket(bucketId: String, newWaterLevel: Double): WaterBucket? {
+        logger.info("updateWaterBucket: updating bucket $bucketId -> new level $newWaterLevel")
         val query = """
             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
             PREFIX ast: <$prefix>
@@ -156,13 +169,16 @@ class WaterBucketService(
             updateProcessor.execute()
             val bucket = WaterBucket(bucketId, newWaterLevel)
             componentsConfig.addWaterBucketToCache(bucket)
+            logger.info("updateWaterBucket: updated bucket $bucketId")
             return bucket
         } catch (e: Exception) {
+            logger.error("updateWaterBucket: failed to update bucket $bucketId: ${e.message}", e)
             return null
         }
     }
 
     fun deleteWaterBucket(bucketId: String): Boolean {
+        logger.info("deleteWaterBucket: deleting bucket $bucketId")
         val query = """
             PREFIX ast: <$prefix>
             
@@ -184,8 +200,10 @@ class WaterBucketService(
         try {
             updateProcessor.execute()
             componentsConfig.removeWaterBucketFromCache(bucketId)
+            logger.info("deleteWaterBucket: deleted bucket $bucketId")
             return true
         } catch (e: Exception) {
+            logger.error("deleteWaterBucket: failed to delete bucket $bucketId: ${e.message}", e)
             return false
         }
     }

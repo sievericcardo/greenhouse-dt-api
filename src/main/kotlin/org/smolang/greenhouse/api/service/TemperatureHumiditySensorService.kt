@@ -27,6 +27,7 @@ class TemperatureHumiditySensorService(
     private val repl = replConfig.repl()
 
     fun createSensor(request: CreateTemperatureHumiditySensorRequest): TemperatureHumiditySensor? {
+        logger.info("createSensor: creating temp/humidity sensor ${request.sensorId}")
         val query = """
             PREFIX ast: <$prefix>
             INSERT DATA {
@@ -44,13 +45,16 @@ class TemperatureHumiditySensorService(
             updateProcessor.execute()
             val sensor = TemperatureHumiditySensor(request.sensorId)
             componentsConfig.addTemperatureHumiditySensorToCache(sensor)
+            logger.info("createSensor: created temp/humidity sensor ${request.sensorId}")
             return sensor
         } catch (e: Exception) {
+            logger.error("createSensor: failed to create temp/humidity sensor ${request.sensorId}: ${e.message}", e)
             return null
         }
     }
 
     fun updateSensor(sensorId: String, request: UpdateTemperatureHumiditySensorRequest): TemperatureHumiditySensor? {
+        logger.info("updateSensor: updating temp/humidity sensor $sensorId")
         val query = """
             PREFIX ast: <$prefix>
 
@@ -86,13 +90,16 @@ class TemperatureHumiditySensorService(
                 )
             }
             componentsConfig.addTemperatureHumiditySensorToCache(sensor)
+            logger.info("updateSensor: updated temp/humidity sensor $sensorId")
             return sensor
         } catch (e: Exception) {
+            logger.error("updateSensor: failed to update temp/humidity sensor $sensorId: ${e.message}", e)
             return null
         }
     }
 
     fun deleteSensor(sensorId: String): Boolean {
+        logger.info("deleteSensor: deleting temp/humidity sensor $sensorId")
         val query = """
             PREFIX ast: <$prefix>
 
@@ -111,13 +118,16 @@ class TemperatureHumiditySensorService(
         try {
             updateProcessor.execute()
             componentsConfig.removeTemperatureHumiditySensorFromCache(sensorId)
+            logger.info("deleteSensor: deleted temp/humidity sensor $sensorId")
             return true
         } catch (e: Exception) {
+            logger.error("deleteSensor: failed to delete temp/humidity sensor $sensorId: ${e.message}", e)
             return false
         }
     }
 
     fun getSensor(sensorId: String): TemperatureHumiditySensor? {
+        logger.debug("getSensor: retrieving temp/humidity sensor $sensorId")
         // Return cached sensor if present
         componentsConfig.getTemperatureHumiditySensorById(sensorId)?.let { return it }
         val query = """
@@ -146,10 +156,12 @@ class TemperatureHumiditySensorService(
         } else null
         val sensor = TemperatureHumiditySensor(retrievedSensorId, sensorProperty, temperature, humidity)
         componentsConfig.addTemperatureHumiditySensorToCache(sensor)
+        logger.debug("getSensor: retrieved temp/humidity sensor $sensorId")
         return sensor
     }
 
     fun getAllSensors(): List<TemperatureHumiditySensor> {
+        logger.debug("getAllSensors: retrieving all temp/humidity sensors")
         // Return cached sensors if available
         val cached = componentsConfig.getTemperatureHumiditySensorCache()
         if (cached.isNotEmpty()) return cached.values.toList()
@@ -181,6 +193,7 @@ class TemperatureHumiditySensorService(
             } else null
             sensors.add(TemperatureHumiditySensor(sensorId, sensorProperty, temperature, humidity))
         }
+        logger.debug("getAllSensors: retrieved ${sensors.size} temp/humidity sensors")
         return sensors
     }
 }
