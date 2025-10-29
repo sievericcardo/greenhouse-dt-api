@@ -38,11 +38,11 @@ class ComponentsCacheInitializer(
             temperatureHumiditySensorService.getAllSensors()
 
             // Plants, pots, pumps, sections, water buckets
+            waterBucketService.getAllWaterBuckets()
+            pumpService.getAllPumps()
             plantService.getAllPlants()
             potService.getPots()
-            pumpService.getAllPumps()
             sectionService.getAllSections()
-            waterBucketService.getAllWaterBuckets()
 
             log.info("ComponentsCacheInitializer: caches populated (attempted)")
         } catch (e: Exception) {
