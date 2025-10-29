@@ -9,7 +9,8 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import java.util.logging.Logger
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 @RestController
 @RequestMapping("/api")
@@ -17,7 +18,7 @@ class HomeController (
     private val environment: EnvironmentConfig
 ) {
 
-    private val log : Logger = Logger.getLogger(HomeController::class.java.name)
+    private val log : Logger = LoggerFactory.getLogger(HomeController::class.java.name)
 
     @GetMapping("/status")
     fun status(): String {

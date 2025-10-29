@@ -9,7 +9,8 @@ import org.smolang.greenhouse.api.service.GreenHouseService
 import org.smolang.greenhouse.api.types.CreateGreenHouseRequest
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.util.logging.Logger
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBody
 
 @RestController
@@ -19,7 +20,7 @@ class GreenHouseController (
     private val greenHouseService: GreenHouseService
 ) {
 
-    private val log: Logger = Logger.getLogger(GreenHouseController::class.java.name)
+    private val log: Logger = LoggerFactory.getLogger(GreenHouseController::class.java.name)
 
     @Operation(summary = "Create a new greenhouse")
     @ApiResponses(value = [

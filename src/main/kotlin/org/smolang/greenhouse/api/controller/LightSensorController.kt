@@ -11,7 +11,7 @@ import org.smolang.greenhouse.api.types.UpdateLightSensorRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.util.logging.Logger
+import org.slf4j.Logger
 import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBody
 
 @RestController
@@ -21,7 +21,7 @@ class LightSensorController (
     private val lightSensorService: LightSensorService
 ) {
 
-    private val log: Logger = Logger.getLogger(LightSensorController::class.java.name)
+    private val log: Logger = LoggerFactory.getLogger(LightSensorController::class.java.name)
 
     @Operation(summary = "Create a new light sensor")
     @ApiResponses(value = [

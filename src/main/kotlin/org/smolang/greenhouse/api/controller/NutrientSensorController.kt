@@ -11,7 +11,8 @@ import org.smolang.greenhouse.api.types.UpdateNutrientSensorRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.util.logging.Logger
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBody
 
 @RestController
@@ -21,7 +22,7 @@ class NutrientSensorController (
     private val nutrientSensorService: NutrientSensorService
 ) {
 
-    private val log: Logger = Logger.getLogger(NutrientSensorController::class.java.name)
+    private val log: Logger = LoggerFactory.getLogger(NutrientSensorController::class.java.name)
 
     @Operation(summary = "Create a new nutrient sensor")
     @ApiResponses(value = [

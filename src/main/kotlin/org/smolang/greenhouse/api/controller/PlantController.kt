@@ -11,7 +11,8 @@ import org.smolang.greenhouse.api.model.Plant
 import org.smolang.greenhouse.api.service.PlantService
 import org.smolang.greenhouse.api.types.PlantMoistureState
 import org.springframework.http.ResponseEntity
-import java.util.logging.Logger
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.smolang.greenhouse.api.types.CreatePlantRequest
 import org.smolang.greenhouse.api.types.UpdatePlantRequest
 import org.springframework.web.bind.annotation.*
@@ -23,7 +24,7 @@ class PlantController (
     private val plantService: PlantService
 ) {
 
-    private val log : Logger = Logger.getLogger(PlantController::class.java.name)
+    private val log : Logger = LoggerFactory.getLogger(PlantController::class.java.name)
 
     @Operation(summary = "Create a plant")
     @ApiResponses(value = [

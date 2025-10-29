@@ -1,11 +1,12 @@
 package org.smolang.greenhouse.api.tasks
 
 import io.swagger.v3.oas.annotations.Operation
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.smolang.greenhouse.api.service.DecisionService
 import org.smolang.greenhouse.api.service.MessagePublisher
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import java.util.logging.Logger
 
 @Component
 class DecisionTasks (
@@ -13,11 +14,11 @@ class DecisionTasks (
     private val messagePublisher: MessagePublisher,
 ) {
 
-    private val log: Logger = Logger.getLogger(DecisionTasks::class.java.name)
+    private val log: Logger = LoggerFactory.getLogger(DecisionTasks::class.java.name)
 
     //    @Scheduled(fixedRate = 3600000) // 3600000 milliseconds = 60 minutes
 //    @Scheduled(fixedRate = 3) // 3600000 milliseconds = 60 minutes
-    @Scheduled(cron = "0 0/3 * * * ?") // Execute every 3 minutes for testing purposes
+    @Scheduled(cron = "0 0/1 * * * ?") // Execute every 3 minutes for testing purposes
 //    @Scheduled(cron = "0 0 */6 * * *") // Execute every 6 hours
     @Operation(summary = "Make a decision every 6 hours")
     fun makeDecision() {

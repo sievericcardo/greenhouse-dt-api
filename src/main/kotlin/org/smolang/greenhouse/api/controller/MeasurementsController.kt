@@ -17,7 +17,8 @@ import org.springframework.web.bind.annotation.*
 import java.io.File
 import java.io.FileReader
 import java.time.Instant
-import java.util.logging.Logger
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 @RestController
 @RequestMapping("/api/measurements")
@@ -25,7 +26,7 @@ class MeasurementsController (
     private val environment: EnvironmentConfig
 ) {
 
-    private val log: Logger = Logger.getLogger(MeasurementsController::class.java.name)
+    private val log: Logger = LoggerFactory.getLogger(MeasurementsController::class.java.name)
     private val influxHost = environment.getOrDefault("INFLUX_URL", "localhost")
     private val influxUrl = "http://$influxHost:8086"
     private val influxToken = environment.getOrDefault("INFLUX_TOKEN", "my-token")

@@ -10,7 +10,8 @@ import org.smolang.greenhouse.api.types.CreateWaterBucketRequest
 import org.smolang.greenhouse.api.types.UpdateWaterBucketRequest
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.util.logging.Logger
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBody
 
 @RestController
@@ -20,7 +21,7 @@ class WaterBucketController (
     private val waterBucketService: WaterBucketService
 ) {
 
-    private val log: Logger = Logger.getLogger(WaterBucketController::class.java.name)
+    private val log: Logger = LoggerFactory.getLogger(WaterBucketController::class.java.name)
 
     @Operation(summary = "Create a new water bucket")
     @ApiResponses(value = [
@@ -89,19 +90,19 @@ class WaterBucketController (
     fun updateWaterBucket(@PathVariable bucketId: String,
                           @SwaggerRequestBody(description = "Water bucket to be updated") @RequestBody updateRequest: UpdateWaterBucketRequest) : ResponseEntity<WaterBucket> {
         return ResponseEntity.notFound().build()
-        log.info("Updating water bucket: $bucketId")
-
-        if (waterBucketService.updateWaterBucket(bucketId, 0.0) != null) {
-            log.severe("Water bucket not updated")
-            return ResponseEntity.badRequest().build()
-        }
-
-        log.info("Water bucket updated")
-        replConfig.regenerateSingleModel().invoke("waterbuckets")
-        
-        val updatedWaterBucket = waterBucketService.getWaterBucketById(bucketId) ?: return ResponseEntity.notFound().build()
-
-        return ResponseEntity.ok(updatedWaterBucket)
+//        log.info("Updating water bucket: $bucketId")
+//
+//        if (waterBucketService.updateWaterBucket(bucketId, 0.0) != null) {
+//            log.error("Water bucket not updated")
+//            return ResponseEntity.badRequest().build()
+//        }
+//
+//        log.info("Water bucket updated")
+//        replConfig.regenerateSingleModel().invoke("waterbuckets")
+//
+//        val updatedWaterBucket = waterBucketService.getWaterBucketById(bucketId) ?: return ResponseEntity.notFound().build()
+//
+//        return ResponseEntity.ok(updatedWaterBucket)
     }
 
     @Operation(summary = "Delete a water bucket")
@@ -116,7 +117,7 @@ class WaterBucketController (
         log.info("Deleting water bucket: $bucketId")
 
         if (!waterBucketService.deleteWaterBucket(bucketId)) {
-            log.severe("Water bucket not deleted")
+            log.error("Water bucket not deleted")
             return ResponseEntity.badRequest().build()
         }
 

@@ -12,7 +12,8 @@ import org.smolang.greenhouse.api.service.PumpService
 import org.smolang.greenhouse.api.types.PumpState
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.util.logging.Logger
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBody
 import org.smolang.greenhouse.api.types.CreatePumpRequest
 import org.smolang.greenhouse.api.types.UpdatePumpRequest
@@ -25,7 +26,7 @@ class PumpController (
     private val pumpService: PumpService
 ) {
 
-    private val log: Logger = Logger.getLogger(PumpController::class.java.name)
+    private val log: Logger = LoggerFactory.getLogger(PumpController::class.java.name)
 
     @Operation(summary = "Create a new pump")
     @ApiResponses(value = [

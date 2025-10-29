@@ -12,7 +12,8 @@ import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.model.Pot
 import org.smolang.greenhouse.api.service.PotService
 import org.springframework.http.ResponseEntity
-import java.util.logging.Logger
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.smolang.greenhouse.api.types.CreatePotRequest
 import org.smolang.greenhouse.api.types.UpdatePotRequest
 import org.springframework.web.bind.annotation.*
@@ -25,7 +26,7 @@ class PotController (
     private val potService: PotService
 ) {
 
-    private val log : Logger = Logger.getLogger(PotController::class.java.name)
+    private val log : Logger = LoggerFactory.getLogger(PotController::class.java.name)
 
     @Operation(summary = "Create a new pot")
     @ApiResponses(value = [

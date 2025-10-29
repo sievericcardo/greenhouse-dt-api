@@ -11,7 +11,8 @@ import org.smolang.greenhouse.api.types.UpdateMoistureSensorRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import java.util.logging.Logger
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBody
 
 @RestController
@@ -21,7 +22,7 @@ class MoistureSensorController (
     private val moistureSensorService: MoistureSensorService
 ) {
 
-    private val log: Logger = Logger.getLogger(MoistureSensorController::class.java.name)
+    private val log: Logger = LoggerFactory.getLogger(MoistureSensorController::class.java.name)
 
     @Operation(summary = "Create a new moisture sensor")
     @ApiResponses(value = [

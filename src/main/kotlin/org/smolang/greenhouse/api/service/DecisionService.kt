@@ -7,7 +7,7 @@ import org.smolang.greenhouse.api.config.QueueConfig
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.types.PlantMoistureState
 import org.springframework.stereotype.Service
-import java.util.logging.Logger
+import org.slf4j.Logger
 
 @Service
 class DecisionService (
@@ -70,7 +70,7 @@ class DecisionService (
                         // min across strategies for this plant (or 0 if none)
                         durations.minOrNull() ?: 0
                     } catch (e: Exception) {
-                        log.warning("Failed to compute durations for plant ${plant.plantId}: ${e.message}")
+                        log.warn("Failed to compute durations for plant ${plant.plantId}: ${e.message}")
                         null
                     }
                 }
@@ -84,11 +84,11 @@ class DecisionService (
                         pumpsToActivate.add(Triple(pump.pumpChannel, pump.actuatorId.toInt(), pumpDuration))
                         log.info("Added pump ${pump.actuatorId} (pin ${pump.pumpChannel}) with duration $pumpDuration")
                     } catch (nfe: NumberFormatException) {
-                        log.warning("Pump actuatorId is not an integer: ${pump.actuatorId}")
+                        log.warn("Pump actuatorId is not an integer: ${pump.actuatorId}")
                     }
                 }
             } catch (e: Exception) {
-                log.warning("Error processing pot ${pot.potId}: ${e.message}")
+                log.warn("Error processing pot ${pot.potId}: ${e.message}")
             }
         }
 
@@ -126,7 +126,7 @@ class DecisionService (
                 }
             }
         } else {
-            log.warning("MODE is not 'remote' (current: '$mode') - skipping message publishing. Set MODE environment variable to 'remote' to enable actuator messages.")
+            log.warn("MODE is not 'remote' (current: '$mode') - skipping message publishing. Set MODE environment variable to 'remote' to enable actuator messages.")
         }
     }
 }
