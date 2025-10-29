@@ -7,6 +7,7 @@ import org.apache.jena.update.UpdateFactory
 import org.apache.jena.update.UpdateProcessor
 import org.apache.jena.update.UpdateRequest
 import org.smolang.greenhouse.api.config.REPLConfig
+import org.smolang.greenhouse.api.config.ComponentsConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
 import org.smolang.greenhouse.api.types.PumpState
 import org.smolang.greenhouse.api.model.Pump
@@ -15,7 +16,8 @@ import org.springframework.stereotype.Service
 @Service
 class PumpService (
     private val replConfig: REPLConfig,
-    private val triplestoreProperties: TriplestoreProperties
+    private val triplestoreProperties: TriplestoreProperties,
+    private val componentsConfig: ComponentsConfig
 ) {
 
     private val tripleStore = triplestoreProperties.tripleStore
@@ -41,6 +43,7 @@ class PumpService (
 
         try {
             updateProcessor.execute()
+            componentsConfig.addPumpToCache(newPump)
         } catch (e: Exception) {
             return false
         }
@@ -188,6 +191,21 @@ class PumpService (
 
         try {
             updateProcessor.execute()
+            // merge with cache if present
+            val cached = componentsConfig.getPumpById(updatedPump.actuatorId)
+            val merged = if (cached == null) {
+                updatedPump
+            } else {
+                Pump(
+                    cached.actuatorId,
+                    updatedPump.pumpChannel.takeIf { it != 0 } ?: cached.pumpChannel,
+                    updatedPump.modelName ?: cached.modelName,
+                    updatedPump.lifeTime ?: cached.lifeTime,
+                    updatedPump.temperature ?: cached.temperature,
+                    updatedPump.pumpStatus ?: cached.pumpStatus
+                )
+            }
+            componentsConfig.addPumpToCache(merged)
         } catch (e: Exception) {
             return false
         }
@@ -215,6 +233,7 @@ class PumpService (
 
         try {
             updateProcessor.execute()
+            componentsConfig.removePumpFromCache(actuatorId)
         } catch (e: Exception) {
             return false
         }

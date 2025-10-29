@@ -5,6 +5,7 @@ import org.apache.jena.query.ResultSet
 import org.apache.jena.update.UpdateExecutionFactory
 import org.apache.jena.update.UpdateFactory
 import org.smolang.greenhouse.api.config.REPLConfig
+import org.smolang.greenhouse.api.config.ComponentsConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
 import org.smolang.greenhouse.api.model.*
 import org.smolang.greenhouse.api.types.PumpState
@@ -13,7 +14,8 @@ import org.springframework.stereotype.Service
 @Service
 class PotService (
     private val replConfig: REPLConfig,
-    private val triplestoreProperties: TriplestoreProperties
+    private val triplestoreProperties: TriplestoreProperties,
+    private val componentsConfig: ComponentsConfig
 ) {
 
     private val tripleStore = triplestoreProperties.tripleStore
@@ -38,6 +40,10 @@ class PotService (
 
         try {
             updateProcessor.execute()
+            // add minimal pot representation to cache
+            val defaultPump = Pump("default_pump_$potId", 0, null, null, null, null)
+            val pot = Pot(potId, emptyList(), null, null, defaultPump)
+            componentsConfig.addPotToCache(pot)
             return true
         } catch (e: Exception) {
             return false
@@ -151,6 +157,8 @@ class PotService (
     }
 
     private fun getPlantById(plantId: String): Plant? {
+        // Check cache first
+        componentsConfig.getPlantById(plantId)?.let { return it }
         val plantQuery = """
             SELECT DISTINCT ?familyName ?moisture ?healthState ?status WHERE {
                 ?plantObj a prog:Plant ;
@@ -172,10 +180,14 @@ class PotService (
         val healthState = if (solution.contains("?healthState")) solution.get("?healthState").asLiteral().toString() else null
         val status = if (solution.contains("?status")) solution.get("?status").asLiteral().toString() else null
         
-        return Plant(plantId, familyName, moisture, healthState, status)
+        val plant = Plant(plantId, familyName, moisture, healthState, status)
+        componentsConfig.addPlantToCache(plant)
+        return plant
     }
 
     fun getPotByPotId (id: String) : Pot? {
+        // Try cache first
+        componentsConfig.getPotById(id)?.let { return it }
         val potsQuery =
             """
              SELECT DISTINCT ?potId ?pumpId ?moistureSensorId ?moistureSensorProperty ?moistureValue ?nutrientSensorId ?nutrientSensorProperty ?nutrientValue 
@@ -296,6 +308,7 @@ class PotService (
 
         try {
             updateProcessor.execute()
+            componentsConfig.removePotFromCache(potId)
             return true
         } catch (e: Exception) {
             return false

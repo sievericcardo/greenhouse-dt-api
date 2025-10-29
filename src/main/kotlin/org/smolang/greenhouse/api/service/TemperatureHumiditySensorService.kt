@@ -4,6 +4,7 @@ import org.apache.jena.query.ResultSet
 import org.apache.jena.update.UpdateExecutionFactory
 import org.apache.jena.update.UpdateFactory
 import org.smolang.greenhouse.api.config.REPLConfig
+import org.smolang.greenhouse.api.config.ComponentsConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
 import org.smolang.greenhouse.api.model.TemperatureHumiditySensor
 import org.smolang.greenhouse.api.types.CreateTemperatureHumiditySensorRequest
@@ -13,7 +14,8 @@ import org.springframework.stereotype.Service
 @Service
 class TemperatureHumiditySensorService (
     private val replConfig: REPLConfig,
-    private val triplestoreProperties: TriplestoreProperties
+    private val triplestoreProperties: TriplestoreProperties,
+    private val componentsConfig: ComponentsConfig
 ) {
 
     private val tripleStore = triplestoreProperties.tripleStore
@@ -37,7 +39,9 @@ class TemperatureHumiditySensorService (
 
         try {
             updateProcessor.execute()
-            return TemperatureHumiditySensor(request.sensorId)
+            val sensor = TemperatureHumiditySensor(request.sensorId)
+            componentsConfig.addTemperatureHumiditySensorToCache(sensor)
+            return sensor
         } catch (e: Exception) {
             return null
         }
@@ -66,7 +70,15 @@ class TemperatureHumiditySensorService (
 
         try {
             updateProcessor.execute()
-            return TemperatureHumiditySensor(sensorId)
+            // merge with cache if present
+            val cached = componentsConfig.getTemperatureHumiditySensorById(sensorId)
+            val sensor = if (cached == null) {
+                TemperatureHumiditySensor(sensorId, request.sensorProperty, null, null)
+            } else {
+                TemperatureHumiditySensor(cached.sensorId, request.sensorProperty ?: cached.sensorProperty, cached.temperature, cached.humidity)
+            }
+            componentsConfig.addTemperatureHumiditySensorToCache(sensor)
+            return sensor
         } catch (e: Exception) {
             return null
         }
@@ -90,6 +102,7 @@ class TemperatureHumiditySensorService (
 
         try {
             updateProcessor.execute()
+            componentsConfig.removeTemperatureHumiditySensorFromCache(sensorId)
             return true
         } catch (e: Exception) {
             return false
@@ -97,6 +110,8 @@ class TemperatureHumiditySensorService (
     }
 
     fun getSensor(sensorId: String): TemperatureHumiditySensor? {
+        // Return cached sensor if present
+        componentsConfig.getTemperatureHumiditySensorById(sensorId)?.let { return it }
         val query = """
             SELECT ?sensorId ?sensorProperty ?temperature ?humidity WHERE {
                 ?obj a prog:TemperatureHumiditySensor ;
@@ -121,7 +136,9 @@ class TemperatureHumiditySensorService (
         val humidity = if (solution.contains("?humidity")) {
             solution.get("?humidity").asLiteral().toString().split("^^")[0].toDouble()
         } else null
-        return TemperatureHumiditySensor(retrievedSensorId, sensorProperty, temperature, humidity)
+        val sensor = TemperatureHumiditySensor(retrievedSensorId, sensorProperty, temperature, humidity)
+        componentsConfig.addTemperatureHumiditySensorToCache(sensor)
+        return sensor
     }
 
     fun getAllSensors(): List<TemperatureHumiditySensor> {

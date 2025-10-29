@@ -7,6 +7,7 @@ import org.apache.jena.update.UpdateFactory
 import org.apache.jena.update.UpdateProcessor
 import org.apache.jena.update.UpdateRequest
 import org.smolang.greenhouse.api.config.REPLConfig
+import org.smolang.greenhouse.api.config.ComponentsConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
 import org.smolang.greenhouse.api.model.Plant
 import org.smolang.greenhouse.api.types.PlantMoistureState
@@ -15,7 +16,8 @@ import org.springframework.stereotype.Service
 @Service
 class PlantService (
     private val replConfig: REPLConfig,
-    private val triplestoreProperties: TriplestoreProperties
+    private val triplestoreProperties: TriplestoreProperties,
+    private val componentsConfig: ComponentsConfig
 ) {
 
     private val tripleStore = triplestoreProperties.tripleStore
@@ -41,6 +43,7 @@ class PlantService (
 
         try {
             updateProcessor.execute()
+            componentsConfig.addPlantToCache(plant)
         } catch (e: Exception) {
             return false
         }
@@ -115,6 +118,8 @@ class PlantService (
     }
 
     fun getPlantByPlantId (plantId: String): Plant? {
+        // Return cached plant if present
+        componentsConfig.getPlantById(plantId)?.let { return it }
         val query = """
             SELECT DISTINCT ?familyName ?moisture ?healthState ?status ?moistureState WHERE {
                 {
@@ -166,7 +171,9 @@ class PlantService (
             else -> PlantMoistureState.UNKNOWN
         }
 
-        return Plant(plantId, familyName, moisture, healthState, status, moistureState)
+        val plant = Plant(plantId, familyName, moisture, healthState, status, moistureState)
+        componentsConfig.addPlantToCache(plant)
+        return plant
     }
 
     fun updatePlant(plant: Plant, newMoisture: Double? = null, newHealthState: String? = null, newStatus: String? = null): Boolean {
@@ -222,6 +229,28 @@ class PlantService (
 
         try {
             updateProcessor.execute()
+            // merge with cache if present
+            val cached = componentsConfig.getPlantById(plant.plantId)
+            val updatedPlant = if (cached == null) {
+                Plant(
+                    plant.plantId,
+                    plant.familyName,
+                    newMoisture ?: plant.moisture,
+                    newHealthState ?: plant.healthState,
+                    newStatus ?: plant.status,
+                    plant.moistureState
+                )
+            } else {
+                Plant(
+                    cached.plantId,
+                    newHealthState?.let { cached.familyName } ?: cached.familyName,
+                    newMoisture ?: cached.moisture,
+                    newHealthState ?: cached.healthState,
+                    newStatus ?: cached.status,
+                    cached.moistureState
+                )
+            }
+            componentsConfig.addPlantToCache(updatedPlant)
         } catch (e: Exception) {
             return false
         }
@@ -251,6 +280,7 @@ class PlantService (
 
         try {
             updateProcessor.execute()
+            componentsConfig.removePlantFromCache(plantId)
         } catch (e: Exception) {
             return false
         }

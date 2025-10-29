@@ -4,6 +4,7 @@ import org.apache.jena.query.ResultSet
 import org.apache.jena.update.UpdateExecutionFactory
 import org.apache.jena.update.UpdateFactory
 import org.smolang.greenhouse.api.config.REPLConfig
+import org.smolang.greenhouse.api.config.ComponentsConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
 import org.smolang.greenhouse.api.model.Section
 import org.springframework.stereotype.Service
@@ -12,7 +13,8 @@ import org.springframework.stereotype.Service
 class SectionService (
     private val replConfig: REPLConfig,
     private val triplestoreProperties: TriplestoreProperties,
-    private val potService: PotService
+    private val potService: PotService,
+    private val componentsConfig: ComponentsConfig
 ) {
 
     private val tripleStore = triplestoreProperties.tripleStore
@@ -37,7 +39,9 @@ class SectionService (
         try {
             updateProcessor.execute()
             val pots = potService.getPots() ?: emptyList()
-            return Section(sectionId, pots)
+            val section = Section(sectionId, pots)
+            componentsConfig.addSectionToCache(section)
+            return section
         } catch (e: Exception) {
             return null
         }
@@ -76,7 +80,9 @@ class SectionService (
     }
 
     fun getSectionById(sectionId: String): Section? {
-        return getAllSections()?.find { it.sectionId == sectionId }
+        // Check cache first
+        componentsConfig.getSectionById(sectionId)?.let { return it }
+        return getAllSections()?.find { it.sectionId == sectionId }?.also { componentsConfig.addSectionToCache(it) }
     }
 
     fun deleteSection(sectionId: String): Boolean {
@@ -100,6 +106,7 @@ class SectionService (
 
         try {
             updateProcessor.execute()
+            componentsConfig.removeSectionFromCache(sectionId)
             return true
         } catch (e: Exception) {
             return false

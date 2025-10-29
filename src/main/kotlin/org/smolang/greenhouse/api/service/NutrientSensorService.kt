@@ -4,6 +4,7 @@ import org.apache.jena.query.ResultSet
 import org.apache.jena.update.UpdateExecutionFactory
 import org.apache.jena.update.UpdateFactory
 import org.smolang.greenhouse.api.config.REPLConfig
+import org.smolang.greenhouse.api.config.ComponentsConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
 import org.smolang.greenhouse.api.model.NutrientSensor
 import org.smolang.greenhouse.api.types.CreateNutrientSensorRequest
@@ -13,7 +14,8 @@ import org.springframework.stereotype.Service
 @Service
 class NutrientSensorService (
     private val replConfig: REPLConfig,
-    private val triplestoreProperties: TriplestoreProperties
+    private val triplestoreProperties: TriplestoreProperties,
+    private val componentsConfig: ComponentsConfig
 ) {
 
     private val tripleStore = triplestoreProperties.tripleStore
@@ -37,7 +39,9 @@ class NutrientSensorService (
 
         try {
             updateProcessor.execute()
-            return NutrientSensor(request.sensorId, request.sensorProperty)
+            val sensor = NutrientSensor(request.sensorId, request.sensorProperty)
+            componentsConfig.addNutrientSensorToCache(sensor)
+            return sensor
         } catch (e: Exception) {
             return null
         }
@@ -66,7 +70,15 @@ class NutrientSensorService (
 
         try {
             updateProcessor.execute()
-            return NutrientSensor(sensorId, request.sensorProperty)
+            // merge with cache if present
+            val cached = componentsConfig.getNutrientSensorById(sensorId)
+            val sensor = if (cached == null) {
+                NutrientSensor(sensorId, request.sensorProperty)
+            } else {
+                NutrientSensor(cached.sensorId, request.sensorProperty ?: cached.sensorProperty, cached.nutrient)
+            }
+            componentsConfig.addNutrientSensorToCache(sensor)
+            return sensor
         } catch (e: Exception) {
             return null
         }
@@ -87,6 +99,7 @@ class NutrientSensorService (
 
         return try {
             updateProcessor.execute()
+            componentsConfig.removeNutrientSensorFromCache(sensorId)
             true
         } catch (e: Exception) {
             false
@@ -94,6 +107,8 @@ class NutrientSensorService (
     }
 
     fun getSensor(sensorId: String): NutrientSensor? {
+        // Return cached sensor if present
+        componentsConfig.getNutrientSensorById(sensorId)?.let { return it }
         val query = """
             SELECT ?sensorId ?sensorProperty ?nutrient WHERE {
                 ?obj a prog:NutrientSensor ;
@@ -115,7 +130,9 @@ class NutrientSensorService (
         val nutrient = if (solution.contains("?nutrient")) {
             solution.get("?nutrient").asLiteral().toString().split("^^")[0].toDouble()
         } else null
-        return NutrientSensor(sensorId, sensorProperty, nutrient)
+        val sensor = NutrientSensor(sensorId, sensorProperty, nutrient)
+        componentsConfig.addNutrientSensorToCache(sensor)
+        return sensor
     }
 
     fun getAllSensors(): List<NutrientSensor> {

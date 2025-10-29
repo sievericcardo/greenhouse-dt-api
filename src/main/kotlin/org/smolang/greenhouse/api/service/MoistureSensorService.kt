@@ -4,6 +4,7 @@ import org.apache.jena.query.ResultSet
 import org.apache.jena.update.UpdateExecutionFactory
 import org.apache.jena.update.UpdateFactory
 import org.smolang.greenhouse.api.config.REPLConfig
+import org.smolang.greenhouse.api.config.ComponentsConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
 import org.smolang.greenhouse.api.model.MoistureSensor
 import org.smolang.greenhouse.api.types.CreateMoistureSensorRequest
@@ -13,7 +14,8 @@ import org.springframework.stereotype.Service
 @Service
 class MoistureSensorService (
     private val replConfig: REPLConfig,
-    private val triplestoreProperties: TriplestoreProperties
+    private val triplestoreProperties: TriplestoreProperties,
+    private val componentsConfig: ComponentsConfig
 ) {
 
     private val tripleStore = triplestoreProperties.tripleStore
@@ -37,7 +39,9 @@ class MoistureSensorService (
 
         try {
             updateProcessor.execute()
-            return MoistureSensor(request.sensorId, request.sensorProperty)
+            val sensor = MoistureSensor(request.sensorId, request.sensorProperty)
+            componentsConfig.addMoistureSensorToCache(sensor)
+            return sensor
         } catch (e: Exception) {
             return null
         }
@@ -65,7 +69,16 @@ class MoistureSensorService (
 
         try {
             updateProcessor.execute()
-            return MoistureSensor(sensorId, request.sensorProperty)
+            // merge with cache if present
+            val cached = componentsConfig.getMoistureSensorById(sensorId)
+            val sensor = if (cached == null) {
+                MoistureSensor(sensorId, request.sensorProperty)
+            } else {
+                // keep cached moisture value, update property
+                MoistureSensor(cached.sensorId, request.sensorProperty ?: cached.sensorProperty, cached.moisture)
+            }
+            componentsConfig.addMoistureSensorToCache(sensor)
+            return sensor
         } catch (e: Exception) {
             return null
         }
@@ -85,6 +98,7 @@ class MoistureSensorService (
 
         return try {
             updateProcessor.execute()
+            componentsConfig.removeMoistureSensorFromCache(sensorId)
             true
         } catch (e: Exception) {
             false
@@ -92,6 +106,8 @@ class MoistureSensorService (
     }
 
     fun getSensor(sensorId: String): MoistureSensor? {
+        // Return cached sensor if present
+        componentsConfig.getMoistureSensorById(sensorId)?.let { return it }
         val query = """
             SELECT ?sensorId ?sensorProperty ?moisture WHERE {
                 ?obj a prog:MoistureSensor ;
@@ -113,7 +129,9 @@ class MoistureSensorService (
         val moisture = if (solution.contains("?moisture")) {
             solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble()
         } else null
-        return MoistureSensor(sensorId, sensorProperty, moisture)
+        val sensor = MoistureSensor(sensorId, sensorProperty, moisture)
+        componentsConfig.addMoistureSensorToCache(sensor)
+        return sensor
     }
 
     fun getAllSensors(): List<MoistureSensor> {

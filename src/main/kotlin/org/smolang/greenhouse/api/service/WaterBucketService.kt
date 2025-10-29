@@ -4,6 +4,7 @@ import org.apache.jena.query.ResultSet
 import org.apache.jena.update.UpdateExecutionFactory
 import org.apache.jena.update.UpdateFactory
 import org.smolang.greenhouse.api.config.REPLConfig
+import org.smolang.greenhouse.api.config.ComponentsConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
 import org.smolang.greenhouse.api.model.WaterBucket
 import org.springframework.stereotype.Service
@@ -11,7 +12,8 @@ import org.springframework.stereotype.Service
 @Service
 class WaterBucketService (
     private val replConfig: REPLConfig,
-    private val triplestoreProperties: TriplestoreProperties
+    private val triplestoreProperties: TriplestoreProperties,
+    private val componentsConfig: ComponentsConfig
 ) {
 
     private val tripleStore = triplestoreProperties.tripleStore
@@ -36,6 +38,7 @@ class WaterBucketService (
 
         try {
             updateProcessor.execute()
+            componentsConfig.addWaterBucketToCache(WaterBucket(bucketId, null))
             return true
         } catch (e: Exception) {
             return false
@@ -99,6 +102,8 @@ class WaterBucketService (
     }
 
     fun getWaterBucketById(bucketId: String): WaterBucket? {
+        // Try cache first
+        componentsConfig.getWaterBucketById(bucketId)?.let { return it }
         val waterBucketQuery = """
             SELECT DISTINCT ?waterLevel WHERE {
                 ?bucketObj a prog:WaterBucket ;
@@ -115,7 +120,9 @@ class WaterBucketService (
         val solution = result.next()
         val waterLevel = solution.get("?waterLevel").asLiteral().toString().split("^^")[0].toDouble()
 
-        return WaterBucket(bucketId, waterLevel)
+        val bucket = WaterBucket(bucketId, waterLevel)
+        componentsConfig.addWaterBucketToCache(bucket)
+        return bucket
     }
 
     fun updateWaterBucket(bucketId: String, newWaterLevel: Double): WaterBucket? {
@@ -142,7 +149,9 @@ class WaterBucketService (
 
         try {
             updateProcessor.execute()
-            return WaterBucket(bucketId, newWaterLevel)
+            val bucket = WaterBucket(bucketId, newWaterLevel)
+            componentsConfig.addWaterBucketToCache(bucket)
+            return bucket
         } catch (e: Exception) {
             return null
         }
@@ -169,6 +178,7 @@ class WaterBucketService (
 
         try {
             updateProcessor.execute()
+            componentsConfig.removeWaterBucketFromCache(bucketId)
             return true
         } catch (e: Exception) {
             return false

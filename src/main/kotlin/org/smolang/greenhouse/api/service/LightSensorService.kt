@@ -4,6 +4,7 @@ import org.apache.jena.query.ResultSet
 import org.apache.jena.update.UpdateExecutionFactory
 import org.apache.jena.update.UpdateFactory
 import org.smolang.greenhouse.api.config.REPLConfig
+import org.smolang.greenhouse.api.config.ComponentsConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
 import org.smolang.greenhouse.api.model.LightSensor
 import org.smolang.greenhouse.api.types.CreateLightSensorRequest
@@ -13,7 +14,8 @@ import org.springframework.stereotype.Service
 @Service
 class LightSensorService (
     private val replConfig: REPLConfig,
-    private val triplestoreProperties: TriplestoreProperties
+    private val triplestoreProperties: TriplestoreProperties,
+    private val componentsConfig: ComponentsConfig
 ) {
 
     private val tripleStore = triplestoreProperties.tripleStore
@@ -37,7 +39,9 @@ class LightSensorService (
 
         try {
             updateProcessor.execute()
-            return LightSensor(request.sensorId)
+            val sensor = LightSensor(request.sensorId)
+            componentsConfig.addLightSensorToCache(sensor)
+            return sensor
         } catch (e: Exception) {
             return null
         }
@@ -65,7 +69,16 @@ class LightSensorService (
 
         try {
             updateProcessor.execute()
-            return LightSensor(sensorId)
+            // merge with cache if present
+            val cached = componentsConfig.getLightSensorById(sensorId)
+            val sensor = if (cached == null) {
+                LightSensor(sensorId)
+            } else {
+                // create new instance merging known fields (sensorProperty is not used on LightSensor class currently)
+                LightSensor(sensorId)
+            }
+            componentsConfig.addLightSensorToCache(sensor)
+            return sensor
         } catch (e: Exception) {
             return null
         }
@@ -88,6 +101,7 @@ class LightSensorService (
 
         try {
             updateProcessor.execute()
+            componentsConfig.removeLightSensorFromCache(sensorId)
             return true
         } catch (e: Exception) {
             return false
@@ -95,6 +109,8 @@ class LightSensorService (
     }
 
     fun getSensor(sensorId: String): LightSensor? {
+        // Return cached sensor if available
+        componentsConfig.getLightSensorById(sensorId)?.let { return it }
         val query = """
             SELECT ?sensorId ?sensorProperty ?lightLevel WHERE {
                 ?obj a prog:LightSensor ;
@@ -116,7 +132,9 @@ class LightSensorService (
         val lightLevel = if (solution.contains("?lightLevel")) {
             solution.get("?lightLevel").asLiteral().toString().split("^^")[0].toDouble()
         } else null
-        return LightSensor(retrievedSensorId, sensorProperty, lightLevel)
+        val sensor = LightSensor(retrievedSensorId, sensorProperty, lightLevel)
+        componentsConfig.addLightSensorToCache(sensor)
+        return sensor
     }
 
     fun getAllSensors(): List<LightSensor> {
