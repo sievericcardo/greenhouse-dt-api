@@ -65,7 +65,7 @@ class PlantService (
                         prog:Plant_moistureOut ?moisture .
                     OPTIONAL { ?obj prog:Plant_healthState ?healthState }
                     OPTIONAL { ?obj prog:Plant_statusOut ?status }
-                    BIND "unknown" AS ?moistureState
+                    BIND("unknown" AS ?moistureState)
                 }
                 UNION {
                     ?obj a prog:ThirstyPlant ;
@@ -74,7 +74,7 @@ class PlantService (
                         prog:ThirstyPlant_moistureOut ?moisture .
                     OPTIONAL { ?obj prog:ThirstyPlant_healthState ?healthState }
                     OPTIONAL { ?obj prog:ThirstyPlant_statusOut ?status }
-                    BIND "thirsty" AS ?moistureState
+                    BIND("thirsty" AS ?moistureState)
                 }
                 UNION {
                     ?obj a prog:MoistPlant ;
@@ -83,7 +83,7 @@ class PlantService (
                         prog:MoistPlant_moistureOut ?moisture .
                     OPTIONAL { ?obj prog:MoistPlant_healthState ?healthState }
                     OPTIONAL { ?obj prog:MoistPlant_statusOut ?status }
-                    BIND "moist" AS ?moistureState
+                    BIND("moist" AS ?moistureState)
                 }
              }"""
 
@@ -132,7 +132,7 @@ class PlantService (
                         prog:Plant_moisture ?moisture .
                     OPTIONAL { ?plant prog:Plant_healthState ?healthState }
                     OPTIONAL { ?plant prog:Plant_status ?status }
-                    BIND "unknown" AS ?moistureState
+                    BIND("unknown" AS ?moistureState)
                 }
                 UNION {
                     ?plant a prog:ThirstyPlant ;
@@ -141,7 +141,7 @@ class PlantService (
                         prog:ThirstyPlant_moisture ?moisture .
                     OPTIONAL { ?plant prog:ThirstyPlant_healthState ?healthState }
                     OPTIONAL { ?plant prog:ThirstyPlant_status ?status }
-                    BIND "thirsty" AS ?moistureState
+                    BIND("thirsty" AS ?moistureState)
                 }
                 UNION {
                     ?plant a prog:MoistPlant ;
@@ -150,7 +150,7 @@ class PlantService (
                         prog:MoistPlant_moisture ?moisture .
                     OPTIONAL { ?plant prog:MoistPlant_healthState ?healthState }
                     OPTIONAL { ?plant prog:MoistPlant_status ?status }
-                    BIND "moist" AS ?moistureState
+                    BIND("moist" AS ?moistureState)
                 }
             }
         """.trimIndent()
