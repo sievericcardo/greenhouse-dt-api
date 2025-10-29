@@ -29,12 +29,6 @@ ast:percentage rdf:type rdfs:Datatype ;
 #    Object Properties
 #################################################################
 
-###  http://www.smolang.org/greenhouseDT#containsPlant
-ast:containsPlant rdf:type owl:ObjectProperty ;
-                  rdfs:domain ast:Pot ;
-                  rdfs:range ast:Plant .
-
-
 ###  http://www.smolang.org/greenhouseDT#containsPot
 ast:containsPot rdf:type owl:ObjectProperty ;
                 rdfs:domain ast:Section ;
@@ -85,6 +79,12 @@ ast:hasWaterLevelSensor rdf:type owl:ObjectProperty ;
 
 ###  http://www.smolang.org/greenhouseDT#hasWaterStrategy
 ast:hasWaterStrategy rdf:type owl:ObjectProperty .
+
+
+###  http://www.smolang.org/greenhouseDT#isInPot
+ast:isInPot rdf:type owl:ObjectProperty ;
+            rdfs:domain ast:Plant ;
+            rdfs:range ast:Pot .
 
 
 ###  http://www.smolang.org/greenhouseDT#wateredBy
@@ -768,10 +768,6 @@ ast:Pot rdf:type owl:Class ;
                               owl:onClass ast:Water_Strategy
                             ] ;
         rdfs:subClassOf [ rdf:type owl:Restriction ;
-                          owl:onProperty ast:containsPlant ;
-                          owl:someValuesFrom ast:Plant
-                        ] ,
-                        [ rdf:type owl:Restriction ;
                           owl:onProperty ast:wateredBy ;
                           owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
                           owl:onClass ast:Pump
@@ -1074,6 +1070,7 @@ ast:nutrientSensor1 rdf:type owl:NamedIndividual ,
 ###  http://www.smolang.org/greenhouseDT#plant1
 ast:plant1 rdf:type owl:NamedIndividual ,
                     ast:Basil ;
+           ast:isInPot ast:pot1 ;
            ast:familyName "Ocimum basilicum" ;
            ast:plantId "Riccardo" .
 
@@ -1081,7 +1078,6 @@ ast:plant1 rdf:type owl:NamedIndividual ,
 ###  http://www.smolang.org/greenhouseDT#pot1
 ast:pot1 rdf:type owl:NamedIndividual ,
                   ast:Pot ;
-         ast:containsPlant ast:plant1 ;
          ast:hasMoistureSensor ast:moistureSensor1 ;
          ast:hasNutrientSensor ast:nutrientSensor1 ;
          ast:wateredBy ast:pump1 ;

@@ -6,7 +6,6 @@ import org.apache.jena.update.UpdateFactory
 import org.smolang.greenhouse.api.config.ComponentsConfig
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
-import org.smolang.greenhouse.api.model.Plant
 import org.smolang.greenhouse.api.model.Pot
 import org.smolang.greenhouse.api.model.Pump
 import org.springframework.stereotype.Service
@@ -16,7 +15,6 @@ class PotService(
     private val replConfig: REPLConfig,
     private val triplestoreProperties: TriplestoreProperties,
     private val componentsConfig: ComponentsConfig,
-    private val plantService: PlantService,
     private val moistureSensorService: MoistureSensorService,
     private val nutrientSensorService: NutrientSensorService,
     private val pumpService: PumpService
@@ -46,7 +44,7 @@ class PotService(
             updateProcessor.execute()
             // add minimal pot representation to cache
             val defaultPump = Pump("default_pump_$potId", 0, null, null, null, null)
-            val pot = Pot(potId, emptyList(), null, null, defaultPump)
+            val pot = Pot(potId, null, null, defaultPump)
             componentsConfig.addPotToCache(pot)
             return true
         } catch (e: Exception) {
@@ -61,18 +59,13 @@ class PotService(
         // Basic pot info: only ids for sensors and pump. Plants will be queried per-pot and resolved via PlantService.
         val potsQuery =
             """
-             SELECT DISTINCT ?potId ?pumpId ?pumpChannel ?modelName ?lifeTime ?temperature ?pumpStatus ?moistureSensorId ?nutrientSensorId WHERE {
+             SELECT DISTINCT ?potId ?pumpId ?moistureSensorId ?nutrientSensorId WHERE {
                  ?potObj a prog:Pot ;
                         prog:Pot_potId ?potId .
 
                  OPTIONAL {
                      ?potObj prog:Pot_pump ?pumpObj .
-                     ?pumpObj prog:Pump_actuatorId ?pumpId ;
-                              prog:Pump_pumpChannel ?pumpChannel .
-                     OPTIONAL { ?pumpObj prog:Pump_modelName ?modelName }
-                     OPTIONAL { ?pumpObj prog:Pump_lifeTime ?lifeTime }
-                     OPTIONAL { ?pumpObj prog:Pump_temperature ?temperature }
-                     OPTIONAL { ?pumpObj prog:Pump_pumpStatus ?pumpStatus }
+                     ?pumpObj prog:Pump_actuatorId ?pumpId .
                  }
 
                  OPTIONAL {
@@ -96,24 +89,6 @@ class PotService(
         while (result.hasNext()) {
             val solution = result.next()
             val potId = solution.get("?potId").asLiteral().toString()
-
-            // Build plants list by querying the pot's plants list and resolving each plant via PlantService
-            val plants = mutableListOf<Plant>()
-            val plantsQuery = """
-                SELECT ?plantId WHERE {
-                    ?pot a prog:Pot ; prog:Pot_potId "$potId" .
-                    ?pot prog:Pot_plants ?plantObj .
-                    ?plantObj prog:Plant_plantId ?plantId .
-                }
-            """.trimIndent()
-            val plantsResult = repl.interpreter!!.query(plantsQuery)
-            if (plantsResult != null) {
-                while (plantsResult.hasNext()) {
-                    val plantSol = plantsResult.next()
-                    val plantId = plantSol.get("?plantId").asLiteral().toString()
-                    plantService.getPlantByPlantId(plantId)?.let { plants.add(it) }
-                }
-            }
 
             // Build moisture sensor if present (use MoistureSensorService to retrieve full sensor)
             val moistureSensor = if (solution.contains("?moistureSensorId")) {
@@ -139,7 +114,7 @@ class PotService(
                 return null
             }
 
-            potsList.add(Pot(potId, plants, moistureSensor, nutrientSensor, pump))
+            potsList.add(Pot(potId, moistureSensor, nutrientSensor, pump))
         }
 
         return potsList
@@ -153,16 +128,11 @@ class PotService(
             """
              SELECT DISTINCT ?potId ?pumpId ?moistureSensorId ?nutrientSensorId WHERE {
                  ?potObj a prog:Pot ;
-                        prog:Pot_potId "$id" .
-
-                 OPTIONAL {
-                     ?potObj prog:Pot_pump ?pumpObj .
-                     ?pumpObj prog:Pump_actuatorId ?pumpId .
-                     OPTIONAL { ?pumpObj prog:Pump_modelName ?modelName }
-                     OPTIONAL { ?pumpObj prog:Pump_lifeTime ?lifeTime }
-                     OPTIONAL { ?pumpObj prog:Pump_temperature ?temperature }
-                     OPTIONAL { ?pumpObj prog:Pump_pumpStatus ?pumpStatus }
-                 }
+                        prog:Pot_potId "$id" ;
+                        prog:Pot_pump ?pumpObj .
+                 
+                 ?pumpObj a prog:Pump ;
+                          prog:Pump_actuatorId ?pumpId .
 
                  OPTIONAL {
                      ?potObj prog:Pot_moistureSensor ?moistureSensorObj .
@@ -184,24 +154,6 @@ class PotService(
         val solution = result.next()
         val potId = solution.get("?potId").asLiteral().toString()
 
-        // Build plants list (query list and resolve each plant)
-        val plants = mutableListOf<Plant>()
-        val plantsQuery = """
-            SELECT ?plantId WHERE {
-                ?pot a prog:Pot ; prog:Pot_potId "$potId" .
-                ?pot prog:Pot_plants ?plantObj .
-                ?plantObj prog:Plant_plantId ?plantId .
-            }
-        """.trimIndent()
-        val plantsResult = repl.interpreter!!.query(plantsQuery)
-        if (plantsResult != null) {
-            while (plantsResult.hasNext()) {
-                val plantSol = plantsResult.next()
-                val plantId = plantSol.get("?plantId").asLiteral().toString()
-                plantService.getPlantByPlantId(plantId)?.let { plants.add(it) }
-            }
-        }
-
         // Build moisture sensor if present
         val moistureSensor = if (solution.contains("?moistureSensorId")) {
             val sensorId = solution.get("?moistureSensorId").asLiteral().toString()
@@ -222,7 +174,7 @@ class PotService(
             return null
         }
 
-        return Pot(potId, plants, moistureSensor, nutrientSensor, pump)
+        return Pot(potId, moistureSensor, nutrientSensor, pump)
     }
 
     fun deletePot(potId: String): Boolean {

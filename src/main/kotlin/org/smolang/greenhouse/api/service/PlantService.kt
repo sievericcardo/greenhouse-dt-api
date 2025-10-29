@@ -17,7 +17,8 @@ import org.springframework.stereotype.Service
 class PlantService(
     private val replConfig: REPLConfig,
     private val triplestoreProperties: TriplestoreProperties,
-    private val componentsConfig: ComponentsConfig
+    private val componentsConfig: ComponentsConfig,
+    private val potService: PotService
 ) {
 
     private val tripleStore = triplestoreProperties.tripleStore
@@ -57,11 +58,12 @@ class PlantService(
         if (cached.isNotEmpty()) return cached.values.toList()
         val plants =
             """
-             SELECT ?plantId ?familyName ?moisture ?healthState ?status ?moistureState WHERE {
+             SELECT ?plantId ?familyName ?potId ?moisture ?healthState ?status ?moistureState WHERE {
                 {
                     ?obj a prog:Plant ;
                         prog:Plant_plantId ?plantId ;
                         prog:Plant_familyNameOut ?familyName ;
+                        prog:Plant_pot ?pot ;
                         prog:Plant_moistureOut ?moisture .
                     OPTIONAL { ?obj prog:Plant_healthState ?healthState }
                     OPTIONAL { ?obj prog:Plant_statusOut ?status }
@@ -71,6 +73,7 @@ class PlantService(
                     ?obj a prog:ThirstyPlant ;
                         prog:ThirstyPlant_plantId ?plantId ;
                         prog:ThirstyPlant_familyNameOut ?familyName ;
+                        prog:ThirstyPlant_pot ?pot ;
                         prog:ThirstyPlant_moistureOut ?moisture .
                     OPTIONAL { ?obj prog:ThirstyPlant_healthState ?healthState }
                     OPTIONAL { ?obj prog:ThirstyPlant_statusOut ?status }
@@ -80,11 +83,15 @@ class PlantService(
                     ?obj a prog:MoistPlant ;
                         prog:MoistPlant_plantId ?plantId ;
                         prog:MoistPlant_familyNameOut ?familyName ;
+                        prog:MoistPlant_pot ?pot ;
                         prog:MoistPlant_moistureOut ?moisture .
                     OPTIONAL { ?obj prog:MoistPlant_healthState ?healthState }
                     OPTIONAL { ?obj prog:MoistPlant_statusOut ?status }
                     BIND("moist" AS ?moistureState)
                 }
+                
+                ?pot a prog:Pot ;
+                    prog:Pot_potId ?potId .
              }"""
 
         val result: ResultSet = repl.interpreter!!.query(plants)!!
@@ -98,6 +105,9 @@ class PlantService(
             val solution: QuerySolution = result.next()
             val plantId = solution.get("?plantId").asLiteral().toString()
             val familyName = solution.get("?familyName").asLiteral().toString()
+            val potId = solution.get("?potId").asLiteral().toString()
+            val pot = potService.getPotByPotId(potId)!!
+
             val moisture = if (solution.contains("?moisture")) solution.get("?moisture").asLiteral().toString()
                 .split("^^")[0].toDouble() else null
 //            val healthState = if (solution.contains("?healthState")) solution.get("?healthState").asLiteral().toString() else null
@@ -111,7 +121,7 @@ class PlantService(
                 else -> PlantMoistureState.UNKNOWN
             }
 
-            plantsList.add(Plant(plantId, familyName, moisture, healthState, status, moistureState))
+            plantsList.add(Plant(plantId, familyName,  pot, moisture, healthState, status, moistureState))
         }
 
         val uniquePlants = plantsList.distinctBy { it.plantId }
@@ -125,11 +135,12 @@ class PlantService(
         // Return cached plant if present
         componentsConfig.getPlantById(plantId)?.let { return it }
         val query = """
-            SELECT DISTINCT ?familyName ?moisture ?healthState ?status ?moistureState WHERE {
+            SELECT DISTINCT ?familyName ?potId ?moisture ?healthState ?status ?moistureState WHERE {
                 {
                     ?plant a prog:Plant ;
                         prog:Plant_plantId "$plantId" ;
                         prog:Plant_familyName ?familyName ;
+                        prog:Plant_pot ?pot ;
                         prog:Plant_moisture ?moisture .
                     OPTIONAL { ?plant prog:Plant_healthState ?healthState }
                     OPTIONAL { ?plant prog:Plant_status ?status }
@@ -139,6 +150,7 @@ class PlantService(
                     ?plant a prog:ThirstyPlant ;
                         prog:ThirstyPlant_plantId "$plantId" ;
                         prog:ThirstyPlant_familyName ?familyName ;
+                        prog:ThirstyPlant_pot ?pot ;
                         prog:ThirstyPlant_moisture ?moisture .
                     OPTIONAL { ?plant prog:ThirstyPlant_healthState ?healthState }
                     OPTIONAL { ?plant prog:ThirstyPlant_status ?status }
@@ -148,11 +160,15 @@ class PlantService(
                     ?plant a prog:MoistPlant ;
                         prog:MoistPlant_plantId "$plantId" ;
                         prog:MoistPlant_familyName ?familyName ;
+                        prog:MoistPlant_pot ?pot ;
                         prog:MoistPlant_moisture ?moisture .
                     OPTIONAL { ?plant prog:MoistPlant_healthState ?healthState }
                     OPTIONAL { ?plant prog:MoistPlant_status ?status }
                     BIND("moist" AS ?moistureState)
                 }
+                
+                ?pot a prog:Pot ;
+                    prog:Pot_potId ?potId .
             }
         """.trimIndent()
 
@@ -163,6 +179,9 @@ class PlantService(
 
         val solution: QuerySolution = result.next()
         val familyName = solution.get("?familyName").asLiteral().toString()
+        val potId = solution.get("?potId").asLiteral().toString()
+        val pot = potService.getPotByPotId(potId)!!
+
         val moisture = solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble()
 //        val healthState = if (solution.contains("?healthState")) solution.get("?healthState").asLiteral().toString() else null
         val healthState = null
@@ -175,7 +194,7 @@ class PlantService(
             else -> PlantMoistureState.UNKNOWN
         }
 
-        val plant = Plant(plantId, familyName, moisture, healthState, status, moistureState)
+        val plant = Plant(plantId, familyName, pot, moisture, healthState, status, moistureState)
         componentsConfig.addPlantToCache(plant)
         return plant
     }
@@ -244,6 +263,7 @@ class PlantService(
                 Plant(
                     plant.plantId,
                     plant.familyName,
+                    plant.pot,
                     newMoisture ?: plant.moisture,
                     newHealthState ?: plant.healthState,
                     newStatus ?: plant.status,
@@ -253,6 +273,7 @@ class PlantService(
                 Plant(
                     cached.plantId,
                     newHealthState?.let { cached.familyName } ?: cached.familyName,
+                    cached.pot,
                     newMoisture ?: cached.moisture,
                     newHealthState ?: cached.healthState,
                     newStatus ?: cached.status,

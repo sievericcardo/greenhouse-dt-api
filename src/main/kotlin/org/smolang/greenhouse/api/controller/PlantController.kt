@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.model.Plant
 import org.smolang.greenhouse.api.service.PlantService
+import org.smolang.greenhouse.api.service.PotService
 import org.smolang.greenhouse.api.types.CreatePlantRequest
 import org.smolang.greenhouse.api.types.PlantMoistureState
 import org.smolang.greenhouse.api.types.UpdatePlantRequest
@@ -21,7 +22,8 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBod
 @RequestMapping("/api/plants")
 class PlantController(
     private val replConfig: REPLConfig,
-    private val plantService: PlantService
+    private val plantService: PlantService,
+    private val potService: PotService
 ) {
 
     private val log: Logger = LoggerFactory.getLogger(PlantController::class.java.name)
@@ -42,9 +44,15 @@ class PlantController(
     fun createPlant(@SwaggerRequestBody(description = "Plant to be created") @RequestBody createPlantRequest: CreatePlantRequest): ResponseEntity<Boolean> {
         log.info("Creating a plant")
 
+        val pot = potService.getPotByPotId(createPlantRequest.potId) ?: run {
+            log.error("Pot with ID ${createPlantRequest.potId} not found")
+            return ResponseEntity.badRequest().build()
+        }
+
         val plant = Plant(
             createPlantRequest.plantId,
             createPlantRequest.familyName,
+            pot,
             null,
             null,
             createPlantRequest.status,

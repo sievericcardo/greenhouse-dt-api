@@ -3,14 +3,21 @@ class PlantModel extends BaseModel()
     override Unit adaptAddition()
         List<Plant> newPlants = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
-            SELECT ?plantId ?familyName ?status {
+            SELECT ?plantId ?pot ?familyName ?status {
                 ?entity rdf:type ?t ;
                     ast:plantId ?plantId ;
                     ast:familyName ?familyName ;
+                    ast:isInPot ?potOnto .
                 OPTIONAL {
                     ?entity ast:status ?status .
                 }
                 ?t rdfs:subClassOf* ast:Plant .
+
+                ?pot a prog:Pot ;
+                    prog:Pot_potId ?potId .
+                ?potOnto a ast:Pot ;
+                    ast:potId ?potId .
+
                 FILTER NOT EXISTS {
                     ?y a prog:Plant ;
                         prog:Plant_plantId ?plantId .

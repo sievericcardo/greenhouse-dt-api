@@ -99,6 +99,7 @@ class Plant extends Twin (
     hidden String plantId,
     domain String familyName,
     hidden String familyNameOut,
+    Pot pot,
     domain Double moisture,
     hidden Double moistureOut,
     domain Double ndvi,
@@ -184,35 +185,11 @@ end
 
 /* Models a physical pot. It is initially retrieved by the asset model. Each pot is associated with a moisture sensor. */
 class Pot extends Twin (
-    String potId, 
-    List<Plant> plants, 
+    String potId,
     MoistureSensor moistureSensor, 
     NutrientSensor nutrientSensor,
     Pump pump
 )
-    List<Plant> getPlants()
-        List<Plant> plants = access("
-            PREFIX ast: <http://www.smolang.org/greenhouseDT#>
-            SELECT ?obj {
-                ?pot a ast:Pot ;
-                     ast:potId %1 ;
-                     ast:hasPlant ?plants .
-                ?plants rdf:type ?t ;
-                     ast:plantId ?plantId .
-                ?t rdfs:subClassOf* ast:Plant .
-                ?obj a prog:Plant ;
-                     prog:Plant_plantId ?plantId .
-            }", this.potId);
-
-        if plants == null then
-            print("No plants found in pot " ++ this.potId);
-        else
-            print("Plants found in pot " ++ this.potId);
-        end
-
-        return plants;
-    end
-
     MoistureSensor getMoistureSensor()
         List<MoistureSensor> moistureSensors = access("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>

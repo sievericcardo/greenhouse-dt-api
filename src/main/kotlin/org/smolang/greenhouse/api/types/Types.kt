@@ -3,6 +3,7 @@ package org.smolang.greenhouse.api.types
 data class CreatePlantRequest(
     val plantId: String,
     val familyName: String,
+    val potId: String,
     val status: String? = null
 )
 

@@ -116,8 +116,8 @@ main
 
     assetModel.register(greenhouse);
     assetModel.register(sections);
-    assetModel.register(pots);
     assetModel.register(plants);
+    assetModel.register(pots);
     assetModel.register(pumps);
     assetModel.register(waterBuckets);
     assetModel.register(moistureSensors);

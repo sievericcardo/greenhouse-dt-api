@@ -24,7 +24,6 @@ class PotModel extends BaseModel()
                 print("RECONFIG> New pot detected: ");
                 print("          Pot Id: " ++ newPot.potId);
 
-                newPot.plants = newPot.getPlants();
                 newPot.moistureSensor = newPot.getMoistureSensor();
                 newPot.nutrientSensor = newPot.getNutrientSensor();
                 newPot.pump = newPot.getPump();

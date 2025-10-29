@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory
 import org.smolang.greenhouse.api.config.EnvironmentConfig
 import org.smolang.greenhouse.api.config.QueueConfig
 import org.smolang.greenhouse.api.config.REPLConfig
-import org.smolang.greenhouse.api.types.PlantMoistureState
 import org.springframework.stereotype.Service
 
 @Service
@@ -31,65 +30,54 @@ class DecisionService(
         // Triple: (pumpPin, pumpId, wateringDuration)
         val pumpsToActivate: MutableList<Triple<Int, Int, Int>> = mutableListOf()
 
-        // Get all pots (each pot contains plants and a pump)
-        val pots = potService.getPots() ?: emptyList()
+        // Get all plants (pots are reachable via plant.pot)
+        val plants = plantService.getAllPlants()
 
-        if (pots.isEmpty()) {
-            log.info("No pots found - nothing to water")
+        if (plants.isNullOrEmpty()) {
+            log.info("No plants found - skipping watering")
             return
         }
 
-        // Load all configured strategies details (durations per moisture state)
-        val allStrategies = wateringStrategyLoader.getAllStrategyDetails()
+        // Use the active watering strategy to compute per-plant durations
+        val activeStrategy = wateringStrategyLoader.getActiveStrategy()
 
-        for (pot in pots) {
-            try {
-                val pump = pot.pump
+        // Group plants by pot id - multiple plants can belong to the same pot
+        val plantsByPot = plants.groupBy { it.pot.potId }
 
-                // For each plant in the pot compute the min duration across all strategies
-                val durationPlants = pot.plants.mapNotNull { plant ->
-                    try {
-                        val stateKey = when (plant.moistureState) {
-                            PlantMoistureState.THIRSTY -> "thirsty"
-                            PlantMoistureState.MOIST -> "moist"
-                            PlantMoistureState.OVERWATERED -> "overwatered"
-                            else -> "unknown"
-                        }
+        // For each pot, compute the watering durations for all its plants and pick the minimum
+        for ((potId, potPlants) in plantsByPot) {
+            if (potPlants.isEmpty()) continue
 
-                        // collect durations for this plant from every strategy
-                        val durations = allStrategies.mapNotNull { (_, details) ->
-                            val durationsMap = details["durations"] as? Map<*, *>
-                            when (val value = durationsMap?.get(stateKey)) {
-                                is Int -> value
-                                is Number -> value.toInt()
-                                is String -> value.toIntOrNull()
-                                else -> null
-                            }
-                        }
+            val pot = potPlants.first().pot
+            val pump = pot.pump
 
-                        // min across strategies for this plant (or 0 if none)
-                        durations.minOrNull() ?: 0
-                    } catch (e: Exception) {
-                        log.warn("Failed to compute durations for plant ${plant.plantId}: ${e.message}")
-                        null
-                    }
+            // Compute durations per plant using the active strategy
+            val durations = potPlants.map { plant ->
+                try {
+                    activeStrategy.calculateWateringDuration(plant, plant.moistureState)
+                } catch (e: Exception) {
+                    log.error("Failed to calculate watering duration for plant ${plant.plantId}: ${e.message}")
+                    0
                 }
-
-                // Determine the pump duration for the pot: minimum across plants' minima
-                val pumpDuration = durationPlants.minOrNull() ?: 0
-
-                if (pumpDuration > 0) {
-                    // pump.pumpChannel used as gpio pin; actuatorId parsed to Int for pump id
-                    try {
-                        pumpsToActivate.add(Triple(pump.pumpChannel, pump.actuatorId.toInt(), pumpDuration))
-                        log.info("Added pump ${pump.actuatorId} (pin ${pump.pumpChannel}) with duration $pumpDuration")
-                    } catch (nfe: NumberFormatException) {
-                        log.warn("Pump actuatorId is not an integer: ${pump.actuatorId}")
-                    }
-                }
-            } catch (e: Exception) {
-                log.warn("Error processing pot ${pot.potId}: ${e.message}")
             }
+
+            val pumpDuration = durations.filter { it > 0 }.minOrNull() ?: durations.minOrNull() ?: 0
+
+            if (pumpDuration <= 0) {
+                log.info("Calculated pump duration <= 0 for pot $potId - skipping pump activation")
+                continue
+            }
+
+            // Convert actuator id to Int if possible
+            val actuatorIdInt = try {
+                pump.actuatorId.toInt()
+            } catch (e: NumberFormatException) {
+                log.error("Pump actuatorId is not a valid integer: ${pump.actuatorId} - skipping pump for pot $potId")
+                continue
+            }
+
+            pumpsToActivate.add(Triple(pump.pumpChannel, actuatorIdInt, pumpDuration))
+            log.info("Scheduled pump for pot $potId -> channel=${pump.pumpChannel}, actuator=${actuatorIdInt}, duration=${pumpDuration}")
         }
 
         log.info("Processed pots. Start watering: ${pumpsToActivate.size} pumps to activate")
