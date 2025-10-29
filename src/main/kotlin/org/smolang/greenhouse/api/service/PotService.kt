@@ -29,6 +29,7 @@ class PotService(
     private val repl = replConfig.repl()
 
     fun createPot(potId: String): Boolean {
+        logger.info("createPot: creating pot $potId")
         val query = """
             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
             PREFIX ast: <$prefix>
@@ -49,13 +50,16 @@ class PotService(
             val defaultPump = Pump("default_pump_$potId", 0, null, null, null, null)
             val pot = Pot(potId, null, null, defaultPump)
             componentsConfig.addPotToCache(pot)
+            logger.info("createPot: created pot $potId")
             return true
         } catch (e: Exception) {
+            logger.error("createPot: failed to create pot $potId: ${e.message}", e)
             return false
         }
     }
 
     fun getPots(): List<Pot>? {
+        logger.debug("getPots: retrieving pots")
         // Return cached pots if available
         val cached = componentsConfig.getPotCache()
         if (cached.isNotEmpty()) return cached.values.toList()
@@ -86,6 +90,7 @@ class PotService(
         val potsList = mutableListOf<Pot>()
 
         if (result == null || !result.hasNext()) {
+            logger.debug("getPots: no pots found")
             return null
         }
 
@@ -96,13 +101,23 @@ class PotService(
             // Build moisture sensor if present (use MoistureSensorService to retrieve full sensor)
             val moistureSensor = if (solution.contains("?moistureSensorId")) {
                 val sensorId = solution.get("?moistureSensorId").asLiteral().toString()
-                moistureSensorService.getSensor(sensorId)
+                try {
+                    moistureSensorService.getSensor(sensorId)
+                } catch (e: Exception) {
+                    logger.warn("Failed to resolve moisture sensor $sensorId for pot $potId: ${e.message}")
+                    null
+                }
             } else null
 
             // Build nutrient sensor if present
             val nutrientSensor = if (solution.contains("?nutrientSensorId")) {
                 val sensorId = solution.get("?nutrientSensorId").asLiteral().toString()
-                nutrientSensorService.getSensor(sensorId)
+                try {
+                    nutrientSensorService.getSensor(sensorId)
+                } catch (e: Exception) {
+                    logger.warn("Failed to resolve nutrient sensor $sensorId for pot $potId: ${e.message}")
+                    null
+                }
             } else null
 
             // Build pump: try cache first, then PumpService
@@ -123,10 +138,12 @@ class PotService(
             potsList.add(Pot(potId, moistureSensor, nutrientSensor, pump))
         }
 
+        logger.debug("getPots: retrieved ${potsList.size} pots")
         return potsList
     }
 
     fun getPotByPotId(id: String): Pot? {
+        logger.debug("getPotByPotId: retrieving pot $id")
         // Try cache first
         componentsConfig.getPotById(id)?.let { return it }
 
@@ -154,6 +171,7 @@ class PotService(
         val result: ResultSet? = repl.interpreter!!.query(potsQuery)
 
         if (result == null || !result.hasNext()) {
+            logger.debug("getPotByPotId: pot $id not found")
             return null
         }
 
@@ -180,10 +198,12 @@ class PotService(
             return null
         }
 
+        logger.debug("getPotByPotId: retrieved pot $potId")
         return Pot(potId, moistureSensor, nutrientSensor, pump)
     }
 
     fun deletePot(potId: String): Boolean {
+        logger.info("deletePot: deleting pot $potId")
         val query = """
             PREFIX ast: <$prefix>
             
@@ -205,8 +225,10 @@ class PotService(
         try {
             updateProcessor.execute()
             componentsConfig.removePotFromCache(potId)
+            logger.info("deletePot: deleted pot $potId")
             return true
         } catch (e: Exception) {
+            logger.error("deletePot: failed to delete pot $potId: ${e.message}", e)
             return false
         }
     }
