@@ -156,7 +156,7 @@ class PotService(
 
         val potsQuery =
             """
-             SELECT DISTINCT ?potId ?pumpId ?moistureSensorId ?nutrientSensorId WHERE {
+             SELECT DISTINCT ?pumpId ?moistureSensorId ?nutrientSensorId WHERE {
                  ?potObj a prog:Pot ;
                         prog:Pot_potId "$id" ;
                         prog:Pot_pump ?pumpObj .
@@ -197,7 +197,6 @@ class PotService(
         }
 
         val solution = result.next()
-        val potId = solution.get("?potId").asLiteral().toString()
 
         // Build moisture sensor if present
         val moistureSensor = if (solution.contains("?moistureSensorId")) {
@@ -215,8 +214,8 @@ class PotService(
         val pumpId = solution.get("?pumpId").asLiteral().toString()
         val pump = componentsConfig.getPumpById(pumpId) ?: pumpService.getPumpByPumpId(pumpId)!!
 
-        logger.debug("getPotByPotId: retrieved pot $potId")
-        return Pot(potId, moistureSensor, nutrientSensor, pump)
+        logger.debug("getPotByPotId: retrieved pot $id")
+        return Pot(id, moistureSensor, nutrientSensor, pump)
     }
 
     fun deletePot(potId: String): Boolean {
