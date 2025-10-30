@@ -18,7 +18,7 @@ open class REPLConfig {
 
     @PostConstruct
     fun initRepl() {
-        val verbose = false
+        val verbose = System.getenv("VERBOSE_OUTPUT")?.toBoolean() ?: true
         val materialize = true
         val liftedStateOutputPath = System.getenv("LIFTED_STATE_OUTPUT_PATH") ?: "./"
         val progPrefix = "https://github.com/Edkamb/SemanticObjects/Program#"

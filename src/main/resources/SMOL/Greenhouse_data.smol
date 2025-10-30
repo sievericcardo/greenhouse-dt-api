@@ -115,7 +115,8 @@ models "a ast:Plant ; domain:familyName %familyName ; domain:moisture %moisture 
     end
 
     Unit setPotMoisture()
-        String id = this.plantId ++ ".0";
+        //String id = this.plantId ++ ".0";
+        String id = "soil-moisture-sensor" ++ this.pot.potOffset;
         if this.moisture == null then
             this.moisture = -1.0;
         end
@@ -186,6 +187,7 @@ end
 /* Models a physical pot. It is initially retrieved by the asset model. Each pot is associated with a moisture sensor. */
 class Pot extends Twin (
     String potId,
+    String potOffset,
     MoistureSensor moistureSensor, 
     NutrientSensor nutrientSensor,
     Pump pump

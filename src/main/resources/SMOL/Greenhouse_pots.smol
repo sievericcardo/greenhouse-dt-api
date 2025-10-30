@@ -3,9 +3,10 @@ class PotModel extends BaseModel()
     override Unit adaptAddition()
         List<Pot> newPots = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
-            SELECT ?potId {
+            SELECT ?potId ?potOffset {
                 ?x a ast:Pot ;
-                    ast:potId ?potId .
+                    ast:potId ?potId ;
+                    ast:potOffset ?potOffset .
                 FILTER NOT EXISTS {
                     ?y a prog:Pot ;
                         prog:Pot_potId ?potId ; .
@@ -23,6 +24,7 @@ class PotModel extends BaseModel()
 
                 print("RECONFIG> New pot detected: ");
                 print("          Pot Id: " ++ newPot.potId);
+                print("          Pot Offset: " ++ newPot.potOffset);
 
                 newPot.moistureSensor = newPot.getMoistureSensor();
                 newPot.nutrientSensor = newPot.getNutrientSensor();

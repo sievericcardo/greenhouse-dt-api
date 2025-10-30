@@ -169,6 +169,12 @@ ast:potId rdf:type owl:DatatypeProperty ;
           rdfs:range xsd:string .
 
 
+###  http://www.smolang.org/greenhouseDT#potOffset
+ast:potOffset rdf:type owl:DatatypeProperty ;
+              rdfs:domain ast:Pot ;
+              rdfs:range xsd:string .
+
+
 ###  http://www.smolang.org/greenhouseDT#pumpChannel
 ast:pumpChannel rdf:type owl:DatatypeProperty ;
                 rdfs:domain ast:Pump ;
@@ -1356,7 +1362,8 @@ ast:pot1 rdf:type owl:NamedIndividual ,
          ast:hasMoistureSensor ast:moistureSensor1 ;
          ast:hasNutrientSensor ast:nutrientSensor1 ;
          ast:wateredBy ast:pump1 ;
-         ast:potId "soil-sensor-0" .
+         ast:potId "1" ;
+         ast:potOffset "0" .
 
 
 ###  http://www.smolang.org/greenhouseDT#pot2
@@ -1365,7 +1372,8 @@ ast:pot2 rdf:type owl:NamedIndividual ,
          ast:hasMoistureSensor ast:moistureSensor2 ;
          ast:hasNutrientSensor ast:nutrientSensor2 ;
          ast:wateredBy ast:pump2 ;
-         ast:potId "soil-sensor-1" .
+         ast:potId "2" ;
+         ast:potOffset "1" .
 
 
 ###  http://www.smolang.org/greenhouseDT#pot3
@@ -1374,7 +1382,8 @@ ast:pot3 rdf:type owl:NamedIndividual ,
          ast:hasMoistureSensor ast:moistureSensor3 ;
          ast:hasNutrientSensor ast:nutrientSensor3 ;
          ast:wateredBy ast:pump3 ;
-         ast:potId "soil-sensor-2" .
+         ast:potId "3" ;
+         ast:potOffset "2" .
 
 
 ###  http://www.smolang.org/greenhouseDT#pump1
