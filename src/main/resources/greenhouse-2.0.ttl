@@ -1081,13 +1081,13 @@ ast:pot1 rdf:type owl:NamedIndividual ,
          ast:hasMoistureSensor ast:moistureSensor1 ;
          ast:hasNutrientSensor ast:nutrientSensor1 ;
          ast:wateredBy ast:pump1 ;
-         ast:potId "Pot 1" .
+         ast:potId "1" .
 
 
 ###  http://www.smolang.org/greenhouseDT#pump1
 ast:pump1 rdf:type owl:NamedIndividual ,
                    ast:Pump ;
-          ast:actuatorId "Pump 1" ;
+          ast:actuatorId "1" ;
           ast:pumpChannel 18 .
 
 
