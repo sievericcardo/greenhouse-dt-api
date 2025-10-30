@@ -135,6 +135,9 @@ class PlantService(
         plantsList.clear()
         plantsList.addAll(uniquePlants)
 
+        // populate cache with retrieved plants
+        plantsList.forEach { componentsConfig.addPlantToCache(it) }
+
         logger.debug("getAllPlants: retrieved ${plantsList.size} plants")
         return plantsList
     }

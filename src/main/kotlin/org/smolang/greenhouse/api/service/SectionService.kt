@@ -82,7 +82,10 @@ class SectionService(
 
             // For now, return sections with empty pot lists to avoid circular dependency
             // This should be properly implemented with pot resolution later
-            sectionsList.add(Section(sectionId, emptyList()))
+            val section = Section(sectionId, emptyList())
+            // populate cache
+            componentsConfig.addSectionToCache(section)
+            sectionsList.add(section)
         }
 
         logger.debug("getAllSections: retrieved ${sectionsList.size} sections")

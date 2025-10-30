@@ -174,7 +174,10 @@ class LightSensorService(
             val lightLevel = if (solution.contains("?lightLevel")) {
                 solution.get("?lightLevel").asLiteral().toString().split("^^")[0].toDouble()
             } else null
-            sensors.add(LightSensor(sensorId, sensorProperty, lightLevel))
+            val sensor = LightSensor(sensorId, sensorProperty, lightLevel)
+            // populate cache
+            componentsConfig.addLightSensorToCache(sensor)
+            sensors.add(sensor)
         }
         logger.debug("getAllSensors: retrieved ${sensors.size} light sensors")
         return sensors

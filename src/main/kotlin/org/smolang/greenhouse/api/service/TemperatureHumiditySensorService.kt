@@ -191,7 +191,10 @@ class TemperatureHumiditySensorService(
             val humidity = if (solution.contains("?humidity")) {
                 solution.get("?humidity").asLiteral().toString().split("^^")[0].toDouble()
             } else null
-            sensors.add(TemperatureHumiditySensor(sensorId, sensorProperty, temperature, humidity))
+            val sensor = TemperatureHumiditySensor(sensorId, sensorProperty, temperature, humidity)
+            // populate cache
+            componentsConfig.addTemperatureHumiditySensorToCache(sensor)
+            sensors.add(sensor)
         }
         logger.debug("getAllSensors: retrieved ${sensors.size} temp/humidity sensors")
         return sensors

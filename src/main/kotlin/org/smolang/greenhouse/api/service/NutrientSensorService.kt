@@ -179,7 +179,10 @@ class NutrientSensorService(
             val nutrient = if (solution.contains("?nutrient")) {
                 solution.get("?nutrient").asLiteral().toString().split("^^")[0].toDouble()
             } else null
-            sensors.add(NutrientSensor(sensorId, sensorProperty, nutrient))
+            val sensor = NutrientSensor(sensorId, sensorProperty, nutrient)
+            // populate cache
+            componentsConfig.addNutrientSensorToCache(sensor)
+            sensors.add(sensor)
         }
         logger.debug("getAllSensors: retrieved ${sensors.size} nutrient sensors")
         return sensors

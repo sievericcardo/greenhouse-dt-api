@@ -171,7 +171,10 @@ class MoistureSensorService(
             val moisture = if (solution.contains("?moisture")) {
                 solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble()
             } else null
-            sensors.add(MoistureSensor(sensorId, sensorProperty, moisture))
+            val sensor = MoistureSensor(sensorId, sensorProperty, moisture)
+            // populate cache
+            componentsConfig.addMoistureSensorToCache(sensor)
+            sensors.add(sensor)
         }
         logger.debug("getAllSensors: retrieved ${sensors.size} moisture sensors")
         return sensors

@@ -133,7 +133,10 @@ class PumpService(
                 }
             } else PumpState.Unknown
 
-            pumpsList.add(Pump(actuatorId, pumpChannel, modelName, lifeTime, temperature, pumpStatus))
+            val pump = Pump(actuatorId, pumpChannel, modelName, lifeTime, temperature, pumpStatus)
+            // populate cache
+            componentsConfig.addPumpToCache(pump)
+            pumpsList.add(pump)
         }
 
         logger.debug("getAllPumps: retrieved ${pumpsList.size} pumps")

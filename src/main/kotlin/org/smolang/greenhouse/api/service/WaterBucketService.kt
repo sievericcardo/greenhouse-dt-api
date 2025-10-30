@@ -75,7 +75,10 @@ class WaterBucketService(
             val bucketId = solution.get("?bucketId").asLiteral().toString()
             val waterLevel = solution.get("?waterLevel").asLiteral().toString().split("^^")[0].toDouble()
 
-            waterBucketsList.add(WaterBucket(bucketId, waterLevel))
+            val bucket = WaterBucket(bucketId, waterLevel)
+            // populate cache
+            componentsConfig.addWaterBucketToCache(bucket)
+            waterBucketsList.add(bucket)
         }
 
         logger.debug("getWaterBucketsByGreenHouseId: retrieved ${waterBucketsList.size} buckets for greenhouse $greenhouseId")

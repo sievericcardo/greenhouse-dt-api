@@ -142,7 +142,10 @@ class PotService(
                 continue
             }
 
-            potsList.add(Pot(potId, moistureSensor, nutrientSensor, pump))
+            val pot = Pot(potId, moistureSensor, nutrientSensor, pump)
+            // populate cache
+            componentsConfig.addPotToCache(pot)
+            potsList.add(pot)
         }
 
         logger.debug("getPots: retrieved ${potsList.size} pots")
@@ -214,8 +217,11 @@ class PotService(
         val pumpId = solution.get("?pumpId").asLiteral().toString()
         val pump = componentsConfig.getPumpById(pumpId) ?: pumpService.getPumpByPumpId(pumpId)!!
 
+        val pot = Pot(id, moistureSensor, nutrientSensor, pump)
+        // populate cache
+        componentsConfig.addPotToCache(pot)
         logger.debug("getPotByPotId: retrieved pot $id")
-        return Pot(id, moistureSensor, nutrientSensor, pump)
+        return pot
     }
 
     fun deletePot(potId: String): Boolean {
