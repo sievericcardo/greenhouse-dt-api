@@ -276,6 +276,11 @@ ast:DeadBasil rdf:type owl:Class ;
               rdfs:subClassOf ast:Dead .
 
 
+###  http://www.smolang.org/greenhouseDT#Dracaena
+ast:Dracaena rdf:type owl:Class ;
+             rdfs:subClassOf ast:Plant .
+
+
 ###  http://www.smolang.org/greenhouseDT#Greenhouse
 ast:Greenhouse rdf:type owl:Class .
 
@@ -502,6 +507,8 @@ ast:MoistBasil rdf:type owl:Class ;
                                                                                  owl:onDatatype xsd:double ;
                                                                                  owl:withRestrictions ( [ xsd:minInclusive "80.0"^^xsd:double
                                                                                                         ]
+                                                                                                        [ xsd:maxExclusive "90.0"^^xsd:double
+                                                                                                        ]
                                                                                                       )
                                                                                ]
                                                           ]
@@ -515,10 +522,79 @@ ast:MoistBasil rdf:type owl:Class ;
                rdfs:subClassOf ast:MoistPlant .
 
 
+###  http://www.smolang.org/greenhouseDT#MoistDracaena
+ast:MoistDracaena rdf:type owl:Class ;
+                  owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                               owl:onProperty ast:moisture ;
+                                                               owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                    owl:onDatatype xsd:double ;
+                                                                                    owl:withRestrictions ( [ xsd:minInclusive "40.0"^^xsd:double
+                                                                                                           ]
+                                                                                                           [ xsd:maxExclusive "60.0"^^xsd:double
+                                                                                                           ]
+                                                                                                         )
+                                                                                  ]
+                                                             ]
+                                                             [ rdf:type owl:Restriction ;
+                                                               owl:onProperty ast:familyName ;
+                                                               owl:hasValue "Asparagaceae"
+                                                             ]
+                                                           ) ;
+                                        rdf:type owl:Class
+                                      ] ;
+                  rdfs:subClassOf ast:MoistPlant .
+
+
+###  http://www.smolang.org/greenhouseDT#MoistMonstera
+ast:MoistMonstera rdf:type owl:Class ;
+                  owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                               owl:onProperty ast:moisture ;
+                                                               owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                    owl:onDatatype xsd:double ;
+                                                                                    owl:withRestrictions ( [ xsd:minInclusive "50.0"^^xsd:double
+                                                                                                           ]
+                                                                                                           [ xsd:maxExclusive "70.0"^^xsd:double
+                                                                                                           ]
+                                                                                                         )
+                                                                                  ]
+                                                             ]
+                                                             [ rdf:type owl:Restriction ;
+                                                               owl:onProperty ast:familyName ;
+                                                               owl:hasValue "Araceae"
+                                                             ]
+                                                           ) ;
+                                        rdf:type owl:Class
+                                      ] ;
+                  rdfs:subClassOf ast:MoistPlant .
+
+
 ###  http://www.smolang.org/greenhouseDT#MoistPlant
 ast:MoistPlant rdf:type owl:Class ;
                rdfs:subClassOf ast:Plant ;
                owl:disjointWith ast:ThirstyPlant .
+
+
+###  http://www.smolang.org/greenhouseDT#MoistSchefflera
+ast:MoistSchefflera rdf:type owl:Class ;
+                    owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                                 owl:onProperty ast:moisture ;
+                                                                 owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                      owl:onDatatype xsd:double ;
+                                                                                      owl:withRestrictions ( [ xsd:minInclusive "30.0"^^xsd:double
+                                                                                                             ]
+                                                                                                             [ xsd:maxExclusive "60.0"^^xsd:double
+                                                                                                             ]
+                                                                                                           )
+                                                                                    ]
+                                                               ]
+                                                               [ rdf:type owl:Restriction ;
+                                                                 owl:onProperty ast:familyName ;
+                                                                 owl:hasValue "Araliaceae"
+                                                               ]
+                                                             ) ;
+                                          rdf:type owl:Class
+                                        ] ;
+                    rdfs:subClassOf ast:MoistPlant .
 
 
 ###  http://www.smolang.org/greenhouseDT#MoistureSensor
@@ -527,6 +603,11 @@ ast:MoistureSensor rdf:type owl:Class ;
                    owl:disjointWith ast:NutrientSensor ,
                                     ast:TemperatureHumiditySensor ,
                                     ast:WaterLevel .
+
+
+###  http://www.smolang.org/greenhouseDT#Monstera
+ast:Monstera rdf:type owl:Class ;
+             rdfs:subClassOf ast:Plant .
 
 
 ###  http://www.smolang.org/greenhouseDT#NutrientSensor
@@ -753,6 +834,95 @@ ast:OverheatingWPS27 rdf:type owl:Class ;
                      rdfs:subClassOf ast:Overheating .
 
 
+###  http://www.smolang.org/greenhouseDT#OverwateredBasil
+ast:OverwateredBasil rdf:type owl:Class ;
+                     owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                                  owl:onProperty ast:moisture ;
+                                                                  owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                       owl:onDatatype xsd:double ;
+                                                                                       owl:withRestrictions ( [ xsd:minInclusive "90.0"^^xsd:double
+                                                                                                              ]
+                                                                                                            )
+                                                                                     ]
+                                                                ]
+                                                                [ rdf:type owl:Restriction ;
+                                                                  owl:onProperty ast:familyName ;
+                                                                  owl:hasValue "Ocimum basilicum"
+                                                                ]
+                                                              ) ;
+                                           rdf:type owl:Class
+                                         ] ;
+                     rdfs:subClassOf ast:OverwateredPlant .
+
+
+###  http://www.smolang.org/greenhouseDT#OverwateredDracaena
+ast:OverwateredDracaena rdf:type owl:Class ;
+                        owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                                     owl:onProperty ast:moisture ;
+                                                                     owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                          owl:onDatatype xsd:double ;
+                                                                                          owl:withRestrictions ( [ xsd:minInclusive "60.0"^^xsd:double
+                                                                                                                 ]
+                                                                                                               )
+                                                                                        ]
+                                                                   ]
+                                                                   [ rdf:type owl:Restriction ;
+                                                                     owl:onProperty ast:familyName ;
+                                                                     owl:hasValue "Asparagaceae"
+                                                                   ]
+                                                                 ) ;
+                                              rdf:type owl:Class
+                                            ] ;
+                        rdfs:subClassOf ast:OverwateredPlant .
+
+
+###  http://www.smolang.org/greenhouseDT#OverwateredMonstera
+ast:OverwateredMonstera rdf:type owl:Class ;
+                        owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                                     owl:onProperty ast:moisture ;
+                                                                     owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                          owl:onDatatype xsd:double ;
+                                                                                          owl:withRestrictions ( [ xsd:minInclusive "70.0"^^xsd:double
+                                                                                                                 ]
+                                                                                                               )
+                                                                                        ]
+                                                                   ]
+                                                                   [ rdf:type owl:Restriction ;
+                                                                     owl:onProperty ast:familyName ;
+                                                                     owl:hasValue "Araceae"
+                                                                   ]
+                                                                 ) ;
+                                              rdf:type owl:Class
+                                            ] ;
+                        rdfs:subClassOf ast:OverwateredPlant .
+
+
+###  http://www.smolang.org/greenhouseDT#OverwateredPlant
+ast:OverwateredPlant rdf:type owl:Class ;
+                     rdfs:subClassOf ast:Plant .
+
+
+###  http://www.smolang.org/greenhouseDT#OverwateredSchefflera
+ast:OverwateredSchefflera rdf:type owl:Class ;
+                          owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                                       owl:onProperty ast:moisture ;
+                                                                       owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                            owl:onDatatype xsd:double ;
+                                                                                            owl:withRestrictions ( [ xsd:minInclusive "60.0"^^xsd:double
+                                                                                                                   ]
+                                                                                                                 )
+                                                                                          ]
+                                                                     ]
+                                                                     [ rdf:type owl:Restriction ;
+                                                                       owl:onProperty ast:familyName ;
+                                                                       owl:hasValue "Araliaceae"
+                                                                     ]
+                                                                   ) ;
+                                                rdf:type owl:Class
+                                              ] ;
+                          rdfs:subClassOf ast:OverwateredPlant .
+
+
 ###  http://www.smolang.org/greenhouseDT#Plant
 ast:Plant rdf:type owl:Class ;
           owl:disjointUnionOf ( ast:MoistPlant
@@ -799,6 +969,11 @@ ast:Sage rdf:type owl:Class ;
          rdfs:subClassOf ast:Plant .
 
 
+###  http://www.smolang.org/greenhouseDT#Schefflera
+ast:Schefflera rdf:type owl:Class ;
+               rdfs:subClassOf ast:Plant .
+
+
 ###  http://www.smolang.org/greenhouseDT#Section
 ast:Section rdf:type owl:Class ;
             rdfs:subClassOf ast:Greenhouse .
@@ -839,9 +1014,72 @@ ast:ThirstyBasil rdf:type owl:Class ;
                  rdfs:subClassOf ast:ThirstyPlant .
 
 
+###  http://www.smolang.org/greenhouseDT#ThirstyDracaena
+ast:ThirstyDracaena rdf:type owl:Class ;
+                    owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                                 owl:onProperty ast:moisture ;
+                                                                 owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                      owl:onDatatype xsd:double ;
+                                                                                      owl:withRestrictions ( [ xsd:maxExclusive "40.0"^^xsd:double
+                                                                                                             ]
+                                                                                                           )
+                                                                                    ]
+                                                               ]
+                                                               [ rdf:type owl:Restriction ;
+                                                                 owl:onProperty ast:familyName ;
+                                                                 owl:hasValue "Asparagaceae"
+                                                               ]
+                                                             ) ;
+                                          rdf:type owl:Class
+                                        ] ;
+                    rdfs:subClassOf ast:ThirstyPlant .
+
+
+###  http://www.smolang.org/greenhouseDT#ThirstyMonstera
+ast:ThirstyMonstera rdf:type owl:Class ;
+                    owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                                 owl:onProperty ast:moisture ;
+                                                                 owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                      owl:onDatatype xsd:double ;
+                                                                                      owl:withRestrictions ( [ xsd:maxExclusive "50.0"^^xsd:double
+                                                                                                             ]
+                                                                                                           )
+                                                                                    ]
+                                                               ]
+                                                               [ rdf:type owl:Restriction ;
+                                                                 owl:onProperty ast:familyName ;
+                                                                 owl:hasValue "Araceae"
+                                                               ]
+                                                             ) ;
+                                          rdf:type owl:Class
+                                        ] ;
+                    rdfs:subClassOf ast:ThirstyPlant .
+
+
 ###  http://www.smolang.org/greenhouseDT#ThirstyPlant
 ast:ThirstyPlant rdf:type owl:Class ;
                  rdfs:subClassOf ast:Plant .
+
+
+###  http://www.smolang.org/greenhouseDT#ThirstySchefflera
+ast:ThirstySchefflera rdf:type owl:Class ;
+                      owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                                   owl:onProperty ast:moisture ;
+                                                                   owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                        owl:onDatatype xsd:double ;
+                                                                                        owl:withRestrictions ( [ xsd:maxExclusive "30.0"^^xsd:double
+                                                                                                               ]
+                                                                                                             )
+                                                                                      ]
+                                                                 ]
+                                                                 [ rdf:type owl:Restriction ;
+                                                                   owl:onProperty ast:familyName ;
+                                                                   owl:hasValue "Araliaceae"
+                                                                 ]
+                                                               ) ;
+                                            rdf:type owl:Class
+                                          ] ;
+                      rdfs:subClassOf ast:ThirstyPlant .
 
 
 ###  http://www.smolang.org/greenhouseDT#UnHealthyMoistStrategy
@@ -1035,12 +1273,6 @@ ast:greenhouse1 rdf:type owl:NamedIndividual ,
                 ast:greenhouseId "Greenhouse 1" .
 
 
-###  http://www.smolang.org/greenhouseDT#healthyPlantStrategy
-ast:healthyPlantStrategy rdf:type owl:NamedIndividual ,
-                                  ast:Water_Strategy ;
-                         ast:secondToWater "1"^^xsd:int .
-
-
 ###  http://www.smolang.org/greenhouseDT#humidityTemperatureSensor1
 ast:humidityTemperatureSensor1 rdf:type owl:NamedIndividual ,
                                         ast:TemperatureHumiditySensor ;
@@ -1060,6 +1292,20 @@ ast:moistureSensor1 rdf:type owl:NamedIndividual ,
                     ast:sensorProperty "2.1,6.2" .
 
 
+###  http://www.smolang.org/greenhouseDT#moistureSensor2
+ast:moistureSensor2 rdf:type owl:NamedIndividual ,
+                             ast:MoistureSensor ;
+                    ast:sensorId "Moisture 2" ;
+                    ast:sensorProperty "2.1,6.2" .
+
+
+###  http://www.smolang.org/greenhouseDT#moistureSensor3
+ast:moistureSensor3 rdf:type owl:NamedIndividual ,
+                             ast:MoistureSensor ;
+                    ast:sensorId "Moisture 3" ;
+                    ast:sensorProperty "2.1,6.2" .
+
+
 ###  http://www.smolang.org/greenhouseDT#nutrientSensor1
 ast:nutrientSensor1 rdf:type owl:NamedIndividual ,
                              ast:NutrientSensor ;
@@ -1067,12 +1313,41 @@ ast:nutrientSensor1 rdf:type owl:NamedIndividual ,
                     ast:sensorProperty "1.1,8.0" .
 
 
+###  http://www.smolang.org/greenhouseDT#nutrientSensor2
+ast:nutrientSensor2 rdf:type owl:NamedIndividual ,
+                             ast:NutrientSensor ;
+                    ast:sensorId "Nutrient 2" ;
+                    ast:sensorProperty "1.1,8.0" .
+
+
+###  http://www.smolang.org/greenhouseDT#nutrientSensor3
+ast:nutrientSensor3 rdf:type owl:NamedIndividual ,
+                             ast:NutrientSensor ;
+                    ast:sensorId "Nutrient 3" ;
+                    ast:sensorProperty "1.1,8.0" .
+
+
 ###  http://www.smolang.org/greenhouseDT#plant1
 ast:plant1 rdf:type owl:NamedIndividual ,
-                    ast:Basil ;
+                    ast:Schefflera ;
            ast:isInPot ast:pot1 ;
-           ast:familyName "Ocimum basilicum" ;
-           ast:plantId "Riccardo" .
+           ast:familyName "Araliaceae" ;
+           ast:plantId "1" .
+
+
+###  http://www.smolang.org/greenhouseDT#plant2
+ast:plant2 rdf:type owl:NamedIndividual ,
+                    ast:Dracaena ;
+           ast:isInPot ast:pot2 ;
+           ast:familyName "Asparagaceae" ;
+           ast:plantId "2" .
+
+
+###  http://www.smolang.org/greenhouseDT#plant3
+ast:plant3 rdf:type owl:NamedIndividual ,
+                    ast:Monstera ;
+           ast:isInPot ast:pot3 ;
+           ast:familyName "Araceae" .
 
 
 ###  http://www.smolang.org/greenhouseDT#pot1
@@ -1081,7 +1356,25 @@ ast:pot1 rdf:type owl:NamedIndividual ,
          ast:hasMoistureSensor ast:moistureSensor1 ;
          ast:hasNutrientSensor ast:nutrientSensor1 ;
          ast:wateredBy ast:pump1 ;
-         ast:potId "1" .
+         ast:potId "soil-sensor-0" .
+
+
+###  http://www.smolang.org/greenhouseDT#pot2
+ast:pot2 rdf:type owl:NamedIndividual ,
+                  ast:Pot ;
+         ast:hasMoistureSensor ast:moistureSensor2 ;
+         ast:hasNutrientSensor ast:nutrientSensor2 ;
+         ast:wateredBy ast:pump2 ;
+         ast:potId "soil-sensor-1" .
+
+
+###  http://www.smolang.org/greenhouseDT#pot3
+ast:pot3 rdf:type owl:NamedIndividual ,
+                  ast:Pot ;
+         ast:hasMoistureSensor ast:moistureSensor3 ;
+         ast:hasNutrientSensor ast:nutrientSensor3 ;
+         ast:wateredBy ast:pump3 ;
+         ast:potId "soil-sensor-2" .
 
 
 ###  http://www.smolang.org/greenhouseDT#pump1
@@ -1091,17 +1384,25 @@ ast:pump1 rdf:type owl:NamedIndividual ,
           ast:pumpChannel 18 .
 
 
+###  http://www.smolang.org/greenhouseDT#pump2
+ast:pump2 rdf:type owl:NamedIndividual ,
+                   ast:Pump ;
+          ast:actuatorId "2" ;
+          ast:pumpChannel 19 .
+
+
+###  http://www.smolang.org/greenhouseDT#pump3
+ast:pump3 rdf:type owl:NamedIndividual ,
+                   ast:Pump ;
+          ast:actuatorId "3" ;
+          ast:pumpChannel 11 .
+
+
 ###  http://www.smolang.org/greenhouseDT#section1
 ast:section1 rdf:type owl:NamedIndividual ,
                       ast:Section ;
              ast:containsPot ast:pot1 ;
              ast:sectionId "Section 1" .
-
-
-###  http://www.smolang.org/greenhouseDT#sickPlantStrategy
-ast:sickPlantStrategy rdf:type owl:NamedIndividual ,
-                               ast:Water_Strategy ;
-                      ast:secondToWater 2 .
 
 
 ###  http://www.smolang.org/greenhouseDT#waterBucket1
