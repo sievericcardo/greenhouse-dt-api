@@ -80,10 +80,8 @@ dependencies {
         exclude group: "ch.qos.logback", module: "logback-core"
     }
     // Jackson
-    implementation("com.fasterxml.jackson.core:jackson-core:${jacksonVersion}")
-    implementation("com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:${jacksonVersion}")
-    implementation("com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     // Hoplite for YAML parsing (same version as in SemanticObjects)
     implementation("com.sksamuel.hoplite:hoplite-core:1.4.1")
     implementation("com.sksamuel.hoplite:hoplite-yaml:1.4.1")
