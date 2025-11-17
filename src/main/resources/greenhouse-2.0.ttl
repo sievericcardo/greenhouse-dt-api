@@ -282,6 +282,69 @@ ast:DeadBasil rdf:type owl:Class ;
               rdfs:subClassOf ast:Dead .
 
 
+###  http://www.smolang.org/greenhouseDT#DeadDracaena
+ast:DeadDracaena rdf:type owl:Class ;
+                 owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                              owl:onProperty ast:ndvi ;
+                                                              owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                   owl:onDatatype xsd:double ;
+                                                                                   owl:withRestrictions ( [ xsd:maxInclusive "0.0"^^xsd:double
+                                                                                                          ]
+                                                                                                        )
+                                                                                 ]
+                                                            ]
+                                                            [ rdf:type owl:Restriction ;
+                                                              owl:onProperty ast:familyName ;
+                                                              owl:hasValue "Asparagaceae"
+                                                            ]
+                                                          ) ;
+                                       rdf:type owl:Class
+                                     ] ;
+                 rdfs:subClassOf ast:Dead .
+
+
+###  http://www.smolang.org/greenhouseDT#DeadMonstera
+ast:DeadMonstera rdf:type owl:Class ;
+                 owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                              owl:onProperty ast:ndvi ;
+                                                              owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                   owl:onDatatype xsd:double ;
+                                                                                   owl:withRestrictions ( [ xsd:maxInclusive "0.0"^^xsd:double
+                                                                                                          ]
+                                                                                                        )
+                                                                                 ]
+                                                            ]
+                                                            [ rdf:type owl:Restriction ;
+                                                              owl:onProperty ast:familyName ;
+                                                              owl:hasValue "Araceae"
+                                                            ]
+                                                          ) ;
+                                       rdf:type owl:Class
+                                     ] ;
+                 rdfs:subClassOf ast:Dead .
+
+
+###  http://www.smolang.org/greenhouseDT#DeadSchefflera
+ast:DeadSchefflera rdf:type owl:Class ;
+                   owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                                owl:onProperty ast:ndvi ;
+                                                                owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                     owl:onDatatype xsd:double ;
+                                                                                     owl:withRestrictions ( [ xsd:maxInclusive "0.0"^^xsd:double
+                                                                                                            ]
+                                                                                                          )
+                                                                                   ]
+                                                              ]
+                                                              [ rdf:type owl:Restriction ;
+                                                                owl:onProperty ast:familyName ;
+                                                                owl:hasValue "Araliaceae"
+                                                              ]
+                                                            ) ;
+                                         rdf:type owl:Class
+                                       ] ;
+                   rdfs:subClassOf ast:Dead .
+
+
 ###  http://www.smolang.org/greenhouseDT#Dracaena
 ast:Dracaena rdf:type owl:Class ;
              rdfs:subClassOf ast:Plant .
@@ -289,6 +352,27 @@ ast:Dracaena rdf:type owl:Class ;
 
 ###  http://www.smolang.org/greenhouseDT#Greenhouse
 ast:Greenhouse rdf:type owl:Class .
+
+
+###  http://www.smolang.org/greenhouseDT#HealhtyMonstera
+ast:HealhtyMonstera rdf:type owl:Class ;
+                    owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                                 owl:onProperty ast:ndvi ;
+                                                                 owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                      owl:onDatatype xsd:double ;
+                                                                                      owl:withRestrictions ( [ xsd:minInclusive "0.5"^^xsd:double
+                                                                                                             ]
+                                                                                                           )
+                                                                                    ]
+                                                               ]
+                                                               [ rdf:type owl:Restriction ;
+                                                                 owl:onProperty ast:familyName ;
+                                                                 owl:hasValue "Araceae"
+                                                               ]
+                                                             ) ;
+                                          rdf:type owl:Class
+                                        ] ;
+                    rdfs:subClassOf ast:Healthy .
 
 
 ###  http://www.smolang.org/greenhouseDT#HealthState
@@ -330,6 +414,27 @@ ast:HealthyBasil rdf:type owl:Class ;
                  rdfs:subClassOf ast:Healthy .
 
 
+###  http://www.smolang.org/greenhouseDT#HealthyDracaena
+ast:HealthyDracaena rdf:type owl:Class ;
+                    owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                                 owl:onProperty ast:ndvi ;
+                                                                 owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                      owl:onDatatype xsd:double ;
+                                                                                      owl:withRestrictions ( [ xsd:minInclusive "0.5"^^xsd:double
+                                                                                                             ]
+                                                                                                           )
+                                                                                    ]
+                                                               ]
+                                                               [ rdf:type owl:Restriction ;
+                                                                 owl:onProperty ast:familyName ;
+                                                                 owl:hasValue "Asparagaceae"
+                                                               ]
+                                                             ) ;
+                                          rdf:type owl:Class
+                                        ] ;
+                    rdfs:subClassOf ast:Healthy .
+
+
 ###  http://www.smolang.org/greenhouseDT#HealthyMoistStrategy
 ast:HealthyMoistStrategy rdf:type owl:Class ;
                          owl:equivalentClass [ owl:intersectionOf ( ast:Healthy
@@ -338,6 +443,27 @@ ast:HealthyMoistStrategy rdf:type owl:Class ;
                                                rdf:type owl:Class
                                              ] ;
                          rdfs:subClassOf ast:Water_Strategy .
+
+
+###  http://www.smolang.org/greenhouseDT#HealthySchefflera
+ast:HealthySchefflera rdf:type owl:Class ;
+                      owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                                   owl:onProperty ast:ndvi ;
+                                                                   owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                        owl:onDatatype xsd:double ;
+                                                                                        owl:withRestrictions ( [ xsd:minInclusive "0.5"^^xsd:double
+                                                                                                               ]
+                                                                                                             )
+                                                                                      ]
+                                                                 ]
+                                                                 [ rdf:type owl:Restriction ;
+                                                                   owl:onProperty ast:familyName ;
+                                                                   owl:hasValue "Araliaceae"
+                                                                 ]
+                                                               ) ;
+                                            rdf:type owl:Class
+                                          ] ;
+                      rdfs:subClassOf ast:Healthy .
 
 
 ###  http://www.smolang.org/greenhouseDT#HealthyStrategy
@@ -1250,6 +1376,96 @@ ast:UnhealthyBasil rdf:type owl:Class ;
                                          rdf:type owl:Class
                                        ] ;
                    rdfs:subClassOf ast:Unhealthy .
+
+
+###  http://www.smolang.org/greenhouseDT#UnhealthyDracaena
+ast:UnhealthyDracaena rdf:type owl:Class ;
+                      owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                                   owl:onProperty ast:ndvi ;
+                                                                   owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                        owl:onDatatype xsd:double ;
+                                                                                        owl:withRestrictions ( [ xsd:minExclusive "0.0"^^xsd:double
+                                                                                                               ]
+                                                                                                             )
+                                                                                      ]
+                                                                 ]
+                                                                 [ rdf:type owl:Restriction ;
+                                                                   owl:onProperty ast:ndvi ;
+                                                                   owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                        owl:onDatatype xsd:double ;
+                                                                                        owl:withRestrictions ( [ xsd:maxExclusive "0.5"^^xsd:double
+                                                                                                               ]
+                                                                                                             )
+                                                                                      ]
+                                                                 ]
+                                                                 [ rdf:type owl:Restriction ;
+                                                                   owl:onProperty ast:familyName ;
+                                                                   owl:hasValue "Asparagaceae"
+                                                                 ]
+                                                               ) ;
+                                            rdf:type owl:Class
+                                          ] ;
+                      rdfs:subClassOf ast:Unhealthy .
+
+
+###  http://www.smolang.org/greenhouseDT#UnhealthyMonstera
+ast:UnhealthyMonstera rdf:type owl:Class ;
+                      owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                                   owl:onProperty ast:ndvi ;
+                                                                   owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                        owl:onDatatype xsd:double ;
+                                                                                        owl:withRestrictions ( [ xsd:minExclusive "0.0"^^xsd:double
+                                                                                                               ]
+                                                                                                             )
+                                                                                      ]
+                                                                 ]
+                                                                 [ rdf:type owl:Restriction ;
+                                                                   owl:onProperty ast:ndvi ;
+                                                                   owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                        owl:onDatatype xsd:double ;
+                                                                                        owl:withRestrictions ( [ xsd:maxExclusive "0.5"^^xsd:double
+                                                                                                               ]
+                                                                                                             )
+                                                                                      ]
+                                                                 ]
+                                                                 [ rdf:type owl:Restriction ;
+                                                                   owl:onProperty ast:familyName ;
+                                                                   owl:hasValue "Araceae"
+                                                                 ]
+                                                               ) ;
+                                            rdf:type owl:Class
+                                          ] ;
+                      rdfs:subClassOf ast:Unhealthy .
+
+
+###  http://www.smolang.org/greenhouseDT#UnhealthySchefflera
+ast:UnhealthySchefflera rdf:type owl:Class ;
+                        owl:equivalentClass [ owl:intersectionOf ( [ rdf:type owl:Restriction ;
+                                                                     owl:onProperty ast:ndvi ;
+                                                                     owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                          owl:onDatatype xsd:double ;
+                                                                                          owl:withRestrictions ( [ xsd:minExclusive "0.0"^^xsd:double
+                                                                                                                 ]
+                                                                                                               )
+                                                                                        ]
+                                                                   ]
+                                                                   [ rdf:type owl:Restriction ;
+                                                                     owl:onProperty ast:ndvi ;
+                                                                     owl:someValuesFrom [ rdf:type rdfs:Datatype ;
+                                                                                          owl:onDatatype xsd:double ;
+                                                                                          owl:withRestrictions ( [ xsd:maxExclusive "0.5"^^xsd:double
+                                                                                                                 ]
+                                                                                                               )
+                                                                                        ]
+                                                                   ]
+                                                                   [ rdf:type owl:Restriction ;
+                                                                     owl:onProperty ast:familyName ;
+                                                                     owl:hasValue "Araliaceae"
+                                                                   ]
+                                                                 ) ;
+                                              rdf:type owl:Class
+                                            ] ;
+                        rdfs:subClassOf ast:Unhealthy .
 
 
 ###  http://www.smolang.org/greenhouseDT#WaterBucket
