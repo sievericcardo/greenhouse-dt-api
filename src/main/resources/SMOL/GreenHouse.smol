@@ -24,11 +24,12 @@ end
  *
  *  Field this.decisions contains the control decision made by the last cycle.
  */
-class AssetModel extends Twin (List<Decision> decisions, AssetController ctrl, List<BaseModel> mods)
+// class AssetModel extends Twin (List<Decision> decisions, AssetController ctrl, List<BaseModel> mods)
+class AssetModel extends Twin (List<BaseModel> mods)
 
-    Unit decision()
-        this.ctrl.decision();
-    end
+    // Unit decision()
+    //     this.ctrl.decision();
+    // end
 
     Unit register(BaseModel m)
         this.mods = new List<BaseModel>(m, this.mods);
@@ -97,20 +98,31 @@ main
     dc.reconfigureModel(60.0); //this actually instantiated the FMU
 */
 //MBC End
-    DirectControl dc = new DirectControl(0.0, 0.0);                    //NON_MBC
-    AssetModel assetModel = new AssetModel(null, null, null);
-    AssetController ctrl = new AssetController(assetModel, dc);
-    assetModel.ctrl = ctrl;
+    //DirectControl dc = new DirectControl(0.0, 0.0);                    //NON_MBC
+    // AssetModel assetModel = new AssetModel(null, null, null);
+    // AssetController ctrl = new AssetController(assetModel, dc);
+    // assetModel.ctrl = ctrl;
+    AssetModel assetModel = new AssetModel(null);
 
-    PotModel m1 = new PotModel("pots");
-    PlantModel m2 = new PlantModel("plants");
-    PumpModel m3 = new PumpModel("pumps");
-    ShelfModel m4 = new ShelfModel("shelves");
+    GreenHouseModel greenhouse = new GreenHouseModel("greenhouse");
+    SectionModel sections = new SectionModel("sections");
+    PotModel pots = new PotModel("pots");
+    PlantModel plants = new PlantModel("plants");
+    PumpModel pumps = new PumpModel("pumps");
+    WaterBucketModel waterBuckets = new WaterBucketModel("water buckets");
+    MoistureSensorModel moistureSensors = new MoistureSensorModel("moisture sensors");
+    LightSensorModel lightSensors = new LightSensorModel("light sensors");
+    TemperatureHumiditySensorModel temperatureHumiditySensors = new TemperatureHumiditySensorModel("temperature humidity sensors");
 
-    assetModel.register(m1);
-    assetModel.register(m2);
-    assetModel.register(m3);
-    assetModel.register(m4);
+    assetModel.register(greenhouse);
+    assetModel.register(sections);
+    assetModel.register(plants);
+    assetModel.register(pots);
+    assetModel.register(pumps);
+    assetModel.register(waterBuckets);
+    assetModel.register(moistureSensors);
+    assetModel.register(lightSensors);
+    assetModel.register(temperatureHumiditySensors);
 
     //NDVI START
     // HealthModel m5 = new HealthModel("health states");
@@ -120,7 +132,7 @@ main
 
     assetModel.reconfigure();
     assetModel.reclassify();
-    assetModel.decision();
+    // assetModel.decision();
 
     breakpoint;
 end

@@ -6,10 +6,10 @@ import org.smolang.greenhouse.api.config.QueueConfig
 import org.springframework.stereotype.Service
 
 @Service
-class MessagePublisher (
+class MessagePublisher(
     private val queueConfig: QueueConfig
 ) {
-    private val queueType =  System.getenv().getOrDefault("QUEUE_TYPE", "activemq")
+    private val queueType = System.getenv().getOrDefault("QUEUE_TYPE", "activemq")
     private val connectionFactory = if (queueType == "activemq") {
         queueConfig.getActiveMQConnectionFactory()
     } else {

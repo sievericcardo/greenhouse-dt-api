@@ -6,35 +6,37 @@ import org.apache.jena.update.UpdateExecutionFactory
 import org.apache.jena.update.UpdateFactory
 import org.apache.jena.update.UpdateProcessor
 import org.apache.jena.update.UpdateRequest
+import org.slf4j.LoggerFactory
+import org.smolang.greenhouse.api.config.ComponentsConfig
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
-import org.smolang.greenhouse.api.types.PumpState
 import org.smolang.greenhouse.api.model.Pump
+import org.smolang.greenhouse.api.types.PumpState
 import org.springframework.stereotype.Service
 
 @Service
-class PumpService (
+class PumpService(
     private val replConfig: REPLConfig,
-    private val triplestoreProperties: TriplestoreProperties
+    private val triplestoreProperties: TriplestoreProperties,
+    private val componentsConfig: ComponentsConfig
 ) {
 
+    private val logger = LoggerFactory.getLogger(PumpService::class.java)
     private val tripleStore = triplestoreProperties.tripleStore
     private val prefix = triplestoreProperties.prefix
     private val ttlPrefix = triplestoreProperties.ttlPrefix
     private val repl = replConfig.repl()
 
-    fun createPump(newPump: Pump) : Boolean {
+    fun createPump(newPump: Pump): Boolean {
+        logger.info("createPump: creating pump ${newPump.actuatorId}")
         val query = """
             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
             PREFIX ast: <$prefix>
             
             INSERT DATA {
-                ast:${newPump.pumpId} a ast:Pump ;
-                    ast:pumpGpioPin ${newPump.pumpGpioPin} ;
-                    ast:pumpId "${newPump.pumpId}" ;
-                    ast:modelName "${newPump.modelName}" ;
-                    ast:pumpLifeTime ${newPump.lifeTime} ;
-                    ast:temperature "${newPump.temperature}"^^xsd:double .
+                ast:${newPump.actuatorId} a ast:Pump ;
+                    ast:actuatorId "${newPump.actuatorId}" ;
+                    ast:pumpChannel ${newPump.pumpChannel} .
             }
         """
 
@@ -44,164 +46,278 @@ class PumpService (
 
         try {
             updateProcessor.execute()
+            componentsConfig.addPumpToCache(newPump)
+            logger.info("createPump: created pump ${newPump.actuatorId}")
         } catch (e: Exception) {
+            logger.error("createPump: failed to create pump ${newPump.actuatorId}: ${e.message}", e)
             return false
         }
 
         return true
     }
 
-    fun getOperatingPumps() : List<Pump>? {
+    fun getAllPumps(): List<Pump>? {
+        logger.debug("getAllPumps: retrieving all pumps")
+        // Return cached pumps if available
+        val cached = componentsConfig.getPumpCache()
+        if (cached.isNotEmpty()) return cached.values.toList()
         val pumpsList = mutableListOf<Pump>()
         val pumps =
             """
-             SELECT DISTINCT ?pumpGpioPin ?pumpId ?modelName ?pumpLifeTime ?temperature WHERE {
-                ?obj a prog:OperatingPump ;
-                    prog:OperatingPump_pumpGpioPin ?pumpGpioPin ;
-                    prog:OperatingPump_pumpId ?pumpId ;
-                    prog:OperatingPump_modelNameOut ?modelName ;
-                    prog:OperatingPump_pumpLifeTimeOut ?pumpLifeTime ;
-                    prog:OperatingPump_temperatureOut ?temperature .
+             SELECT DISTINCT ?actuatorId ?pumpChannel ?modelName ?lifeTime ?temperature ?pumpStatus WHERE {
+                {
+                    ?obj a prog:Pump ;
+                        prog:Pump_actuatorId ?actuatorId ;
+                        prog:Pump_pumpChannel ?pumpChannel .
+                    OPTIONAL { ?obj prog:Pump_modelName ?modelName }
+                    OPTIONAL { ?obj prog:Pump_lifeTime ?lifeTime }
+                    OPTIONAL { ?obj prog:Pump_temperature ?temperature }
+                    OPTIONAL { ?obj prog:Pump_pumpStatus ?pumpStatus }
+                } UNION {
+                    ?obj a prog:OperatingPump ;
+                        prog:OperatingPump_actuatorId ?actuatorId ;
+                        prog:OperatingPump_pumpChannel ?pumpChannel .
+                    OPTIONAL { ?obj prog:OperatingPump_modelName ?modelName }
+                    OPTIONAL { ?obj prog:OperatingPump_lifeTime ?lifeTime }
+                    OPTIONAL { ?obj prog:OperatingPump_temperature ?temperature }
+                    OPTIONAL { ?obj prog:OperatingPump_pumpStatus ?pumpStatus }
+                } UNION {
+                    ?obj a prog:MaintenancePump ;
+                        prog:MaintenancePump_actuatorId ?actuatorId ;
+                        prog:MaintenancePump_pumpChannel ?pumpChannel .
+                    OPTIONAL { ?obj prog:MaintenancePump_modelName ?modelName }
+                    OPTIONAL { ?obj prog:MaintenancePump_lifeTime ?lifeTime }
+                    OPTIONAL { ?obj prog:MaintenancePump_temperature ?temperature }
+                    OPTIONAL { ?obj prog:MaintenancePump_pumpStatus ?pumpStatus }
+                } UNION {
+                    ?obj a prog:OverheatingPump ;
+                        prog:OverheatingPump_actuatorId ?actuatorId ;
+                        prog:OverheatingPump_pumpChannel ?pumpChannel .
+                    OPTIONAL { ?obj prog:OverheatingPump_modelName ?modelName }
+                    OPTIONAL { ?obj prog:OverheatingPump_lifeTime ?lifeTime }
+                    OPTIONAL { ?obj prog:OverheatingPump_temperature ?temperature }
+                    OPTIONAL { ?obj prog:OverheatingPump_pumpStatus ?pumpStatus }
+                } UNION {
+                    ?obj a prog:UnderheatingPump ;
+                        prog:UnderheatingPump_actuatorId ?actuatorId ;
+                        prog:UnderheatingPump_pumpChannel ?pumpChannel .
+                    OPTIONAL { ?obj prog:UnderheatingPump_modelName ?modelName }
+                    OPTIONAL { ?obj prog:UnderheatingPump_lifeTime ?lifeTime }
+                    OPTIONAL { ?obj prog:UnderheatingPump_temperature ?temperature }
+                    OPTIONAL { ?obj prog:UnderheatingPump_pumpStatus ?pumpStatus }
+                }
              }""".trimIndent()
 
         val result: ResultSet = repl.interpreter!!.query(pumps)!!
 
         if (!result.hasNext()) {
+            logger.debug("getAllPumps: no pumps found")
             return null
         }
 
         while (result.hasNext()) {
             val solution: QuerySolution = result.next()
-            val pumpGpioPin = solution.get("?pumpGpioPin").asLiteral().toString().split("^^")[0].toInt()
-            val pumpId = solution.get("?pumpId").asLiteral().toString()
-            val modelName = solution.get("?modelName").asLiteral().toString()
-            val lifeTime = solution.get("?pumpLifeTime").asLiteral().toString().split("^^")[0].toInt()
-            val temperature = solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble()
+            val actuatorId = solution.get("?actuatorId").asLiteral().toString()
+            val pumpChannel = solution.get("?pumpChannel").asLiteral().toString().split("^^")[0].toInt()
+            val modelName =
+                if (solution.contains("?modelName")) solution.get("?modelName").asLiteral().toString() else null
+            val lifeTime = if (solution.contains("?lifeTime")) solution.get("?lifeTime").asLiteral().toString()
+                .split("^^")[0].toInt() else null
+            val temperature = if (solution.contains("?temperature")) solution.get("?temperature").asLiteral().toString()
+                .split("^^")[0].toDouble() else null
+            val pumpStatus = if (solution.contains("?pumpStatus")) {
+                try {
+                    PumpState.valueOf(solution.get("?pumpStatus").asLiteral().toString())
+                } catch (e: IllegalArgumentException) {
+                    PumpState.Unknown
+                }
+            } else PumpState.Unknown
 
-            pumpsList.add(Pump(pumpGpioPin, pumpId, modelName, lifeTime, temperature, PumpState.Operating))
+            val pump = Pump(actuatorId, pumpChannel, modelName, lifeTime, temperature, pumpStatus)
+            // populate cache
+            componentsConfig.addPumpToCache(pump)
+            pumpsList.add(pump)
         }
 
+        logger.debug("getAllPumps: retrieved ${pumpsList.size} pumps")
         return pumpsList
     }
 
-    fun getMaintenancePumps() : List<Pump>? {
-        val pumpsList = mutableListOf<Pump>()
+    fun getPumpByPumpId(pumpId: String): Pump? {
+        logger.debug("getPumpByPumpId: retrieving pump $pumpId")
+        componentsConfig.getPumpById(pumpId)?.let { return it }
         val pumps =
             """
-             SELECT DISTINCT ?pumpGpioPin ?pumpId ?modelName ?pumpLifeTime ?temperature WHERE {
-                ?obj a prog:MaintenancePump ;
-                    prog:MaintenancePump_pumpGpioPin ?pumpGpioPin ;
-                    prog:MaintenancePump_pumpId ?pumpId ;
-                    prog:MaintenancePump_modelNameOut ?modelName ;
-                    prog:MaintenancePump_pumpLifeTimeOut ?pumpLifeTime ;
-                    prog:MaintenancePump_temperatureOut ?temperature .
+             SELECT ?pumpChannel ?modelName ?lifeTime ?temperature ?pumpStatus WHERE {
+                {
+                    ?obj a prog:Pump ;
+                        prog:Pump_actuatorId "$pumpId" ;
+                        prog:Pump_pumpChannel ?pumpChannel .
+                    OPTIONAL { ?obj prog:Pump_modelName ?modelName }
+                    OPTIONAL { ?obj prog:Pump_lifeTime ?lifeTime }
+                    OPTIONAL { ?obj prog:Pump_temperature ?temperature }
+                    OPTIONAL { ?obj prog:Pump_pumpStatus ?pumpStatus }
+                } UNION {
+                    ?obj a prog:OperatingPump ;
+                        prog:OperatingPump_actuatorId "$pumpId" ;
+                        prog:OperatingPump_pumpChannel ?pumpChannel .
+                    OPTIONAL { ?obj prog:OperatingPump_modelName ?modelName }
+                    OPTIONAL { ?obj prog:OperatingPump_lifeTime ?lifeTime }
+                    OPTIONAL { ?obj prog:OperatingPump_temperature ?temperature }
+                    OPTIONAL { ?obj prog:OperatingPump_pumpStatus ?pumpStatus }
+                } UNION {
+                    ?obj a prog:MaintenancePump ;
+                        prog:MaintenancePump_actuatorId "$pumpId" ;
+                        prog:MaintenancePump_pumpChannel ?pumpChannel .
+                    OPTIONAL { ?obj prog:MaintenancePump_modelName ?modelName }
+                    OPTIONAL { ?obj prog:MaintenancePump_lifeTime ?lifeTime }
+                    OPTIONAL { ?obj prog:MaintenancePump_temperature ?temperature }
+                    OPTIONAL { ?obj prog:MaintenancePump_pumpStatus ?pumpStatus }
+                } UNION {
+                    ?obj a prog:OverheatingPump ;
+                        prog:OverheatingPump_actuatorId "$pumpId" ;
+                        prog:OverheatingPump_pumpChannel ?pumpChannel .
+                    OPTIONAL { ?obj prog:OverheatingPump_modelName ?modelName }
+                    OPTIONAL { ?obj prog:OverheatingPump_lifeTime ?lifeTime }
+                    OPTIONAL { ?obj prog:OverheatingPump_temperature ?temperature }
+                    OPTIONAL { ?obj prog:OverheatingPump_pumpStatus ?pumpStatus }
+                } UNION {
+                    ?obj a prog:UnderheatingPump ;
+                        prog:UnderheatingPump_actuatorId "$pumpId" ;
+                        prog:UnderheatingPump_pumpChannel ?pumpChannel .
+                    OPTIONAL { ?obj prog:UnderheatingPump_modelName ?modelName }
+                    OPTIONAL { ?obj prog:UnderheatingPump_lifeTime ?lifeTime }
+                    OPTIONAL { ?obj prog:UnderheatingPump_temperature ?temperature }
+                    OPTIONAL { ?obj prog:UnderheatingPump_pumpStatus ?pumpStatus }
+                }
              }""".trimIndent()
 
         val result: ResultSet = repl.interpreter!!.query(pumps)!!
 
         if (!result.hasNext()) {
+            logger.debug("getPumpByPumpId: pump $pumpId not found")
             return null
         }
 
-        while (result.hasNext()) {
-            val solution: QuerySolution = result.next()
-            val pumpGpioPin = solution.get("?pumpGpioPin").asLiteral().toString().split("^^")[0].toInt()
-            val pumpId = solution.get("?pumpId").asLiteral().toString()
-            val modelName = solution.get("?modelName").asLiteral().toString()
-            val lifeTime = solution.get("?pumpLifeTime").asLiteral().toString().split("^^")[0].toInt()
-            val temperature = solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble()
+        val solution: QuerySolution = result.next()
+        val pumpChannel = solution.get("?pumpChannel").asLiteral().toString().split("^^")[0].toInt()
+        val modelName =
+            if (solution.contains("?modelName")) solution.get("?modelName").asLiteral().toString() else null
+        val lifeTime = if (solution.contains("?lifeTime")) solution.get("?lifeTime").asLiteral().toString()
+            .split("^^")[0].toInt() else null
+        val temperature = if (solution.contains("?temperature")) solution.get("?temperature").asLiteral().toString()
+            .split("^^")[0].toDouble() else null
+        val pumpStatus = if (solution.contains("?pumpStatus")) {
+            try {
+                PumpState.valueOf(solution.get("?pumpStatus").asLiteral().toString())
+            } catch (e: IllegalArgumentException) {
+                PumpState.Unknown
+            }
+        } else PumpState.Unknown
 
-            pumpsList.add(Pump(pumpGpioPin, pumpId, modelName, lifeTime, temperature, PumpState.Maintenance))
-        }
-
-        return pumpsList
+        val pump = Pump(pumpId, pumpChannel, modelName, lifeTime, temperature, pumpStatus)
+        // Update cache
+        componentsConfig.addPumpToCache(pump)
+        logger.debug("getPumpByPumpId: retrieved pump $pumpId")
+        return pump
     }
 
-    fun getOverheatingPumps() : List<Pump>? {
+    fun getPumpsByStatus(status: PumpState): List<Pump>? {
+        logger.debug("getPumpsByStatus: retrieving pumps with status $status")
         val pumpsList = mutableListOf<Pump>()
         val pumps =
             """
-             SELECT DISTINCT ?pumpGpioPin ?pumpId ?modelName ?pumpLifeTime ?temperature WHERE {
-                ?obj a prog:OverheatingPump ;
-                    prog:OverheatingPump_pumpGpioPin ?pumpGpioPin ;
-                    prog:OverheatingPump_pumpId ?pumpId ;
-                    prog:OverheatingPump_modelNameOut ?modelName ;
-                    prog:OverheatingPump_pumpLifeTimeOut ?pumpLifeTime ;
-                    prog:OverheatingPump_temperatureOut ?temperature .
+             SELECT DISTINCT ?actuatorId ?pumpChannel ?modelName ?lifeTime ?temperature ?pumpStatus WHERE {
+                ?obj a prog:Pump ;
+                    prog:Pump_actuatorId ?actuatorId ;
+                    prog:Pump_pumpChannel ?pumpChannel ;
+                    prog:Pump_pumpStatus "$status" .
+                OPTIONAL { ?obj prog:Pump_modelName ?modelName }
+                OPTIONAL { ?obj prog:Pump_lifeTime ?lifeTime }
+                OPTIONAL { ?obj prog:Pump_temperature ?temperature }
+                OPTIONAL { ?obj prog:Pump_pumpStatus ?pumpStatus }
              }""".trimIndent()
 
         val result: ResultSet = repl.interpreter!!.query(pumps)!!
 
         if (!result.hasNext()) {
+            logger.debug("getPumpsByStatus: no pumps found with status $status")
             return null
         }
 
         while (result.hasNext()) {
             val solution: QuerySolution = result.next()
-            val pumpGpioPin = solution.get("?pumpGpioPin").asLiteral().toString().split("^^")[0].toInt()
-            val pumpId = solution.get("?pumpId").asLiteral().toString()
-            val modelName = solution.get("?modelName").asLiteral().toString()
-            val lifeTime = solution.get("?pumpLifeTime").asLiteral().toString().split("^^")[0].toInt()
-            val temperature = solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble()
+            val actuatorId = solution.get("?actuatorId").asLiteral().toString()
+            val pumpChannel = solution.get("?pumpChannel").asLiteral().toString().split("^^")[0].toInt()
+            val modelName =
+                if (solution.contains("?modelName")) solution.get("?modelName").asLiteral().toString() else null
+            val lifeTime = if (solution.contains("?lifeTime")) solution.get("?lifeTime").asLiteral().toString()
+                .split("^^")[0].toInt() else null
+            val temperature = if (solution.contains("?temperature")) solution.get("?temperature").asLiteral().toString()
+                .split("^^")[0].toDouble() else null
+            val pumpStatus = if (solution.contains("?pumpStatus")) {
+                try {
+                    PumpState.valueOf(solution.get("?pumpStatus").asLiteral().toString())
+                } catch (e: IllegalArgumentException) {
+                    null
+                }
+            } else null
 
-            pumpsList.add(Pump(pumpGpioPin, pumpId, modelName, lifeTime, temperature, PumpState.Overheating))
+            pumpsList.add(Pump(actuatorId, pumpChannel, modelName, lifeTime, temperature, pumpStatus))
         }
 
+        logger.debug("getPumpsByStatus: retrieved ${pumpsList.size} pumps with status $status")
         return pumpsList
     }
 
-    fun getUnderheatingPumps() : List<Pump>? {
-        val pumpsList = mutableListOf<Pump>()
-        val pumps =
-            """
-             SELECT DISTINCT ?pumpGpioPin ?pumpId ?modelName ?pumpLifeTime ?temperature WHERE {
-                ?obj a prog:UnderheatingPump ;
-                    prog:UnderheatingPump_pumpGpioPin ?pumpGpioPin ;
-                    prog:UnderheatingPump_pumpId ?pumpId ;
-                    prog:UnderheatingPump_modelNameOut ?modelName ;
-                    prog:UnderheatingPump_pumpLifeTimeOut ?pumpLifeTime ;
-                    prog:UnderheatingPump_temperatureOut ?temperature .
-             }""".trimIndent()
+    fun getOperatingPumps(): List<Pump>? = getPumpsByStatus(PumpState.Operating)
+    fun getMaintenancePumps(): List<Pump>? = getPumpsByStatus(PumpState.Maintenance)
+    fun getOverheatingPumps(): List<Pump>? = getPumpsByStatus(PumpState.Overheating)
+    fun getUnderheatingPumps(): List<Pump>? = getPumpsByStatus(PumpState.Underheating)
 
-        val result: ResultSet = repl.interpreter!!.query(pumps)!!
+    fun updatePump(updatedPump: Pump): Boolean {
+        var deleteClause = ""
+        var insertClause = ""
 
-        if (!result.hasNext()) {
-            return null
+        // Build dynamic update based on what fields are not null
+        if (updatedPump.temperature != null) {
+            deleteClause += "OPTIONAL { ?pump ast:temperature ?oldTemperature } .\n"
+            insertClause += "?pump ast:temperature \"${updatedPump.temperature}\"^^xsd:double .\n"
         }
 
-        while (result.hasNext()) {
-            val solution: QuerySolution = result.next()
-            val pumpGpioPin = solution.get("?pumpGpioPin").asLiteral().toString().split("^^")[0].toInt()
-            val pumpId = solution.get("?pumpId").asLiteral().toString()
-            val modelName = solution.get("?modelName").asLiteral().toString()
-            val lifeTime = solution.get("?pumpLifeTime").asLiteral().toString().split("^^")[0].toInt()
-            val temperature = solution.get("?temperature").asLiteral().toString().split("^^")[0].toDouble()
-
-            pumpsList.add(Pump(pumpGpioPin, pumpId, modelName, lifeTime, temperature, PumpState.Underheating))
+        if (updatedPump.lifeTime != null) {
+            deleteClause += "OPTIONAL { ?pump ast:lifeTime ?oldLifeTime } .\n"
+            insertClause += "?pump ast:lifeTime ${updatedPump.lifeTime} .\n"
         }
 
-        return pumpsList
-    }
+        if (updatedPump.modelName != null) {
+            deleteClause += "OPTIONAL { ?pump ast:modelName ?oldModelName } .\n"
+            insertClause += "?pump ast:modelName \"${updatedPump.modelName}\" .\n"
+        }
 
-    fun updatePump(updatedPump: Pump) : Boolean {
+        if (updatedPump.pumpStatus != null) {
+            deleteClause += "OPTIONAL { ?pump ast:pumpStatus ?oldStatus } .\n"
+            insertClause += "?pump ast:pumpStatus \"${updatedPump.pumpStatus}\" .\n"
+        }
+
+        if (deleteClause.isEmpty() && insertClause.isEmpty()) {
+            return false // Nothing to update
+        }
+
         val updateQuery = """
             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
             PREFIX ast: <$prefix>
             
             DELETE {
-                ?pump ast:temperature ?oldTemperature .
-                ?pump ast:pumpLifeTime ?oldLifeTime .
+                ${if (updatedPump.temperature != null) "?pump ast:temperature ?oldTemperature .\n" else ""}${if (updatedPump.lifeTime != null) "?pump ast:lifeTime ?oldLifeTime .\n" else ""}${if (updatedPump.modelName != null) "?pump ast:modelName ?oldModelName .\n" else ""}${if (updatedPump.pumpStatus != null) "?pump ast:pumpStatus ?oldStatus .\n" else ""}
             }
             INSERT {
-                ?pump ast:temperature "${updatedPump.temperature}"^^xsd:double .
-                ?pump ast:pumpLifeTime ${updatedPump.lifeTime} .
+                $insertClause
             }
             WHERE {
                 ?pump a ast:Pump ;
-                    ast:pumpGpioPin ${updatedPump.pumpGpioPin} ;
-                    ast:pumpId "${updatedPump.pumpId}" ;
-                    ast:temperature ?oldTemperature ;
-                    ast:pumpLifeTime ?oldLifeTime .
+                    ast:actuatorId "${updatedPump.actuatorId}" .
+                $deleteClause
             }
         """
 
@@ -211,6 +327,21 @@ class PumpService (
 
         try {
             updateProcessor.execute()
+            // merge with cache if present
+            val cached = componentsConfig.getPumpById(updatedPump.actuatorId)
+            val merged = if (cached == null) {
+                updatedPump
+            } else {
+                Pump(
+                    cached.actuatorId,
+                    updatedPump.pumpChannel.takeIf { it != 0 } ?: cached.pumpChannel,
+                    updatedPump.modelName ?: cached.modelName,
+                    updatedPump.lifeTime ?: cached.lifeTime,
+                    updatedPump.temperature ?: cached.temperature,
+                    updatedPump.pumpStatus ?: cached.pumpStatus
+                )
+            }
+            componentsConfig.addPumpToCache(merged)
         } catch (e: Exception) {
             return false
         }
@@ -218,21 +349,17 @@ class PumpService (
         return true
     }
 
-    fun deletePump(pumpId: String) : Boolean {
+    fun deletePump(actuatorId: String): Boolean {
         val deletePump = """
             PREFIX ast: <$prefix>
             
             DELETE {
-                ?pump a ast:Pump ;
-                    ast:pumpGpioPin ?pumpGpioPin ;
-                    ast:pumpId ?pumpId ;
-                    ast:modelName ?modelName ;
-                    ast:pumpLifeTime ?pumpLifeTime ;
-                    ast:temperature ?temperature .
+                ?pump ?p ?o .
             }
             WHERE {
                 ?pump a ast:Pump ;
-                    ast:pumpId "$pumpId" .
+                    ast:actuatorId "$actuatorId" ;
+                    ?p ?o .
             }
         """
 
@@ -242,6 +369,7 @@ class PumpService (
 
         try {
             updateProcessor.execute()
+            componentsConfig.removePumpFromCache(actuatorId)
         } catch (e: Exception) {
             return false
         }

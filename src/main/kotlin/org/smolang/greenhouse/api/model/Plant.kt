@@ -1,10 +1,13 @@
 package org.smolang.greenhouse.api.model
 
-class Plant (
+import org.smolang.greenhouse.api.types.PlantMoistureState
+
+class Plant(
     val plantId: String,
-    val idealMoisture: Double,
-    val moisture: Double,
-    val healthState: String,
-    val status: String
-) {
-}
+    val familyName: String,
+    val pot: Pot,
+    val moisture: Double?,
+    val healthState: String?,
+    val status: String?,
+    val moistureState: PlantMoistureState
+)

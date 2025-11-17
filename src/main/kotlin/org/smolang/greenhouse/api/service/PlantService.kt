@@ -6,30 +6,38 @@ import org.apache.jena.update.UpdateExecutionFactory
 import org.apache.jena.update.UpdateFactory
 import org.apache.jena.update.UpdateProcessor
 import org.apache.jena.update.UpdateRequest
+import org.slf4j.LoggerFactory
+import org.smolang.greenhouse.api.config.ComponentsConfig
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.config.TriplestoreProperties
 import org.smolang.greenhouse.api.model.Plant
+import org.smolang.greenhouse.api.types.PlantMoistureState
 import org.springframework.stereotype.Service
 
 @Service
-class PlantService (
+class PlantService(
     private val replConfig: REPLConfig,
-    private val triplestoreProperties: TriplestoreProperties
+    private val triplestoreProperties: TriplestoreProperties,
+    private val componentsConfig: ComponentsConfig,
+    private val potService: PotService
 ) {
 
+    private val logger = LoggerFactory.getLogger(PlantService::class.java)
     private val tripleStore = triplestoreProperties.tripleStore
     private val prefix = triplestoreProperties.prefix
     private val ttlPrefix = triplestoreProperties.ttlPrefix
     private val repl = replConfig.repl()
 
     fun createPlant(plant: Plant): Boolean {
+        logger.info("createPlant: creating plant ${plant.plantId}")
         val query = """
             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
             PREFIX ast: <$prefix>
             INSERT DATA {
-                $prefix:plant${plant.plantId} a ast:Plant ;
-                    $prefix:idealMoisture "${plant.idealMoisture}"^^xsd:double ;
-                    $prefix:status "${plant.status}" .
+                ast:plant${plant.plantId} a ast:Plant ;
+                    ast:plantId "${plant.plantId}" ;
+                    ast:familyName "${plant.familyName}" ;
+                    ast:moisture "${plant.moisture}"^^xsd:double .
             }
         """.trimIndent()
 
@@ -39,92 +47,231 @@ class PlantService (
 
         try {
             updateProcessor.execute()
+            componentsConfig.addPlantToCache(plant)
+            logger.info("createPlant: created plant ${plant.plantId}")
         } catch (e: Exception) {
+            logger.error("createPlant: failed to create plant ${plant.plantId}: ${e.message}", e)
             return false
         }
 
         return true
     }
 
-    fun getAllPlants() : List<Plant>? {
+    fun getAllPlants(): List<Plant>? {
+        logger.debug("getAllPlants: retrieving all plants")
+        // Return cached plants if available
+        val cached = componentsConfig.getPlantCache()
+        if (cached.isNotEmpty()) return cached.values.toList()
         val plants =
             """
-             SELECT DISTINCT ?plantId ?idealMoisture ?moisture ?healthState ?status WHERE {
-                ?obj a prog:Plant ;
-                    prog:Plant_plantId ?plantId ;
-                    prog:Plant_idealMoisture ?idealMoisture ;
-                    prog:Plant_moisture ?moisture ;
-                    prog:Plant_healthState ?healthState ;
-                    prog:Plant_status ?status .
+             SELECT ?plantId ?familyName ?potId ?moisture ?healthState ?status ?moistureState WHERE {
+                {
+                    ?obj a prog:Plant ;
+                        prog:Plant_plantId ?plantId ;
+                        prog:Plant_familyNameOut ?familyName ;
+                        prog:Plant_pot ?pot ;
+                        prog:Plant_moistureOut ?moisture .
+                    OPTIONAL { ?obj prog:Plant_healthState ?healthState }
+                    OPTIONAL { ?obj prog:Plant_statusOut ?status }
+                    BIND("unknown" AS ?moistureState)
+                }
+                UNION {
+                    ?obj a prog:ThirstyPlant ;
+                        prog:ThirstyPlant_plantId ?plantId ;
+                        prog:ThirstyPlant_familyNameOut ?familyName ;
+                        prog:ThirstyPlant_pot ?pot ;
+                        prog:ThirstyPlant_moistureOut ?moisture .
+                    OPTIONAL { ?obj prog:ThirstyPlant_healthState ?healthState }
+                    OPTIONAL { ?obj prog:ThirstyPlant_statusOut ?status }
+                    BIND("thirsty" AS ?moistureState)
+                }
+                UNION {
+                    ?obj a prog:MoistPlant ;
+                        prog:MoistPlant_plantId ?plantId ;
+                        prog:MoistPlant_familyNameOut ?familyName ;
+                        prog:MoistPlant_pot ?pot ;
+                        prog:MoistPlant_moistureOut ?moisture .
+                    OPTIONAL { ?obj prog:MoistPlant_healthState ?healthState }
+                    OPTIONAL { ?obj prog:MoistPlant_statusOut ?status }
+                    BIND("moist" AS ?moistureState)
+                }
+                UNION {
+                    ?obj a prog:OverwateredPlant ;
+                        prog:OverwateredPlant_plantId ?plantId ;
+                        prog:OverwateredPlant_familyNameOut ?familyName ;
+                        prog:OverwateredPlant_pot ?pot ;
+                        prog:OverwateredPlant_moistureOut ?moisture .
+                    OPTIONAL { ?obj prog:OverwateredPlant_healthState ?healthState }
+                    OPTIONAL { ?obj prog:OverwateredPlant_statusOut ?status }
+                    BIND("overwatered" AS ?moistureState)
+                }
+                
+                ?pot a prog:Pot ;
+                    prog:Pot_potId ?potId .
              }"""
 
-        val result : ResultSet = repl.interpreter!!.query(plants)!!
+        val result: ResultSet = repl.interpreter!!.query(plants)!!
         if (!result.hasNext()) {
+            logger.debug("getAllPlants: no plants found")
             return null
         }
 
         val plantsList = mutableListOf<Plant>()
 
         while (result.hasNext()) {
-            val solution : QuerySolution = result.next()
+            val solution: QuerySolution = result.next()
             val plantId = solution.get("?plantId").asLiteral().toString()
-            val idealMoisture = solution.get("?idealMoisture").asLiteral().toString().split("^^")[0].toDouble()
-            val moisture = solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble()
-            val healthState = solution.get("?healthState").asLiteral().toString()
-            val status = solution.get("?status").asLiteral().toString()
+            val familyName = solution.get("?familyName").asLiteral().toString()
+            val potId = solution.get("?potId").asLiteral().toString()
+            val pot = potService.getPotByPotId(potId)!!
 
-            plantsList.add(Plant(plantId, idealMoisture, moisture, healthState, status))
+            val moisture = if (solution.contains("?moisture")) solution.get("?moisture").asLiteral().toString()
+                .split("^^")[0].toDouble() else null
+//            val healthState = if (solution.contains("?healthState")) solution.get("?healthState").asLiteral().toString() else null
+            val healthState = null
+            val status = if (solution.contains("?status")) solution.get("?status").asLiteral().toString() else null
+            val retrievedState = solution.get("?moistureState").asLiteral().toString().uppercase()
+            val moistureState = when (retrievedState) {
+                "thirst" -> PlantMoistureState.THIRSTY
+                "moist" -> PlantMoistureState.MOIST
+                "overwatered" -> PlantMoistureState.OVERWATERED
+                else -> PlantMoistureState.UNKNOWN
+            }
+
+            plantsList.add(Plant(plantId, familyName, pot, moisture, healthState, status, moistureState))
         }
 
+        val uniquePlants = plantsList.distinctBy { it.plantId }
+        plantsList.clear()
+        plantsList.addAll(uniquePlants)
+
+        // populate cache with retrieved plants
+        plantsList.forEach { componentsConfig.addPlantToCache(it) }
+
+        logger.debug("getAllPlants: retrieved ${plantsList.size} plants")
         return plantsList
     }
 
-    fun getPlantByPlantId (plantId: String): Plant? {
+    fun getPlantByPlantId(plantId: String): Plant? {
+        logger.debug("getPlantByPlantId: retrieving plant $plantId")
+        // Return cached plant if present
+        componentsConfig.getPlantById(plantId)?.let { return it }
         val query = """
-            SELECT DISTINCT ?idealMoisture ?moisture ?healthState ?status WHERE {
-                ?plant a prog:Plant ;
-                    prog:Plant_plantId  "$plantId" ;
-                    prog:Plant_idealMoisture ?idealMoisture ;
-                    prog:Plant_moisture ?moisture ;
-                    prog:Plant_healthState ?healthState ;
-                    prog:Plant_status ?status .
+            SELECT DISTINCT ?familyName ?potId ?moisture ?healthState ?status ?moistureState WHERE {
+                {
+                    ?plant a prog:Plant ;
+                        prog:Plant_plantId "$plantId" ;
+                        prog:Plant_familyName ?familyName ;
+                        prog:Plant_pot ?pot ;
+                        prog:Plant_moisture ?moisture .
+                    OPTIONAL { ?plant prog:Plant_healthState ?healthState }
+                    OPTIONAL { ?plant prog:Plant_status ?status }
+                    BIND("unknown" AS ?moistureState)
+                }
+                UNION {
+                    ?plant a prog:ThirstyPlant ;
+                        prog:ThirstyPlant_plantId "$plantId" ;
+                        prog:ThirstyPlant_familyName ?familyName ;
+                        prog:ThirstyPlant_pot ?pot ;
+                        prog:ThirstyPlant_moisture ?moisture .
+                    OPTIONAL { ?plant prog:ThirstyPlant_healthState ?healthState }
+                    OPTIONAL { ?plant prog:ThirstyPlant_status ?status }
+                    BIND("thirsty" AS ?moistureState)
+                }
+                UNION {
+                    ?plant a prog:MoistPlant ;
+                        prog:MoistPlant_plantId "$plantId" ;
+                        prog:MoistPlant_familyName ?familyName ;
+                        prog:MoistPlant_pot ?pot ;
+                        prog:MoistPlant_moisture ?moisture .
+                    OPTIONAL { ?plant prog:MoistPlant_healthState ?healthState }
+                    OPTIONAL { ?plant prog:MoistPlant_status ?status }
+                    BIND("moist" AS ?moistureState)
+                }
+                
+                ?pot a prog:Pot ;
+                    prog:Pot_potId ?potId .
             }
         """.trimIndent()
 
-        val result : ResultSet = repl.interpreter!!.query(query)!!
+        val result: ResultSet = repl.interpreter!!.query(query)!!
         if (!result.hasNext()) {
+            logger.debug("getPlantByPlantId: plant $plantId not found")
             return null
         }
 
-        val solution : QuerySolution = result.next()
-        val idealMoisture = solution.get("?idealMoisture").asLiteral().toString().split("^^")[0].toDouble()
-        val moisture = solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble()
-        val healthState = solution.get("?healthState").asLiteral().toString()
-        val status = solution.get("?status").asLiteral().toString()
+        val solution: QuerySolution = result.next()
+        val familyName = solution.get("?familyName").asLiteral().toString()
+        val potId = solution.get("?potId").asLiteral().toString()
+        val pot = potService.getPotByPotId(potId)!!
 
-        return Plant(plantId, idealMoisture, moisture, healthState, status)
+        val moisture = solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble()
+//        val healthState = if (solution.contains("?healthState")) solution.get("?healthState").asLiteral().toString() else null
+        val healthState = null
+        val status = if (solution.contains("?status")) solution.get("?status").asLiteral().toString() else null
+        val retrievedState = solution.get("?moistureState").asLiteral().toString().uppercase()
+        val moistureState = when (retrievedState) {
+            "thirst" -> PlantMoistureState.THIRSTY
+            "moist" -> PlantMoistureState.MOIST
+            "overwatered" -> PlantMoistureState.OVERWATERED
+            else -> PlantMoistureState.UNKNOWN
+        }
+
+        val plant = Plant(plantId, familyName, pot, moisture, healthState, status, moistureState)
+        componentsConfig.addPlantToCache(plant)
+        logger.debug("getPlantByPlantId: retrieved plant $plantId")
+        return plant
     }
 
-    fun updatePlant(plant: Plant, newIdealMoisture: Double, newStatus: String): Boolean {
+    fun updatePlant(
+        plant: Plant,
+        newMoisture: Double? = null,
+        newHealthState: String? = null,
+        newStatus: String? = null
+    ): Boolean {
+        ""
+        var whereClause = """
+            ?plant rdf:type ?t ;
+                ast:plantId "${plant.plantId}" .
+            ?t rdfs:subClassOf* ast:Plant .
+        """
+
+        // Build dynamic DELETE and INSERT clauses based on what's being updated
+        var deleteClause = ""
+        var insertClause = ""
+
+        if (newMoisture != null) {
+            deleteClause += "?plant ast:moisture \"${plant.moisture}\"^^xsd:double .\n"
+            insertClause += "?plant ast:moisture \"$newMoisture\"^^xsd:double .\n"
+        }
+
+        if (newHealthState != null && plant.healthState != null) {
+            deleteClause += "?plant ast:healthState \"${plant.healthState}\" .\n"
+            insertClause += "?plant ast:healthState \"$newHealthState\" .\n"
+        } else if (newHealthState != null && plant.healthState == null) {
+            insertClause += "?plant ast:healthState \"$newHealthState\" .\n"
+        }
+
+        if (newStatus != null && plant.status != null) {
+            deleteClause += "?plant ast:status \"${plant.status}\" .\n"
+            insertClause += "?plant ast:status \"$newStatus\" .\n"
+        } else if (newStatus != null && plant.status == null) {
+            insertClause += "?plant ast:status \"$newStatus\" .\n"
+        }
+
+        if (deleteClause.isEmpty() && insertClause.isEmpty()) {
+            return false // Nothing to update
+        }
+
         val query = """
             PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
             PREFIX ast: <$prefix>
-            DELETE {
-                ?plant ast:idealMoisture "${plant.idealMoisture}"^^xsd:double .
-                ?plant ast:status "${plant.status}" .
-            }
-            INSERT {
-                ?plant ast:idealMoisture "$newIdealMoisture"^^xsd:double .
-                ?plant ast:status "$newStatus" .
-            }
+            ${if (deleteClause.isNotEmpty()) "DELETE {\n$deleteClause}" else ""}
+            ${if (insertClause.isNotEmpty()) "INSERT {\n$insertClause}" else ""}
             WHERE {
-                ?plant rdf:type ?t ;
-                    ast:plantId "${plant.plantId}" ;
-                    ast:idealMoisture "${plant.idealMoisture}"^^xsd:double ;
-                    ast:status "${plant.status}" .
-               ?t rdfs:subClassOf* ast:Plant .
+                $whereClause
             }
         """.trimIndent()
 
@@ -133,29 +280,53 @@ class PlantService (
         val updateProcessor: UpdateProcessor = UpdateExecutionFactory.createRemote(updateRequest, fusekiEndpoint)
 
         try {
+            logger.info("updatePlant: updating plant ${plant.plantId}")
             updateProcessor.execute()
+            // merge with cache if present
+            val cached = componentsConfig.getPlantById(plant.plantId)
+            val updatedPlant = if (cached == null) {
+                Plant(
+                    plant.plantId,
+                    plant.familyName,
+                    plant.pot,
+                    newMoisture ?: plant.moisture,
+                    newHealthState ?: plant.healthState,
+                    newStatus ?: plant.status,
+                    plant.moistureState
+                )
+            } else {
+                Plant(
+                    cached.plantId,
+                    newHealthState?.let { cached.familyName } ?: cached.familyName,
+                    cached.pot,
+                    newMoisture ?: cached.moisture,
+                    newHealthState ?: cached.healthState,
+                    newStatus ?: cached.status,
+                    cached.moistureState
+                )
+            }
+            componentsConfig.addPlantToCache(updatedPlant)
+            logger.info("updatePlant: updated plant ${plant.plantId}")
         } catch (e: Exception) {
+            logger.error("updatePlant: failed to update plant ${plant.plantId}: ${e.message}", e)
             return false
         }
 
         return true
     }
 
-    fun deletePlant(plantId: String) : Boolean {
+    fun deletePlant(plantId: String): Boolean {
         val query = """
             PREFIX ast: <$prefix>
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
             DELETE {
-                ?plant a ast:Plant ;
-                    ast:plantId "$plantId" ;
-                    ast:idealMoisture ?idealMoisture ;
-                    ast:moisture ?moisture ;
-                    ast:healthState ?healthState .
+                ?plant ?p ?o .
             }
             WHERE {
                 ?plant rdf:type ?t ;
-                    ast:plantId "$plantId" .
+                    ast:plantId "$plantId" ;
+                    ?p ?o .
                 ?t rdfs:subClassOf* ast:Plant .
             }
         """.trimIndent()
@@ -165,8 +336,12 @@ class PlantService (
         val updateProcessor: UpdateProcessor = UpdateExecutionFactory.createRemote(updateRequest, fusekiEndpoint)
 
         try {
+            logger.info("deletePlant: deleting plant $plantId")
             updateProcessor.execute()
+            componentsConfig.removePlantFromCache(plantId)
+            logger.info("deletePlant: deleted plant $plantId")
         } catch (e: Exception) {
+            logger.error("deletePlant: failed to delete plant $plantId: ${e.message}", e)
             return false
         }
 

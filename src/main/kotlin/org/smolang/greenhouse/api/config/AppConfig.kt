@@ -5,5 +5,4 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 @ComponentScan(basePackages = arrayOf("org.smolang.greenhouse.api"))
-open class AppConfig {
-}
+open class AppConfig

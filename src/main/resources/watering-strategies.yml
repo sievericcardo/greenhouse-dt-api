@@ -1,0 +1,30 @@
+strategies:
+  default:
+    name: "Default Strategy"
+    description: "Balanced watering approach for normal conditions"
+    durations:
+      thirsty: 5
+      moist: 2
+      overwatered: 0
+      unknown: 2
+
+  conservative:
+    name: "Conservative Strategy"
+    description: "Water-saving approach for drought conditions or conservation"
+    durations:
+      thirsty: 3
+      moist: 1
+      overwatered: 0
+      unknown: 1
+
+  aggressive:
+    name: "Aggressive Strategy"
+    description: "Intensive watering for arid conditions or high-demand plants"
+    durations:
+      thirsty: 8
+      moist: 3
+      overwatered: 0
+      unknown: 3
+
+# Active strategy (can be changed at runtime)
+activeStrategy: "default"
