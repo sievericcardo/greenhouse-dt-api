@@ -95,6 +95,16 @@ class PlantService(
                     OPTIONAL { ?obj prog:MoistPlant_statusOut ?status }
                     BIND("moist" AS ?moistureState)
                 }
+                UNION {
+                    ?obj a prog:OverwateredPlant ;
+                        prog:OverwateredPlant_plantId ?plantId ;
+                        prog:OverwateredPlant_familyNameOut ?familyName ;
+                        prog:OverwateredPlant_pot ?pot ;
+                        prog:OverwateredPlant_moistureOut ?moisture .
+                    OPTIONAL { ?obj prog:OverwateredPlant_healthState ?healthState }
+                    OPTIONAL { ?obj prog:OverwateredPlant_statusOut ?status }
+                    BIND("overwatered" AS ?moistureState)
+                }
                 
                 ?pot a prog:Pot ;
                     prog:Pot_potId ?potId .

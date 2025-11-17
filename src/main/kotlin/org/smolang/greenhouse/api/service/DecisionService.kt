@@ -3,8 +3,8 @@ package org.smolang.greenhouse.api.service
 import jakarta.jms.JMSException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.smolang.greenhouse.api.config.ComponentsConfig
 import org.smolang.greenhouse.api.config.EnvironmentConfig
-import org.smolang.greenhouse.api.config.QueueConfig
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.springframework.stereotype.Service
 
@@ -12,20 +12,22 @@ import org.springframework.stereotype.Service
 class DecisionService(
     private val replConfig: REPLConfig,
     private val environmentConfig: EnvironmentConfig,
-    private val queueConfig: QueueConfig,
     private val messagePublisher: MessagePublisher,
     private val plantService: PlantService,
-    private val potService: PotService,
-    private val pumpService: PumpService,
-    private val wateringStrategyLoader: WateringStrategyLoader
+    private val wateringStrategyLoader: WateringStrategyLoader,
+    private val componentsConfig: ComponentsConfig
 ) {
 
-    private val repl = replConfig.repl()
     private val log: Logger = LoggerFactory.getLogger(DecisionService::class.java.name)
 
     @Throws(JMSException::class)
     fun waterControl() {
         log.info("Starting water control")
+
+        replConfig.reclassifySingleModel().invoke("plants")
+        componentsConfig.clearPlantCache()
+        log.info("Cleared plant cache")
+
         // list of pump pins to activate with their watering duration
         // Triple: (pumpPin, pumpId, wateringDuration)
         val pumpsToActivate: MutableList<Triple<Int, Int, Int>> = mutableListOf()

@@ -111,6 +111,10 @@ open class ComponentsConfig {
         return plantCache.remove(plantId)
     }
 
+    open fun clearPlantCache() {
+        plantCache.clear()
+    }
+
     open fun getPotCache(): PotCache {
         return potCache
     }
@@ -161,7 +165,7 @@ open class ComponentsConfig {
     open fun removeSectionFromCache(sectionId: String): Section? {
         return sectionCache.remove(sectionId)
     }
-    
+
     open fun getWaterBucketCache(): WaterBucketCache {
         return waterBucketCache
     }
