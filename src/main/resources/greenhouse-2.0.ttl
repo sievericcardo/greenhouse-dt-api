@@ -1528,6 +1528,13 @@ ast:moistureSensor3 rdf:type owl:NamedIndividual ,
                     ast:sensorProperty "2.1,6.2" .
 
 
+###  http://www.smolang.org/greenhouseDT#moistureSensor4
+ast:moistureSensor4 rdf:type owl:NamedIndividual ,
+                             ast:MoistureSensor ;
+                    ast:sensorId "Moisture 4" ;
+                    ast:sensorProperty "2.1,6.2" .
+
+
 ###  http://www.smolang.org/greenhouseDT#nutrientSensor1
 ast:nutrientSensor1 rdf:type owl:NamedIndividual ,
                              ast:NutrientSensor ;
@@ -1546,6 +1553,13 @@ ast:nutrientSensor2 rdf:type owl:NamedIndividual ,
 ast:nutrientSensor3 rdf:type owl:NamedIndividual ,
                              ast:NutrientSensor ;
                     ast:sensorId "Nutrient 3" ;
+                    ast:sensorProperty "1.1,8.0" .
+
+
+###  http://www.smolang.org/greenhouseDT#nutrientSensor4
+ast:nutrientSensor4 rdf:type owl:NamedIndividual ,
+                             ast:NutrientSensor ;
+                    ast:sensorId "Nutrient 4" ;
                     ast:sensorProperty "1.1,8.0" .
 
 
@@ -1570,6 +1584,13 @@ ast:plant3 rdf:type owl:NamedIndividual ,
                     ast:Monstera ;
            ast:isInPot ast:pot3 ;
            ast:familyName "Araceae" .
+
+
+###  http://www.smolang.org/greenhouseDT#plant4
+ast:plant4 rdf:type owl:NamedIndividual ,
+                    ast:Monstera ;
+           ast:isInPot ast:pot4 ;
+           ast:familyName "Ocimum basilicum" .
 
 
 ###  http://www.smolang.org/greenhouseDT#pot1
@@ -1602,25 +1623,54 @@ ast:pot3 rdf:type owl:NamedIndividual ,
          ast:potOffset "2" .
 
 
+###  http://www.smolang.org/greenhouseDT#pot4
+ast:pot4 rdf:type owl:NamedIndividual ,
+                  ast:Pot ;
+         ast:hasMoistureSensor ast:moistureSensor4 ;
+         ast:hasNutrientSensor ast:nutrientSensor4 ;
+         ast:wateredBy ast:pump4 ;
+         ast:potId "4" ;
+         ast:potOffset "3" .
+
+
 ###  http://www.smolang.org/greenhouseDT#pump1
 ast:pump1 rdf:type owl:NamedIndividual ,
                    ast:Pump ;
           ast:actuatorId "1" ;
-          ast:pumpChannel 18 .
+          ast:pumpChannel 18 ;
+          ast:modelName "R385" ;
+          ast:pumpLifeTime 0 ;
+          ast:temperature "5.0"^^xsd:double .
 
 
 ###  http://www.smolang.org/greenhouseDT#pump2
 ast:pump2 rdf:type owl:NamedIndividual ,
                    ast:Pump ;
           ast:actuatorId "2" ;
-          ast:pumpChannel 19 .
+          ast:pumpChannel 23 ;
+          ast:modelName "WPS27" ;
+          ast:pumpLifeTime 30 ;
+          ast:temperature "20.0"^^xsd:double .
 
 
 ###  http://www.smolang.org/greenhouseDT#pump3
 ast:pump3 rdf:type owl:NamedIndividual ,
                    ast:Pump ;
           ast:actuatorId "3" ;
-          ast:pumpChannel 11 .
+          ast:pumpChannel 25 ;
+          ast:modelName "R365" ;
+          ast:pumpLifeTime 30 ;
+          ast:temperature "20.0"^^xsd:double .
+
+
+###  http://www.smolang.org/greenhouseDT#pump4
+ast:pump4 rdf:type owl:NamedIndividual ,
+                   ast:Pump ;
+          ast:actuatorId "4" ;
+          ast:pumpChannel 24 ;
+          ast:modelName "R365" ;
+          ast:pumpLifeTime 30 ;
+          ast:temperature "20.0"^^xsd:double .
 
 
 ###  http://www.smolang.org/greenhouseDT#section1
