@@ -559,7 +559,7 @@ class PumpModel extends BaseModel()
         this.adaptBehaviourPump();
     end
 
-    Unit adaptBehaviourPump()
+    Unit adaptBehaviourPump() adapts Pump
         List<Pump> pumps = access("
             SELECT DISTINCT ?obj {
                 { ?obj a prog:Pump . }

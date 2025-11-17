@@ -1,6 +1,6 @@
 class PlantModel extends BaseModel()
 
-    override Unit adaptAddition()
+    override Unit adaptAddition() adapts HealthState, Plant
         List<Plant> newPlants = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
             SELECT ?plantId ?pot ?familyName ?status {
@@ -131,7 +131,7 @@ class PlantModel extends BaseModel()
         end
     end
 
-    override Unit adaptBehaviour()
+    override Unit adaptBehaviour() adapts HealthState, Plant
         List<Plant> plants = access("
             SELECT DISTINCT ?obj {
                 { ?obj a prog:Plant . }
@@ -148,6 +148,11 @@ class PlantModel extends BaseModel()
                 Plant plant = plants.content;
 
                 print("ADAPT> Adapting plant " ++ plant.plantId);
+                plant.setPotMoisture();
+                plant.moistureOut = plant.moisture;
+
+                plant.setNdvi();
+                plant.ndviOut = plant.ndvi;
 
                 if plant.moisture != null then
                     adapt(plant);
