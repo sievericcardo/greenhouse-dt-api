@@ -170,12 +170,12 @@ classifies "<ast:ThirstyPlant>";
     end
 end
 
-// class OverwateredPlant extends Plant ()
-// classifies "<ast:Overwatered>";
-//     Unit printInfo()
-//         print("Plant: " ++ this.plantId ++ " is overwatered.");
-//     end
-// end
+class OverwateredPlant extends Plant ()
+classifies "<ast:Overwatered>";
+    Unit printInfo()
+        print("Plant: " ++ this.plantId ++ " is overwatered.");
+    end
+end
 
 class MoistPlant extends Plant ()
 classifies "<ast:MoistPlant>";
