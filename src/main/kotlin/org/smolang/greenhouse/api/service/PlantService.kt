@@ -130,7 +130,7 @@ class PlantService(
 //            val healthState = if (solution.contains("?healthState")) solution.get("?healthState").asLiteral().toString() else null
             val healthState = null
             val status = if (solution.contains("?status")) solution.get("?status").asLiteral().toString() else null
-            val retrievedState = solution.get("?moistureState").asLiteral().toString().uppercase()
+            val retrievedState = solution.get("?moistureState").asLiteral().toString()
             val moistureState = when (retrievedState) {
                 "thirst" -> PlantMoistureState.THIRSTY
                 "moist" -> PlantMoistureState.MOIST
@@ -188,6 +188,16 @@ class PlantService(
                     OPTIONAL { ?plant prog:MoistPlant_status ?status }
                     BIND("moist" AS ?moistureState)
                 }
+                UNION {
+                    ?plant a prog:OverwateredPlant ;
+                        prog:OverwateredPlant_plantId "$plantId" ;
+                        prog:OverwateredPlant_familyName ?familyName ;
+                        prog:OverwateredPlant_pot ?pot ;
+                        prog:OverwateredPlant_moisture ?moisture .
+                    OPTIONAL { ?plant prog:OverwateredPlant_healthState ?healthState }
+                    OPTIONAL { ?plant prog:OverwateredPlant_status ?status }
+                    BIND("overwatered" AS ?moistureState)
+                }
                 
                 ?pot a prog:Pot ;
                     prog:Pot_potId ?potId .
@@ -209,7 +219,7 @@ class PlantService(
 //        val healthState = if (solution.contains("?healthState")) solution.get("?healthState").asLiteral().toString() else null
         val healthState = null
         val status = if (solution.contains("?status")) solution.get("?status").asLiteral().toString() else null
-        val retrievedState = solution.get("?moistureState").asLiteral().toString().uppercase()
+        val retrievedState = solution.get("?moistureState").asLiteral().toString()
         val moistureState = when (retrievedState) {
             "thirst" -> PlantMoistureState.THIRSTY
             "moist" -> PlantMoistureState.MOIST
