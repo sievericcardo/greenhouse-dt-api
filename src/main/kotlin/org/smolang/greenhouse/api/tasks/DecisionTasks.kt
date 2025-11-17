@@ -18,8 +18,8 @@ class DecisionTasks(
 
     //    @Scheduled(fixedRate = 3600000) // 3600000 milliseconds = 60 minutes
 //    @Scheduled(fixedRate = 3) // 3600000 milliseconds = 60 minutes
-    @Scheduled(cron = "0 0/1 * * * ?") // Execute every 3 minutes for testing purposes
-//    @Scheduled(cron = "0 0 */6 * * *") // Execute every 6 hours
+//    @Scheduled(cron = "0 0/1 * * * ?") // Execute every 3 minutes for testing purposes
+    @Scheduled(cron = "0 0 */6 * * *") // Execute every 6 hours
     @Operation(summary = "Make a decision every 6 hours")
     fun makeDecision() {
         log.info("Start decision process")
