@@ -3,6 +3,7 @@ package org.smolang.greenhouse.api.service
 import com.sksamuel.hoplite.ConfigLoader
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.smolang.greenhouse.api.config.EnvironmentConfig
 import org.smolang.greenhouse.api.config.MoistureDurations
 import org.smolang.greenhouse.api.config.StrategyDefinition
 import org.smolang.greenhouse.api.config.WateringStrategyConfig
@@ -20,11 +21,14 @@ import kotlin.concurrent.write
  * Supports runtime reloading without application restart.
  */
 @Service
-class WateringStrategyLoader {
+class WateringStrategyLoader(
+    private val environmentConfig: EnvironmentConfig
+) {
 
     private val log: Logger = LoggerFactory.getLogger(WateringStrategyLoader::class.java.name)
-    private val configResourcePath = "/watering-strategies.yml"
-    private val configFilePath = "src/main/resources/watering-strategies.yml"
+    private val configResourcePath = environmentConfig.getOrDefault("CONFIG_RESOURCE_PATH", "/watering-strategies.yml")
+    private val configFilePath =
+        environmentConfig.getOrDefault("CONFIG_FILE_PATH", "src/main/resources/watering-strategies.yml")
     private val lock = ReentrantReadWriteLock()
 
     private var config: WateringStrategyConfig = WateringStrategyConfig()
