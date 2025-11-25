@@ -7,16 +7,18 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.smolang.greenhouse.api.service.DecisionService
+import org.smolang.greenhouse.api.service.PlantService
 import org.smolang.greenhouse.api.service.WateringStrategyLoader
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBody
 
 @RestController
-@RequestMapping("/decision")
+@RequestMapping("/api/decision")
 class DecisionController(
     private val decisionService: DecisionService,
-    private val wateringStrategyLoader: WateringStrategyLoader
+    private val wateringStrategyLoader: WateringStrategyLoader,
+    private val plantService: PlantService
 ) {
 
     private val log: Logger = LoggerFactory.getLogger(DecisionController::class.java.name)
@@ -93,6 +95,54 @@ class DecisionController(
             mapOf(
                 "strategies" to strategiesDetails,
                 "activeStrategy" to activeStrategy
+            )
+        )
+    }
+
+    @Operation(summary = "Get watering strategies applied to plants from the current set strategy")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Successfully retrieved plant with strategies"),
+            ApiResponse(responseCode = "401", description = "You are not authorized to view the resource"),
+            ApiResponse(
+                responseCode = "403",
+                description = "Accessing the resource you were trying to reach is forbidden"
+            )
+        ]
+    )
+    @GetMapping("/plant-strategies")
+    fun getAvailablePlantStrategies(): ResponseEntity<Map<String, Any>> {
+        log.info("Getting watering strategies for all plants")
+
+        val plants = plantService.getAllPlants() ?: emptyList()
+        val activeStrategyName = wateringStrategyLoader.getActiveStrategyName()
+        val strategyDefinition = wateringStrategyLoader.getActiveStrategyDefinition()
+
+        val plantStrategies = plants.map { plant ->
+            val wateringDuration = wateringStrategyLoader.getWateringDurationForPlant(plant)
+            PlantStrategyResponse(
+                plantId = plant.plantId,
+                familyName = plant.familyName,
+                moistureState = plant.moistureState.name,
+                wateringDuration = wateringDuration,
+                strategyName = activeStrategyName
+            )
+        }
+
+        return ResponseEntity.ok(
+            mapOf(
+                "activeStrategy" to activeStrategyName,
+                "strategyDetails" to mapOf(
+                    "name" to (strategyDefinition?.name ?: ""),
+                    "description" to (strategyDefinition?.description ?: ""),
+                    "durations" to mapOf(
+                        "thirsty" to (strategyDefinition?.durations?.thirsty ?: 0),
+                        "moist" to (strategyDefinition?.durations?.moist ?: 0),
+                        "overwatered" to (strategyDefinition?.durations?.overwatered ?: 0),
+                        "unknown" to (strategyDefinition?.durations?.unknown ?: 0)
+                    )
+                ),
+                "plantStrategies" to plantStrategies
             )
         )
     }
@@ -199,6 +249,14 @@ class DecisionController(
         )
     }
 }
+
+data class PlantStrategyResponse(
+    val plantId: String,
+    val familyName: String,
+    val moistureState: String,
+    val wateringDuration: Int,
+    val strategyName: String
+)
 
 data class StrategyRequest(
     val key: String,
