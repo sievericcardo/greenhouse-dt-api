@@ -1,5 +1,5 @@
 # Use an official OpenJDK runtime as a parent image
-FROM openjdk:24-jdk-bullseye
+FROM openjdk:24-ea-jdk-bullseye
 
 RUN <<EOF
     apt-get -y update
@@ -23,6 +23,9 @@ COPY greenhouse_api.jar /app/greenhouse_api.jar
 
 # Copy the smol folder
 COPY src/main/resources/SMOL /app/SMOL
+
+COPY config_local.yml /app/config_local.yml
+COPY src/main/resources/watering-strategies.yml /app/watering-strategies.yml
 
 # Expose the port that the application will run on
 EXPOSE 8090
