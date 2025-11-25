@@ -69,41 +69,97 @@ class PlantService(
                     ?obj a prog:Plant ;
                         prog:Plant_plantId ?plantId ;
                         prog:Plant_familyNameOut ?familyName ;
+                        prog:Plant_healthState ?hs ;
                         prog:Plant_pot ?pot ;
                         prog:Plant_moistureOut ?moisture .
-                    OPTIONAL { ?obj prog:Plant_healthState ?healthState }
                     OPTIONAL { ?obj prog:Plant_statusOut ?status }
                     BIND("unknown" AS ?moistureState)
+                    
+                    {
+                        ?hs a prog:HealthState ;
+                            prog:HealthState_name ?healthState .
+                    } UNION {
+                        ?hs a prog:Healthy ;
+                            prog:Healthy_name ?healthState .
+                    } UNION {
+                        ?hs a prog:Unhealthy ;
+                            prog:Unhealthy_name ?healthState .
+                    } UNION {
+                        ?hs a prog:Dead ;
+                            prog:Dead_name ?healthState .
+                    }
                 }
                 UNION {
                     ?obj a prog:ThirstyPlant ;
                         prog:ThirstyPlant_plantId ?plantId ;
                         prog:ThirstyPlant_familyNameOut ?familyName ;
+                        prog:ThirstyPlant_healthState ?hs ;
                         prog:ThirstyPlant_pot ?pot ;
                         prog:ThirstyPlant_moistureOut ?moisture .
-                    OPTIONAL { ?obj prog:ThirstyPlant_healthState ?healthState }
                     OPTIONAL { ?obj prog:ThirstyPlant_statusOut ?status }
                     BIND("thirsty" AS ?moistureState)
+                    
+                    {
+                        ?hs a prog:HealthState ;
+                            prog:HealthState_name ?healthState .
+                    } UNION {
+                        ?hs a prog:Healthy ;
+                            prog:Healthy_name ?healthState .
+                    } UNION {
+                        ?hs a prog:Unhealthy ;
+                            prog:Unhealthy_name ?healthState .
+                    } UNION {
+                        ?hs a prog:Dead ;
+                            prog:Dead_name ?healthState .
+                    }
                 }
                 UNION {
                     ?obj a prog:MoistPlant ;
                         prog:MoistPlant_plantId ?plantId ;
                         prog:MoistPlant_familyNameOut ?familyName ;
+                        prog:MoistPlant_healthState ?hs ;
                         prog:MoistPlant_pot ?pot ;
                         prog:MoistPlant_moistureOut ?moisture .
-                    OPTIONAL { ?obj prog:MoistPlant_healthState ?healthState }
                     OPTIONAL { ?obj prog:MoistPlant_statusOut ?status }
                     BIND("moist" AS ?moistureState)
+                    
+                    {
+                        ?hs a prog:HealthState ;
+                            prog:HealthState_name ?healthState .
+                    } UNION {
+                        ?hs a prog:Healthy ;
+                            prog:Healthy_name ?healthState .
+                    } UNION {
+                        ?hs a prog:Unhealthy ;
+                            prog:Unhealthy_name ?healthState .
+                    } UNION {
+                        ?hs a prog:Dead ;
+                            prog:Dead_name ?healthState .
+                    }
                 }
                 UNION {
                     ?obj a prog:OverwateredPlant ;
                         prog:OverwateredPlant_plantId ?plantId ;
                         prog:OverwateredPlant_familyNameOut ?familyName ;
+                        prog:OverwateredPlant_healthState ?hs ;
                         prog:OverwateredPlant_pot ?pot ;
                         prog:OverwateredPlant_moistureOut ?moisture .
-                    OPTIONAL { ?obj prog:OverwateredPlant_healthState ?healthState }
                     OPTIONAL { ?obj prog:OverwateredPlant_statusOut ?status }
                     BIND("overwatered" AS ?moistureState)
+                    
+                    {
+                        ?hs a prog:HealthState ;
+                            prog:HealthState_name ?healthState .
+                    } UNION {
+                        ?hs a prog:Healthy ;
+                            prog:Healthy_name ?healthState .
+                    } UNION {
+                        ?hs a prog:Unhealthy ;
+                            prog:Unhealthy_name ?healthState .
+                    } UNION {
+                        ?hs a prog:Dead ;
+                            prog:Dead_name ?healthState .
+                    }
                 }
                 
                 ?pot a prog:Pot ;
@@ -128,11 +184,12 @@ class PlantService(
             val moisture = if (solution.contains("?moisture")) solution.get("?moisture").asLiteral().toString()
                 .split("^^")[0].toDouble() else null
 //            val healthState = if (solution.contains("?healthState")) solution.get("?healthState").asLiteral().toString() else null
-            val healthState = null
+            val healthState = solution.get("?healthState")?.asLiteral()?.toString()
             val status = if (solution.contains("?status")) solution.get("?status").asLiteral().toString() else null
             val retrievedState = solution.get("?moistureState").asLiteral().toString()
+            logger.info("Moisture state retrieved: $retrievedState")
             val moistureState = when (retrievedState) {
-                "thirst" -> PlantMoistureState.THIRSTY
+                "thirsty" -> PlantMoistureState.THIRSTY
                 "moist" -> PlantMoistureState.MOIST
                 "overwatered" -> PlantMoistureState.OVERWATERED
                 else -> PlantMoistureState.UNKNOWN
@@ -162,41 +219,97 @@ class PlantService(
                     ?plant a prog:Plant ;
                         prog:Plant_plantId "$plantId" ;
                         prog:Plant_familyName ?familyName ;
+                        prog:Plant_healthState ?hs ;
                         prog:Plant_pot ?pot ;
                         prog:Plant_moisture ?moisture .
-                    OPTIONAL { ?plant prog:Plant_healthState ?healthState }
                     OPTIONAL { ?plant prog:Plant_status ?status }
                     BIND("unknown" AS ?moistureState)
+                    
+                    {
+                        ?hs a prog:HealthState ;
+                            prog:HealthState_name ?healthState .
+                    } UNION {
+                        ?hs a prog:Healthy ;
+                            prog:Healthy_name ?healthState .
+                    } UNION {
+                        ?hs a prog:Unhealthy ;
+                            prog:Unhealthy_name ?healthState .
+                    } UNION {
+                        ?hs a prog:Dead ;
+                            prog:Dead_name ?healthState .
+                    }
                 }
                 UNION {
                     ?plant a prog:ThirstyPlant ;
                         prog:ThirstyPlant_plantId "$plantId" ;
                         prog:ThirstyPlant_familyName ?familyName ;
+                        prog:ThirstyPlant_healthState ?hs ;
                         prog:ThirstyPlant_pot ?pot ;
                         prog:ThirstyPlant_moisture ?moisture .
-                    OPTIONAL { ?plant prog:ThirstyPlant_healthState ?healthState }
                     OPTIONAL { ?plant prog:ThirstyPlant_status ?status }
                     BIND("thirsty" AS ?moistureState)
+                    
+                    {
+                        ?hs a prog:HealthState ;
+                            prog:HealthState_name ?healthState .
+                    } UNION {
+                        ?hs a prog:Healthy ;
+                            prog:Healthy_name ?healthState .
+                    } UNION {
+                        ?hs a prog:Unhealthy ;
+                            prog:Unhealthy_name ?healthState .
+                    } UNION {
+                        ?hs a prog:Dead ;
+                            prog:Dead_name ?healthState .
+                    }
                 }
                 UNION {
                     ?plant a prog:MoistPlant ;
                         prog:MoistPlant_plantId "$plantId" ;
                         prog:MoistPlant_familyName ?familyName ;
+                        prog:MoistPlant_healthState ?hs ;
                         prog:MoistPlant_pot ?pot ;
                         prog:MoistPlant_moisture ?moisture .
-                    OPTIONAL { ?plant prog:MoistPlant_healthState ?healthState }
                     OPTIONAL { ?plant prog:MoistPlant_status ?status }
                     BIND("moist" AS ?moistureState)
+                    
+                    {
+                        ?hs a prog:HealthState ;
+                            prog:HealthState_name ?healthState .
+                    } UNION {
+                        ?hs a prog:Healthy ;
+                            prog:Healthy_name ?healthState .
+                    } UNION {
+                        ?hs a prog:Unhealthy ;
+                            prog:Unhealthy_name ?healthState .
+                    } UNION {
+                        ?hs a prog:Dead ;
+                            prog:Dead_name ?healthState .
+                    }
                 }
                 UNION {
                     ?plant a prog:OverwateredPlant ;
                         prog:OverwateredPlant_plantId "$plantId" ;
                         prog:OverwateredPlant_familyName ?familyName ;
+                        prog:OverwateredPlant_healthState ?hs ;
                         prog:OverwateredPlant_pot ?pot ;
                         prog:OverwateredPlant_moisture ?moisture .
-                    OPTIONAL { ?plant prog:OverwateredPlant_healthState ?healthState }
                     OPTIONAL { ?plant prog:OverwateredPlant_status ?status }
                     BIND("overwatered" AS ?moistureState)
+                    
+                    {
+                        ?hs a prog:HealthState ;
+                            prog:HealthState_name ?healthState .
+                    } UNION {
+                        ?hs a prog:Healthy ;
+                            prog:Healthy_name ?healthState .
+                    } UNION {
+                        ?hs a prog:Unhealthy ;
+                            prog:Unhealthy_name ?healthState .
+                    } UNION {
+                        ?hs a prog:Dead ;
+                            prog:Dead_name ?healthState .
+                    }
                 }
                 
                 ?pot a prog:Pot ;
@@ -217,11 +330,12 @@ class PlantService(
 
         val moisture = solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble()
 //        val healthState = if (solution.contains("?healthState")) solution.get("?healthState").asLiteral().toString() else null
-        val healthState = null
+        val healthState = solution.get("?healthState")?.asLiteral()?.toString()
         val status = if (solution.contains("?status")) solution.get("?status").asLiteral().toString() else null
         val retrievedState = solution.get("?moistureState").asLiteral().toString()
+        logger.info("Moisture state retrieved: $retrievedState")
         val moistureState = when (retrievedState) {
-            "thirst" -> PlantMoistureState.THIRSTY
+            "thirsty" -> PlantMoistureState.THIRSTY
             "moist" -> PlantMoistureState.MOIST
             "overwatered" -> PlantMoistureState.OVERWATERED
             else -> PlantMoistureState.UNKNOWN
