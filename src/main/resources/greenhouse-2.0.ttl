@@ -1583,14 +1583,16 @@ ast:plant2 rdf:type owl:NamedIndividual ,
 ast:plant3 rdf:type owl:NamedIndividual ,
                     ast:Monstera ;
            ast:isInPot ast:pot3 ;
-           ast:familyName "Araceae" .
+           ast:familyName "Araceae" ;
+           ast:plantId "3" .
 
 
 ###  http://www.smolang.org/greenhouseDT#plant4
 ast:plant4 rdf:type owl:NamedIndividual ,
                     ast:Monstera ;
            ast:isInPot ast:pot4 ;
-           ast:familyName "Ocimum basilicum" .
+           ast:familyName "Ocimum basilicum" ;
+           ast:plantId "4" .
 
 
 ###  http://www.smolang.org/greenhouseDT#pot1
@@ -1637,8 +1639,8 @@ ast:pot4 rdf:type owl:NamedIndividual ,
 ast:pump1 rdf:type owl:NamedIndividual ,
                    ast:Pump ;
           ast:actuatorId "1" ;
-          ast:pumpChannel 18 ;
           ast:modelName "R385" ;
+          ast:pumpChannel 18 ;
           ast:pumpLifeTime 0 ;
           ast:temperature "5.0"^^xsd:double .
 
@@ -1647,8 +1649,8 @@ ast:pump1 rdf:type owl:NamedIndividual ,
 ast:pump2 rdf:type owl:NamedIndividual ,
                    ast:Pump ;
           ast:actuatorId "2" ;
-          ast:pumpChannel 23 ;
           ast:modelName "WPS27" ;
+          ast:pumpChannel 23 ;
           ast:pumpLifeTime 30 ;
           ast:temperature "20.0"^^xsd:double .
 
@@ -1657,8 +1659,8 @@ ast:pump2 rdf:type owl:NamedIndividual ,
 ast:pump3 rdf:type owl:NamedIndividual ,
                    ast:Pump ;
           ast:actuatorId "3" ;
-          ast:pumpChannel 25 ;
           ast:modelName "R365" ;
+          ast:pumpChannel 25 ;
           ast:pumpLifeTime 30 ;
           ast:temperature "20.0"^^xsd:double .
 
@@ -1667,8 +1669,8 @@ ast:pump3 rdf:type owl:NamedIndividual ,
 ast:pump4 rdf:type owl:NamedIndividual ,
                    ast:Pump ;
           ast:actuatorId "4" ;
-          ast:pumpChannel 24 ;
           ast:modelName "R365" ;
+          ast:pumpChannel 24 ;
           ast:pumpLifeTime 30 ;
           ast:temperature "20.0"^^xsd:double .
 
