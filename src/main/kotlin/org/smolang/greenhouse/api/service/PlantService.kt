@@ -187,7 +187,7 @@ class PlantService(
             val healthState = solution.get("?healthState")?.asLiteral()?.toString()
             val status = if (solution.contains("?status")) solution.get("?status").asLiteral().toString() else null
             val retrievedState = solution.get("?moistureState").asLiteral().toString()
-            logger.info("Moisture state retrieved: $retrievedState")
+            logger.info("Moisture state  for current plant $plantId retrieved: $retrievedState")
             val moistureState = when (retrievedState) {
                 "thirsty" -> PlantMoistureState.THIRSTY
                 "moist" -> PlantMoistureState.MOIST
@@ -333,7 +333,7 @@ class PlantService(
         val healthState = solution.get("?healthState")?.asLiteral()?.toString()
         val status = if (solution.contains("?status")) solution.get("?status").asLiteral().toString() else null
         val retrievedState = solution.get("?moistureState").asLiteral().toString()
-        logger.info("Moisture state retrieved: $retrievedState")
+        logger.info("Moisture state for plant $plantId retrieved: $retrievedState")
         val moistureState = when (retrievedState) {
             "thirsty" -> PlantMoistureState.THIRSTY
             "moist" -> PlantMoistureState.MOIST

@@ -72,7 +72,7 @@ class PumpService(
                     OPTIONAL { ?obj prog:Pump_modelName ?modelName }
                     OPTIONAL { ?obj prog:Pump_lifeTime ?lifeTime }
                     OPTIONAL { ?obj prog:Pump_temperature ?temperature }
-                    OPTIONAL { ?obj prog:Pump_pumpStatus ?pumpStatus }
+                    BIND ("Unknown" AS ?pumpStatus)
                 } UNION {
                     ?obj a prog:OperatingPump ;
                         prog:OperatingPump_actuatorId ?actuatorId ;
@@ -80,7 +80,7 @@ class PumpService(
                     OPTIONAL { ?obj prog:OperatingPump_modelName ?modelName }
                     OPTIONAL { ?obj prog:OperatingPump_lifeTime ?lifeTime }
                     OPTIONAL { ?obj prog:OperatingPump_temperature ?temperature }
-                    OPTIONAL { ?obj prog:OperatingPump_pumpStatus ?pumpStatus }
+                    BIND ("Operating" AS ?pumpStatus)
                 } UNION {
                     ?obj a prog:MaintenancePump ;
                         prog:MaintenancePump_actuatorId ?actuatorId ;
@@ -88,7 +88,7 @@ class PumpService(
                     OPTIONAL { ?obj prog:MaintenancePump_modelName ?modelName }
                     OPTIONAL { ?obj prog:MaintenancePump_lifeTime ?lifeTime }
                     OPTIONAL { ?obj prog:MaintenancePump_temperature ?temperature }
-                    OPTIONAL { ?obj prog:MaintenancePump_pumpStatus ?pumpStatus }
+                    BIND ("Maintenance" AS ?pumpStatus)
                 } UNION {
                     ?obj a prog:OverheatingPump ;
                         prog:OverheatingPump_actuatorId ?actuatorId ;
@@ -96,7 +96,7 @@ class PumpService(
                     OPTIONAL { ?obj prog:OverheatingPump_modelName ?modelName }
                     OPTIONAL { ?obj prog:OverheatingPump_lifeTime ?lifeTime }
                     OPTIONAL { ?obj prog:OverheatingPump_temperature ?temperature }
-                    OPTIONAL { ?obj prog:OverheatingPump_pumpStatus ?pumpStatus }
+                    BIND ("Overheating" AS ?pumpStatus)
                 } UNION {
                     ?obj a prog:UnderheatingPump ;
                         prog:UnderheatingPump_actuatorId ?actuatorId ;
@@ -104,7 +104,7 @@ class PumpService(
                     OPTIONAL { ?obj prog:UnderheatingPump_modelName ?modelName }
                     OPTIONAL { ?obj prog:UnderheatingPump_lifeTime ?lifeTime }
                     OPTIONAL { ?obj prog:UnderheatingPump_temperature ?temperature }
-                    OPTIONAL { ?obj prog:UnderheatingPump_pumpStatus ?pumpStatus }
+                    BIND ("Underheating" AS ?pumpStatus)
                 }
              }""".trimIndent()
 
@@ -156,7 +156,7 @@ class PumpService(
                     OPTIONAL { ?obj prog:Pump_modelName ?modelName }
                     OPTIONAL { ?obj prog:Pump_lifeTime ?lifeTime }
                     OPTIONAL { ?obj prog:Pump_temperature ?temperature }
-                    OPTIONAL { ?obj prog:Pump_pumpStatus ?pumpStatus }
+                    BIND ("Unknown" AS ?pumpStatus)
                 } UNION {
                     ?obj a prog:OperatingPump ;
                         prog:OperatingPump_actuatorId "$pumpId" ;
@@ -164,7 +164,7 @@ class PumpService(
                     OPTIONAL { ?obj prog:OperatingPump_modelName ?modelName }
                     OPTIONAL { ?obj prog:OperatingPump_lifeTime ?lifeTime }
                     OPTIONAL { ?obj prog:OperatingPump_temperature ?temperature }
-                    OPTIONAL { ?obj prog:OperatingPump_pumpStatus ?pumpStatus }
+                    BIND ("Operating" AS ?pumpStatus)
                 } UNION {
                     ?obj a prog:MaintenancePump ;
                         prog:MaintenancePump_actuatorId "$pumpId" ;
@@ -172,7 +172,7 @@ class PumpService(
                     OPTIONAL { ?obj prog:MaintenancePump_modelName ?modelName }
                     OPTIONAL { ?obj prog:MaintenancePump_lifeTime ?lifeTime }
                     OPTIONAL { ?obj prog:MaintenancePump_temperature ?temperature }
-                    OPTIONAL { ?obj prog:MaintenancePump_pumpStatus ?pumpStatus }
+                    BIND ("Maintenance" AS ?pumpStatus)
                 } UNION {
                     ?obj a prog:OverheatingPump ;
                         prog:OverheatingPump_actuatorId "$pumpId" ;
@@ -180,7 +180,7 @@ class PumpService(
                     OPTIONAL { ?obj prog:OverheatingPump_modelName ?modelName }
                     OPTIONAL { ?obj prog:OverheatingPump_lifeTime ?lifeTime }
                     OPTIONAL { ?obj prog:OverheatingPump_temperature ?temperature }
-                    OPTIONAL { ?obj prog:OverheatingPump_pumpStatus ?pumpStatus }
+                    BIND ("Overheating" AS ?pumpStatus)
                 } UNION {
                     ?obj a prog:UnderheatingPump ;
                         prog:UnderheatingPump_actuatorId "$pumpId" ;
@@ -188,7 +188,7 @@ class PumpService(
                     OPTIONAL { ?obj prog:UnderheatingPump_modelName ?modelName }
                     OPTIONAL { ?obj prog:UnderheatingPump_lifeTime ?lifeTime }
                     OPTIONAL { ?obj prog:UnderheatingPump_temperature ?temperature }
-                    OPTIONAL { ?obj prog:UnderheatingPump_pumpStatus ?pumpStatus }
+                    BIND ("Underheating" AS ?pumpStatus)
                 }
              }""".trimIndent()
 
@@ -227,7 +227,7 @@ class PumpService(
         val pumpsList = mutableListOf<Pump>()
         val pumps =
             """
-             SELECT DISTINCT ?actuatorId ?pumpChannel ?modelName ?lifeTime ?temperature ?pumpStatus WHERE {
+             SELECT DISTINCT ?actuatorId ?pumpChannel ?modelName ?lifeTime ?temperature WHERE {
                 ?obj a prog:Pump ;
                     prog:Pump_actuatorId ?actuatorId ;
                     prog:Pump_pumpChannel ?pumpChannel ;
@@ -235,7 +235,6 @@ class PumpService(
                 OPTIONAL { ?obj prog:Pump_modelName ?modelName }
                 OPTIONAL { ?obj prog:Pump_lifeTime ?lifeTime }
                 OPTIONAL { ?obj prog:Pump_temperature ?temperature }
-                OPTIONAL { ?obj prog:Pump_pumpStatus ?pumpStatus }
              }""".trimIndent()
 
         val result: ResultSet = repl.interpreter!!.query(pumps)!!

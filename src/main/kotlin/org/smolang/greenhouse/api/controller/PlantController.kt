@@ -157,6 +157,27 @@ class PlantController(
         return ResponseEntity.ok(updatedPlant)
     }
 
+    @Operation(summary = "Update the plant model")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Successfully updated the plant model"),
+            ApiResponse(responseCode = "401", description = "You are not authorized to view the resource"),
+            ApiResponse(
+                responseCode = "403",
+                description = "Accessing the resource you were trying to reach is forbidden"
+            ),
+            ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
+        ]
+    )
+    @PatchMapping(produces = ["application/json"])
+    fun updatePlantModel(): ResponseEntity<String> {
+        log.info("Updating a plant model")
+
+        replConfig.reclassifySingleModel().invoke("plants")
+
+        return ResponseEntity.ok("Plant model updated")
+    }
+
     @Operation(summary = "Delete a plant")
     @ApiResponses(
         value = [

@@ -1589,7 +1589,7 @@ ast:plant3 rdf:type owl:NamedIndividual ,
 
 ###  http://www.smolang.org/greenhouseDT#plant4
 ast:plant4 rdf:type owl:NamedIndividual ,
-                    ast:Monstera ;
+                    ast:Basil ;
            ast:isInPot ast:pot4 ;
            ast:familyName "Ocimum basilicum" ;
            ast:plantId "4" .

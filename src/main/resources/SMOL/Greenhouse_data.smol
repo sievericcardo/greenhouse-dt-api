@@ -171,7 +171,7 @@ classifies "<ast:ThirstyPlant>";
 end
 
 class OverwateredPlant extends Plant ()
-classifies "<ast:Overwatered>";
+classifies "<ast:OverwateredPlant>";
     Unit printInfo()
         print("Plant: " ++ this.plantId ++ " is overwatered.");
     end
