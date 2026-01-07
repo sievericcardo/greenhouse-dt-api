@@ -9,12 +9,15 @@ import no.uio.microobject.type.STRINGTYPE
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.security.MessageDigest
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 @Configuration
 open class REPLConfig {
 
     private lateinit var repl: REPL
     private val md = MessageDigest.getInstance("MD5")
+    private val modelOperationLock = ReentrantLock()
 
     @PostConstruct
     fun initRepl() {
@@ -73,30 +76,34 @@ open class REPLConfig {
 
     @Bean
     open fun regenerateSingleModel(): (String) -> Unit = { modelName: String ->
-        val escapedModelName = "\"$modelName\""
-        repl.interpreter!!.tripleManager.regenerateTripleStoreModel()
-        repl.interpreter!!.evalCall(
-            repl.interpreter!!.getObjectNames("AssetModel")[0],
-            "AssetModel",
-            "reconfigureSingleModel",
-            mapOf("mod" to LiteralExpr(escapedModelName, STRINGTYPE))
-        )
-        repl.interpreter!!.evalCall(
-            repl.interpreter!!.getObjectNames("AssetModel")[0],
-            "AssetModel",
-            "reclassifySingleModel",
-            mapOf("mod" to LiteralExpr(escapedModelName, STRINGTYPE))
-        )
+        modelOperationLock.withLock {
+            val escapedModelName = "\"$modelName\""
+            repl.interpreter!!.tripleManager.regenerateTripleStoreModel()
+            repl.interpreter!!.evalCall(
+                repl.interpreter!!.getObjectNames("AssetModel")[0],
+                "AssetModel",
+                "reconfigureSingleModel",
+                mapOf("mod" to LiteralExpr(escapedModelName, STRINGTYPE))
+            )
+            repl.interpreter!!.evalCall(
+                repl.interpreter!!.getObjectNames("AssetModel")[0],
+                "AssetModel",
+                "reclassifySingleModel",
+                mapOf("mod" to LiteralExpr(escapedModelName, STRINGTYPE))
+            )
+        }
     }
 
     @Bean
     open fun reclassifySingleModel(): (String) -> Unit = { modelName: String ->
-        val escapedModelName = "\"$modelName\""
-        repl.interpreter!!.evalCall(
-            repl.interpreter!!.getObjectNames("AssetModel")[0],
-            "AssetModel",
-            "reclassifySingleModel",
-            mapOf("mod" to LiteralExpr(escapedModelName, STRINGTYPE))
-        )
+        modelOperationLock.withLock {
+            val escapedModelName = "\"$modelName\""
+            repl.interpreter!!.evalCall(
+                repl.interpreter!!.getObjectNames("AssetModel")[0],
+                "AssetModel",
+                "reclassifySingleModel",
+                mapOf("mod" to LiteralExpr(escapedModelName, STRINGTYPE))
+            )
+        }
     }
 }

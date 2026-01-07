@@ -59,8 +59,8 @@ class PumpService(
     fun getAllPumps(): List<Pump>? {
         logger.debug("getAllPumps: retrieving all pumps")
         // Return cached pumps if available
-        val cached = componentsConfig.getPumpCache()
-        if (cached.isNotEmpty()) return cached.values.toList()
+        componentsConfig.getPumpCache()
+//        if (cached.isNotEmpty()) return cached.values.toList()
         val pumpsList = mutableListOf<Pump>()
         val pumps =
             """
@@ -145,7 +145,7 @@ class PumpService(
 
     fun getPumpByPumpId(pumpId: String): Pump? {
         logger.debug("getPumpByPumpId: retrieving pump $pumpId")
-        componentsConfig.getPumpById(pumpId)?.let { return it }
+//        componentsConfig.getPumpById(pumpId)?.let { return it }
         val pumps =
             """
              SELECT ?pumpChannel ?modelName ?lifeTime ?temperature ?pumpStatus WHERE {
@@ -285,8 +285,8 @@ class PumpService(
         }
 
         if (updatedPump.lifeTime != null) {
-            deleteClause += "OPTIONAL { ?pump ast:lifeTime ?oldLifeTime } .\n"
-            insertClause += "?pump ast:lifeTime ${updatedPump.lifeTime} .\n"
+            deleteClause += "OPTIONAL { ?pump ast:pumpLifeTime ?oldLifeTime } .\n"
+            insertClause += "?pump ast:pumpLifeTime ${updatedPump.lifeTime} .\n"
         }
 
         if (updatedPump.modelName != null) {
@@ -308,7 +308,7 @@ class PumpService(
             PREFIX ast: <$prefix>
             
             DELETE {
-                ${if (updatedPump.temperature != null) "?pump ast:temperature ?oldTemperature .\n" else ""}${if (updatedPump.lifeTime != null) "?pump ast:lifeTime ?oldLifeTime .\n" else ""}${if (updatedPump.modelName != null) "?pump ast:modelName ?oldModelName .\n" else ""}${if (updatedPump.pumpStatus != null) "?pump ast:pumpStatus ?oldStatus .\n" else ""}
+                ${if (updatedPump.temperature != null) "?pump ast:temperature ?oldTemperature .\n" else ""}${if (updatedPump.lifeTime != null) "?pump ast:pumpLifeTime ?oldLifeTime .\n" else ""}${if (updatedPump.modelName != null) "?pump ast:modelName ?oldModelName .\n" else ""}${if (updatedPump.pumpStatus != null) "?pump ast:pumpStatus ?oldStatus .\n" else ""}
             }
             INSERT {
                 $insertClause
@@ -328,7 +328,7 @@ class PumpService(
             updateProcessor.execute()
             // merge with cache if present
             val cached = componentsConfig.getPumpById(updatedPump.actuatorId)
-            val merged = if (cached == null) {
+            if (cached == null) {
                 updatedPump
             } else {
                 Pump(
@@ -340,7 +340,6 @@ class PumpService(
                     updatedPump.pumpStatus ?: cached.pumpStatus
                 )
             }
-            componentsConfig.addPumpToCache(merged)
         } catch (e: Exception) {
             return false
         }

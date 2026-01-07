@@ -115,6 +115,10 @@ open class ComponentsConfig {
         plantCache.clear()
     }
 
+    open fun clearPumpCache() {
+        pumpCache.clear()
+    }
+
     open fun getPotCache(): PotCache {
         return potCache
     }

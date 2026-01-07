@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import jakarta.validation.Valid
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.smolang.greenhouse.api.config.ComponentsConfig
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.model.Plant
 import org.smolang.greenhouse.api.service.PlantService
@@ -23,7 +24,8 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBod
 class PlantController(
     private val replConfig: REPLConfig,
     private val plantService: PlantService,
-    private val potService: PotService
+    private val potService: PotService,
+    private val componentsConfig: ComponentsConfig
 ) {
 
     private val log: Logger = LoggerFactory.getLogger(PlantController::class.java.name)
@@ -152,6 +154,7 @@ class PlantController(
 
         log.info("Plant updated")
         replConfig.regenerateSingleModel().invoke("plants")
+        componentsConfig.removePlantFromCache(plantId)
         val updatedPlant = plantService.getPlantByPlantId(plantId) ?: return ResponseEntity.notFound().build()
 
         return ResponseEntity.ok(updatedPlant)
@@ -174,6 +177,9 @@ class PlantController(
         log.info("Updating a plant model")
 
         replConfig.reclassifySingleModel().invoke("plants")
+
+        // Clear the plant cache if applicable
+        componentsConfig.clearPlantCache()
 
         return ResponseEntity.ok("Plant model updated")
     }

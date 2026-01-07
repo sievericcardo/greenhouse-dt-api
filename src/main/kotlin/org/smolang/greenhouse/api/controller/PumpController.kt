@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import jakarta.validation.Valid
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.smolang.greenhouse.api.config.ComponentsConfig
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.model.Pump
 import org.smolang.greenhouse.api.service.PumpService
@@ -22,7 +23,8 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBod
 @RequestMapping("/api/pumps")
 class PumpController(
     private val replConfig: REPLConfig,
-    private val pumpService: PumpService
+    private val pumpService: PumpService,
+    private val componentsConfig: ComponentsConfig
 ) {
 
     private val log: Logger = LoggerFactory.getLogger(PumpController::class.java.name)
@@ -197,7 +199,7 @@ class PumpController(
     fun updatePump(
         @ApiParam(value = "Pump ID", required = true) @Valid @PathVariable pumpId: String,
         @SwaggerRequestBody(description = "Pump to be updated") @RequestBody pumpRequest: UpdatePumpRequest
-    ): ResponseEntity<String> {
+    ): ResponseEntity<Pump> {
         log.info("Updating pump pressure")
 
         val updatedPump = Pump(
@@ -211,12 +213,14 @@ class PumpController(
         log.info("Updated pump: $updatedPump")
 
         if (!pumpService.updatePump(updatedPump)) {
-            return ResponseEntity.badRequest().body("Failed to update pump")
+            return ResponseEntity.badRequest().build()
         }
 
+        componentsConfig.removePumpFromCache(pumpId)
         replConfig.regenerateSingleModel().invoke("pumps")
+        val pump = pumpService.getPumpByPumpId(pumpId) ?: return ResponseEntity.notFound().build()
 
-        return ResponseEntity.ok("Pump updated")
+        return ResponseEntity.ok(pump)
     }
 
     @Operation(summary = "Update pressure to multiple pumps")
@@ -231,9 +235,9 @@ class PumpController(
             ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
         ]
     )
-    @PatchMapping("/update-multil")
-    fun updateMultiplePumps(@SwaggerRequestBody(description = "Pumps to be updated") @RequestBody pumpRequests: List<UpdatePumpRequest>): ResponseEntity<String> {
-        log.info("Updating pumps pressure")
+    @PatchMapping("/update-multi")
+    fun updateMultiplePumps(@SwaggerRequestBody(description = "Pumps to be updated") @RequestBody pumpRequests: List<UpdatePumpRequest>): ResponseEntity<List<Pump>> {
+        log.info("Updating pumps: $pumpRequests")
 
         val updatedPumps = pumpRequests.map {
             Pump(
@@ -249,13 +253,30 @@ class PumpController(
 
         updatedPumps.forEach {
             if (!pumpService.updatePump(it)) {
-                return ResponseEntity.badRequest().body("Failed to update pump")
+                return ResponseEntity.badRequest().build()
             }
+        }
+
+        // Clear cache for all updated pumps before regeneration
+        pumpRequests.forEach {
+            componentsConfig.removePumpFromCache(it.actuatorId!!)
         }
 
         replConfig.regenerateSingleModel().invoke("pumps")
 
-        return ResponseEntity.ok("Pumps updated")
+        // Re-fetch all pumps after model regeneration to ensure cache is populated
+        pumpService.getAllPumps()
+
+        val pumps: MutableList<Pump> = mutableListOf()
+
+        pumpRequests.forEach { request ->
+            val pump = pumpService.getPumpByPumpId(request.actuatorId!!)
+            if (pump != null) {
+                pumps.add(pump)
+            }
+        }
+
+        return ResponseEntity.ok(pumps)
     }
 
     @Operation(summary = "Delete a pump")

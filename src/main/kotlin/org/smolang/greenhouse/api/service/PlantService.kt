@@ -60,8 +60,8 @@ class PlantService(
     fun getAllPlants(): List<Plant>? {
         logger.debug("getAllPlants: retrieving all plants")
         // Return cached plants if available
-        val cached = componentsConfig.getPlantCache()
-        if (cached.isNotEmpty()) return cached.values.toList()
+//        val cached = componentsConfig.getPlantCache()
+//        if (cached.isNotEmpty()) return cached.values.toList()
         val plants =
             """
              SELECT ?plantId ?familyName ?potId ?moisture ?healthState ?status ?moistureState WHERE {
@@ -212,7 +212,7 @@ class PlantService(
     fun getPlantByPlantId(plantId: String): Plant? {
         logger.debug("getPlantByPlantId: retrieving plant $plantId")
         // Return cached plant if present
-        componentsConfig.getPlantById(plantId)?.let { return it }
+//        componentsConfig.getPlantById(plantId)?.let { return it }
         val query = """
             SELECT DISTINCT ?familyName ?potId ?moisture ?healthState ?status ?moistureState WHERE {
                 {
