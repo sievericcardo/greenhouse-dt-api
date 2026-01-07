@@ -1058,6 +1058,7 @@ ast:OverwateredSchefflera rdf:type owl:Class ;
 ###  http://www.smolang.org/greenhouseDT#Plant
 ast:Plant rdf:type owl:Class ;
           owl:disjointUnionOf ( ast:MoistPlant
+                                ast:OverwateredPlant
                                 ast:ThirstyPlant
                               ) .
 
