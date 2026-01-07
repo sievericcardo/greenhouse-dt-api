@@ -139,6 +139,8 @@ class PlantModel extends BaseModel()
                 { ?obj a prog:ThirstyPlant . }
                 UNION
                 { ?obj a prog:MoistPlant . }
+                UNION
+                { ?obj a prog:OverwateredPlant . }
             }");
 
         if plants == null then print("ADAPT> No plants"); else
