@@ -175,6 +175,12 @@ ast:potOffset rdf:type owl:DatatypeProperty ;
               rdfs:range xsd:string .
 
 
+###  http://www.smolang.org/greenhouseDT#powerOutput
+ast:powerOutput rdf:type owl:DatatypeProperty ;
+                rdfs:domain ast:Pump ;
+                rdfs:range xsd:integer .
+
+
 ###  http://www.smolang.org/greenhouseDT#pumpChannel
 ast:pumpChannel rdf:type owl:DatatypeProperty ;
                 rdfs:domain ast:Pump ;
@@ -1494,6 +1500,27 @@ ast:greenhouse1 rdf:type owl:NamedIndividual ,
                 ast:hasLightSensor ast:lightSensor1 ;
                 ast:hasTemperatureHumiditySensor ast:humidityTemperatureSensor1 ;
                 ast:greenhouseId "Greenhouse 1" .
+
+
+###  http://www.smolang.org/greenhouseDT#maintenanceR365
+ast:maintenanceR365 rdf:type owl:NamedIndividual ,
+                             ast:Maintenance ;
+                    ast:modelName "R365" ;
+                    ast:powerOutput 3 .
+
+
+###  http://www.smolang.org/greenhouseDT#maintenanceR385
+ast:maintenanceR385 rdf:type owl:NamedIndividual ,
+                             ast:Maintenance ;
+                    ast:modelName "R385" ;
+                    ast:powerOutput 4 .
+
+
+###  http://www.smolang.org/greenhouseDT#maintenanceWPS27
+ast:maintenanceWPS27 rdf:type owl:NamedIndividual ,
+                              ast:Maintenance ;
+                     ast:modelName "WPS27" ;
+                     ast:powerOutput 5 .
 
 
 ###  http://www.smolang.org/greenhouseDT#humidityTemperatureSensor1

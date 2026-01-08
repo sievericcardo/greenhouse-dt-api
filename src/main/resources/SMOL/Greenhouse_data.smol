@@ -479,6 +479,11 @@ class OperatingPumpDefectLifeTime (OperatingPump obj, Int pumpLifeTimeNew) end
 class MaintenancePumpDefectLifeTime (MaintenancePump obj, Int pumpLifeTimeNew) end
 class OverheatingPumpDefectLifeTime (OverheatingPump obj, Int pumpLifeTimeNew) end
 class UnderheatingPumpDefectLifeTime (UnderheatingPump obj, Int pumpLifeTimeNew) end
+class PumpDefectModelName (Pump obj, String modelNameNew) end
+class OperatingPumpDefectModelName (OperatingPump obj, String modelNameNew) end
+class MaintenancePumpDefectModelName (MaintenancePump obj, String modelNameNew) end
+class OverheatingPumpDefectModelName (OverheatingPump obj, String modelNameNew) end
+class UnderheatingPumpDefectModelName (UnderheatingPump obj, String modelNameNew) end
 class PlantDefect (Plant obj, Double idealMoistureNew) end
 class PlantDefectStatus (Plant obj, String statusNew) end
 class PotDefectShelf (Pot obj, String shelfFloorNew) end

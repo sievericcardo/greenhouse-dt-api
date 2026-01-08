@@ -299,6 +299,7 @@ class PumpService(
             insertClause += "?pump ast:pumpStatus \"${updatedPump.pumpStatus}\" .\n"
         }
 
+
         if (deleteClause.isEmpty() && insertClause.isEmpty()) {
             return false // Nothing to update
         }
@@ -326,6 +327,7 @@ class PumpService(
 
         try {
             updateProcessor.execute()
+            logger.info("Successfully updated pump ${updatedPump.actuatorId} in triplestore")
             // merge with cache if present
             val cached = componentsConfig.getPumpById(updatedPump.actuatorId)
             if (cached == null) {
@@ -341,6 +343,7 @@ class PumpService(
                 )
             }
         } catch (e: Exception) {
+            logger.error("Failed to update pump ${updatedPump.actuatorId}: ${e.message}", e)
             return false
         }
 
