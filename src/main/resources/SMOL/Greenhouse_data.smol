@@ -15,13 +15,13 @@ end
 class TemperatureHumiditySensor extends Sensor (Double temperature, Double humidity)
 end
 
-class HealthState extends Twin (context Plant plant, String name)
+class HealthState extends Twin (context Plant plant)
     Unit printInfo()
         print("Health State: " ++ this.name ++ " for plant " ++ this.plant.plantId ++ ".");
     end
 end
 
-class Healthy extends HealthState ()
+class Healthy extends HealthState (String name)
 classifies "<ast:Healthy>";
 retrieves "SELECT DISTINCT ?name WHERE {
     ast:Healthy rdfs:subClassOf ?restriction .
@@ -30,11 +30,11 @@ retrieves "SELECT DISTINCT ?name WHERE {
                  owl:hasValue ?name .
 }";
     override Unit printInfo()
-        print("Plant is healthy.");
+        print("Plant is " ++ this.name ++ ".");
     end
 end
 
-class Unhealthy extends HealthState ()
+class Unhealthy extends HealthState (String name)
 classifies "<ast:Unhealthy>";
 retrieves "SELECT DISTINCT ?name WHERE {
     ast:Unhealthy rdfs:subClassOf ?restriction .
@@ -43,11 +43,11 @@ retrieves "SELECT DISTINCT ?name WHERE {
                  owl:hasValue ?name .
 }";
     override Unit printInfo()
-        print("Plant is unhealthy.");
+        print("Plant is " ++ this.name ++ ".");
     end
 end
 
-class Dead extends HealthState ()
+class Dead extends HealthState (String name)
 classifies "<ast:Dead>";
 retrieves "SELECT DISTINCT ?name WHERE {
     ast:Dead rdfs:subClassOf ?restriction .
@@ -56,7 +56,7 @@ retrieves "SELECT DISTINCT ?name WHERE {
                  owl:hasValue ?name .
 }";
     override Unit printInfo()
-        print("Plant is dead.");
+        print("Plant is " ++ this.name ++ ".");
     end
 end
 
