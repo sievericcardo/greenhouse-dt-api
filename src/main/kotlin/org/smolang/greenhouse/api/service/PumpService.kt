@@ -145,7 +145,7 @@ class PumpService(
 
     fun getPumpByPumpId(pumpId: String): Pump? {
         logger.debug("getPumpByPumpId: retrieving pump $pumpId")
-//        componentsConfig.getPumpById(pumpId)?.let { return it }
+       componentsConfig.getPumpById(pumpId)?.let { return it }
         val pumps =
             """
              SELECT ?pumpChannel ?modelName ?lifeTime ?temperature ?pumpStatus WHERE {
