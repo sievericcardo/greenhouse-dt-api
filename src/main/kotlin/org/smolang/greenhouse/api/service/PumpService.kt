@@ -59,8 +59,8 @@ class PumpService(
     fun getAllPumps(): List<Pump>? {
         logger.debug("getAllPumps: retrieving all pumps")
         // Return cached pumps if available
-        val cached = componentsConfig.getPumpCache()
-        if (cached.isNotEmpty()) return cached.values.toList()
+        componentsConfig.getPumpCache()
+//        if (cached.isNotEmpty()) return cached.values.toList()
         val pumpsList = mutableListOf<Pump>()
         val pumps =
             """
@@ -72,7 +72,7 @@ class PumpService(
                     OPTIONAL { ?obj prog:Pump_modelName ?modelName }
                     OPTIONAL { ?obj prog:Pump_lifeTime ?lifeTime }
                     OPTIONAL { ?obj prog:Pump_temperature ?temperature }
-                    OPTIONAL { ?obj prog:Pump_pumpStatus ?pumpStatus }
+                    BIND ("Unknown" AS ?pumpStatus)
                 } UNION {
                     ?obj a prog:OperatingPump ;
                         prog:OperatingPump_actuatorId ?actuatorId ;
@@ -80,7 +80,7 @@ class PumpService(
                     OPTIONAL { ?obj prog:OperatingPump_modelName ?modelName }
                     OPTIONAL { ?obj prog:OperatingPump_lifeTime ?lifeTime }
                     OPTIONAL { ?obj prog:OperatingPump_temperature ?temperature }
-                    OPTIONAL { ?obj prog:OperatingPump_pumpStatus ?pumpStatus }
+                    BIND ("Operating" AS ?pumpStatus)
                 } UNION {
                     ?obj a prog:MaintenancePump ;
                         prog:MaintenancePump_actuatorId ?actuatorId ;
@@ -88,7 +88,7 @@ class PumpService(
                     OPTIONAL { ?obj prog:MaintenancePump_modelName ?modelName }
                     OPTIONAL { ?obj prog:MaintenancePump_lifeTime ?lifeTime }
                     OPTIONAL { ?obj prog:MaintenancePump_temperature ?temperature }
-                    OPTIONAL { ?obj prog:MaintenancePump_pumpStatus ?pumpStatus }
+                    BIND ("Maintenance" AS ?pumpStatus)
                 } UNION {
                     ?obj a prog:OverheatingPump ;
                         prog:OverheatingPump_actuatorId ?actuatorId ;
@@ -96,7 +96,7 @@ class PumpService(
                     OPTIONAL { ?obj prog:OverheatingPump_modelName ?modelName }
                     OPTIONAL { ?obj prog:OverheatingPump_lifeTime ?lifeTime }
                     OPTIONAL { ?obj prog:OverheatingPump_temperature ?temperature }
-                    OPTIONAL { ?obj prog:OverheatingPump_pumpStatus ?pumpStatus }
+                    BIND ("Overheating" AS ?pumpStatus)
                 } UNION {
                     ?obj a prog:UnderheatingPump ;
                         prog:UnderheatingPump_actuatorId ?actuatorId ;
@@ -104,7 +104,7 @@ class PumpService(
                     OPTIONAL { ?obj prog:UnderheatingPump_modelName ?modelName }
                     OPTIONAL { ?obj prog:UnderheatingPump_lifeTime ?lifeTime }
                     OPTIONAL { ?obj prog:UnderheatingPump_temperature ?temperature }
-                    OPTIONAL { ?obj prog:UnderheatingPump_pumpStatus ?pumpStatus }
+                    BIND ("Underheating" AS ?pumpStatus)
                 }
              }""".trimIndent()
 
@@ -145,7 +145,7 @@ class PumpService(
 
     fun getPumpByPumpId(pumpId: String): Pump? {
         logger.debug("getPumpByPumpId: retrieving pump $pumpId")
-        componentsConfig.getPumpById(pumpId)?.let { return it }
+       componentsConfig.getPumpById(pumpId)?.let { return it }
         val pumps =
             """
              SELECT ?pumpChannel ?modelName ?lifeTime ?temperature ?pumpStatus WHERE {
@@ -156,7 +156,7 @@ class PumpService(
                     OPTIONAL { ?obj prog:Pump_modelName ?modelName }
                     OPTIONAL { ?obj prog:Pump_lifeTime ?lifeTime }
                     OPTIONAL { ?obj prog:Pump_temperature ?temperature }
-                    OPTIONAL { ?obj prog:Pump_pumpStatus ?pumpStatus }
+                    BIND ("Unknown" AS ?pumpStatus)
                 } UNION {
                     ?obj a prog:OperatingPump ;
                         prog:OperatingPump_actuatorId "$pumpId" ;
@@ -164,7 +164,7 @@ class PumpService(
                     OPTIONAL { ?obj prog:OperatingPump_modelName ?modelName }
                     OPTIONAL { ?obj prog:OperatingPump_lifeTime ?lifeTime }
                     OPTIONAL { ?obj prog:OperatingPump_temperature ?temperature }
-                    OPTIONAL { ?obj prog:OperatingPump_pumpStatus ?pumpStatus }
+                    BIND ("Operating" AS ?pumpStatus)
                 } UNION {
                     ?obj a prog:MaintenancePump ;
                         prog:MaintenancePump_actuatorId "$pumpId" ;
@@ -172,7 +172,7 @@ class PumpService(
                     OPTIONAL { ?obj prog:MaintenancePump_modelName ?modelName }
                     OPTIONAL { ?obj prog:MaintenancePump_lifeTime ?lifeTime }
                     OPTIONAL { ?obj prog:MaintenancePump_temperature ?temperature }
-                    OPTIONAL { ?obj prog:MaintenancePump_pumpStatus ?pumpStatus }
+                    BIND ("Maintenance" AS ?pumpStatus)
                 } UNION {
                     ?obj a prog:OverheatingPump ;
                         prog:OverheatingPump_actuatorId "$pumpId" ;
@@ -180,7 +180,7 @@ class PumpService(
                     OPTIONAL { ?obj prog:OverheatingPump_modelName ?modelName }
                     OPTIONAL { ?obj prog:OverheatingPump_lifeTime ?lifeTime }
                     OPTIONAL { ?obj prog:OverheatingPump_temperature ?temperature }
-                    OPTIONAL { ?obj prog:OverheatingPump_pumpStatus ?pumpStatus }
+                    BIND ("Overheating" AS ?pumpStatus)
                 } UNION {
                     ?obj a prog:UnderheatingPump ;
                         prog:UnderheatingPump_actuatorId "$pumpId" ;
@@ -188,7 +188,7 @@ class PumpService(
                     OPTIONAL { ?obj prog:UnderheatingPump_modelName ?modelName }
                     OPTIONAL { ?obj prog:UnderheatingPump_lifeTime ?lifeTime }
                     OPTIONAL { ?obj prog:UnderheatingPump_temperature ?temperature }
-                    OPTIONAL { ?obj prog:UnderheatingPump_pumpStatus ?pumpStatus }
+                    BIND ("Underheating" AS ?pumpStatus)
                 }
              }""".trimIndent()
 
@@ -227,7 +227,7 @@ class PumpService(
         val pumpsList = mutableListOf<Pump>()
         val pumps =
             """
-             SELECT DISTINCT ?actuatorId ?pumpChannel ?modelName ?lifeTime ?temperature ?pumpStatus WHERE {
+             SELECT DISTINCT ?actuatorId ?pumpChannel ?modelName ?lifeTime ?temperature WHERE {
                 ?obj a prog:Pump ;
                     prog:Pump_actuatorId ?actuatorId ;
                     prog:Pump_pumpChannel ?pumpChannel ;
@@ -235,7 +235,6 @@ class PumpService(
                 OPTIONAL { ?obj prog:Pump_modelName ?modelName }
                 OPTIONAL { ?obj prog:Pump_lifeTime ?lifeTime }
                 OPTIONAL { ?obj prog:Pump_temperature ?temperature }
-                OPTIONAL { ?obj prog:Pump_pumpStatus ?pumpStatus }
              }""".trimIndent()
 
         val result: ResultSet = repl.interpreter!!.query(pumps)!!
@@ -286,8 +285,8 @@ class PumpService(
         }
 
         if (updatedPump.lifeTime != null) {
-            deleteClause += "OPTIONAL { ?pump ast:lifeTime ?oldLifeTime } .\n"
-            insertClause += "?pump ast:lifeTime ${updatedPump.lifeTime} .\n"
+            deleteClause += "OPTIONAL { ?pump ast:pumpLifeTime ?oldLifeTime } .\n"
+            insertClause += "?pump ast:pumpLifeTime ${updatedPump.lifeTime} .\n"
         }
 
         if (updatedPump.modelName != null) {
@@ -300,6 +299,7 @@ class PumpService(
             insertClause += "?pump ast:pumpStatus \"${updatedPump.pumpStatus}\" .\n"
         }
 
+
         if (deleteClause.isEmpty() && insertClause.isEmpty()) {
             return false // Nothing to update
         }
@@ -309,7 +309,7 @@ class PumpService(
             PREFIX ast: <$prefix>
             
             DELETE {
-                ${if (updatedPump.temperature != null) "?pump ast:temperature ?oldTemperature .\n" else ""}${if (updatedPump.lifeTime != null) "?pump ast:lifeTime ?oldLifeTime .\n" else ""}${if (updatedPump.modelName != null) "?pump ast:modelName ?oldModelName .\n" else ""}${if (updatedPump.pumpStatus != null) "?pump ast:pumpStatus ?oldStatus .\n" else ""}
+                ${if (updatedPump.temperature != null) "?pump ast:temperature ?oldTemperature .\n" else ""}${if (updatedPump.lifeTime != null) "?pump ast:pumpLifeTime ?oldLifeTime .\n" else ""}${if (updatedPump.modelName != null) "?pump ast:modelName ?oldModelName .\n" else ""}${if (updatedPump.pumpStatus != null) "?pump ast:pumpStatus ?oldStatus .\n" else ""}
             }
             INSERT {
                 $insertClause
@@ -327,9 +327,10 @@ class PumpService(
 
         try {
             updateProcessor.execute()
+            logger.info("Successfully updated pump ${updatedPump.actuatorId} in triplestore")
             // merge with cache if present
             val cached = componentsConfig.getPumpById(updatedPump.actuatorId)
-            val merged = if (cached == null) {
+            if (cached == null) {
                 updatedPump
             } else {
                 Pump(
@@ -341,8 +342,8 @@ class PumpService(
                     updatedPump.pumpStatus ?: cached.pumpStatus
                 )
             }
-            componentsConfig.addPumpToCache(merged)
         } catch (e: Exception) {
+            logger.error("Failed to update pump ${updatedPump.actuatorId}: ${e.message}", e)
             return false
         }
 

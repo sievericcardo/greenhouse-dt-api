@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import jakarta.validation.Valid
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.smolang.greenhouse.api.config.ComponentsConfig
 import org.smolang.greenhouse.api.config.REPLConfig
 import org.smolang.greenhouse.api.model.Plant
 import org.smolang.greenhouse.api.service.PlantService
@@ -23,7 +24,8 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBod
 class PlantController(
     private val replConfig: REPLConfig,
     private val plantService: PlantService,
-    private val potService: PotService
+    private val potService: PotService,
+    private val componentsConfig: ComponentsConfig
 ) {
 
     private val log: Logger = LoggerFactory.getLogger(PlantController::class.java.name)
@@ -152,9 +154,34 @@ class PlantController(
 
         log.info("Plant updated")
         replConfig.regenerateSingleModel().invoke("plants")
+        componentsConfig.removePlantFromCache(plantId)
         val updatedPlant = plantService.getPlantByPlantId(plantId) ?: return ResponseEntity.notFound().build()
 
         return ResponseEntity.ok(updatedPlant)
+    }
+
+    @Operation(summary = "Update the plant model")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Successfully updated the plant model"),
+            ApiResponse(responseCode = "401", description = "You are not authorized to view the resource"),
+            ApiResponse(
+                responseCode = "403",
+                description = "Accessing the resource you were trying to reach is forbidden"
+            ),
+            ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
+        ]
+    )
+    @PatchMapping(produces = ["application/json"])
+    fun updatePlantModel(): ResponseEntity<String> {
+        log.info("Updating a plant model")
+
+        replConfig.reclassifySingleModel().invoke("plants")
+
+        // Clear the plant cache if applicable
+        componentsConfig.clearPlantCache()
+
+        return ResponseEntity.ok("Plant model updated")
     }
 
     @Operation(summary = "Delete a plant")

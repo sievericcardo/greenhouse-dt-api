@@ -3,6 +3,9 @@ package org.smolang.greenhouse.api.service
 import com.sksamuel.hoplite.ConfigLoader
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.smolang.greenhouse.api.config.EnvironmentConfig
+import org.smolang.greenhouse.api.config.MoistureDurations
+import org.smolang.greenhouse.api.config.StrategyDefinition
 import org.smolang.greenhouse.api.config.WateringStrategyConfig
 import org.smolang.greenhouse.api.model.Plant
 import org.smolang.greenhouse.api.strategy.WateringStrategy
@@ -18,11 +21,14 @@ import kotlin.concurrent.write
  * Supports runtime reloading without application restart.
  */
 @Service
-class WateringStrategyLoader {
+class WateringStrategyLoader(
+    private val environmentConfig: EnvironmentConfig
+) {
 
     private val log: Logger = LoggerFactory.getLogger(WateringStrategyLoader::class.java.name)
-    private val configResourcePath = "/watering-strategies.yml"
-    private val configFilePath = "src/main/resources/watering-strategies.yml"
+    private val configResourcePath = environmentConfig.getOrDefault("CONFIG_RESOURCE_PATH", "/watering-strategies.yml")
+    private val configFilePath =
+        environmentConfig.getOrDefault("CONFIG_FILE_PATH", "src/main/resources/watering-strategies.yml")
     private val lock = ReentrantReadWriteLock()
 
     private var config: WateringStrategyConfig = WateringStrategyConfig()
@@ -177,6 +183,23 @@ class WateringStrategyLoader {
     }
 
     /**
+     * Get the active strategy definition
+     */
+    fun getActiveStrategyDefinition(): StrategyDefinition? {
+        return lock.read {
+            config.strategies[activeStrategyName]
+        }
+    }
+
+    /**
+     * Get watering duration for a specific plant based on the active strategy
+     */
+    fun getWateringDurationForPlant(plant: Plant): Int {
+        val strategy = getActiveStrategy()
+        return strategy.calculateWateringDuration(plant, plant.moistureState)
+    }
+
+    /**
      * Add or update a strategy in the configuration
      */
     fun addOrUpdateStrategy(
@@ -186,10 +209,10 @@ class WateringStrategyLoader {
     ): Boolean {
         return try {
             lock.write {
-                val newStrategy = org.smolang.greenhouse.api.config.StrategyDefinition(
+                val newStrategy = StrategyDefinition(
                     name = name,
                     description = description,
-                    durations = org.smolang.greenhouse.api.config.MoistureDurations(
+                    durations = MoistureDurations(
                         thirsty = thirstyDuration,
                         moist = moistDuration,
                         overwatered = overwateredDuration,
@@ -241,7 +264,7 @@ class WateringStrategyLoader {
  * Internal strategy implementation that uses configuration
  */
 private class ConfigurableWateringStrategy(
-    private val strategyDef: org.smolang.greenhouse.api.config.StrategyDefinition
+    private val strategyDef: StrategyDefinition
 ) : WateringStrategy {
 
     override fun calculateWateringDuration(plant: Plant, moistureState: PlantMoistureState): Int {

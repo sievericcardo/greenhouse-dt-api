@@ -15,13 +15,13 @@ end
 class TemperatureHumiditySensor extends Sensor (Double temperature, Double humidity)
 end
 
-class HealthState extends Twin (context Plant plant, String name)
+class HealthState extends Twin (context Plant plant)
     Unit printInfo()
         print("Health State: " ++ this.name ++ " for plant " ++ this.plant.plantId ++ ".");
     end
 end
 
-class Healthy extends HealthState ()
+class Healthy extends HealthState (String name)
 classifies "<ast:Healthy>";
 retrieves "SELECT DISTINCT ?name WHERE {
     ast:Healthy rdfs:subClassOf ?restriction .
@@ -30,11 +30,11 @@ retrieves "SELECT DISTINCT ?name WHERE {
                  owl:hasValue ?name .
 }";
     override Unit printInfo()
-        print("Plant is healthy.");
+        print("Plant is " ++ this.name ++ ".");
     end
 end
 
-class Unhealthy extends HealthState ()
+class Unhealthy extends HealthState (String name)
 classifies "<ast:Unhealthy>";
 retrieves "SELECT DISTINCT ?name WHERE {
     ast:Unhealthy rdfs:subClassOf ?restriction .
@@ -43,11 +43,11 @@ retrieves "SELECT DISTINCT ?name WHERE {
                  owl:hasValue ?name .
 }";
     override Unit printInfo()
-        print("Plant is unhealthy.");
+        print("Plant is " ++ this.name ++ ".");
     end
 end
 
-class Dead extends HealthState ()
+class Dead extends HealthState (String name)
 classifies "<ast:Dead>";
 retrieves "SELECT DISTINCT ?name WHERE {
     ast:Dead rdfs:subClassOf ?restriction .
@@ -56,7 +56,7 @@ retrieves "SELECT DISTINCT ?name WHERE {
                  owl:hasValue ?name .
 }";
     override Unit printInfo()
-        print("Plant is dead.");
+        print("Plant is " ++ this.name ++ ".");
     end
 end
 
@@ -171,7 +171,7 @@ classifies "<ast:ThirstyPlant>";
 end
 
 class OverwateredPlant extends Plant ()
-classifies "<ast:Overwatered>";
+classifies "<ast:OverwateredPlant>";
     Unit printInfo()
         print("Plant: " ++ this.plantId ++ " is overwatered.");
     end
@@ -479,6 +479,11 @@ class OperatingPumpDefectLifeTime (OperatingPump obj, Int pumpLifeTimeNew) end
 class MaintenancePumpDefectLifeTime (MaintenancePump obj, Int pumpLifeTimeNew) end
 class OverheatingPumpDefectLifeTime (OverheatingPump obj, Int pumpLifeTimeNew) end
 class UnderheatingPumpDefectLifeTime (UnderheatingPump obj, Int pumpLifeTimeNew) end
+class PumpDefectModelName (Pump obj, String modelNameNew) end
+class OperatingPumpDefectModelName (OperatingPump obj, String modelNameNew) end
+class MaintenancePumpDefectModelName (MaintenancePump obj, String modelNameNew) end
+class OverheatingPumpDefectModelName (OverheatingPump obj, String modelNameNew) end
+class UnderheatingPumpDefectModelName (UnderheatingPump obj, String modelNameNew) end
 class PlantDefect (Plant obj, Double idealMoistureNew) end
 class PlantDefectStatus (Plant obj, String statusNew) end
 class PotDefectShelf (Pot obj, String shelfFloorNew) end
