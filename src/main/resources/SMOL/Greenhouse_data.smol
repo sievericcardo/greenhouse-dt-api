@@ -1,6 +1,6 @@
 abstract class Twin() end
 
-class Sensor extends Twin (String sensorId, String sensorProperty)
+class Sensor extends Twin (String sensorId, String sensorProperty, Double accuracy)
 end
 
 class MoistureSensor extends Sensor (Double moisture)

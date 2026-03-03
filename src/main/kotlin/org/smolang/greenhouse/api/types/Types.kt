@@ -78,28 +78,34 @@ data class UpdatePotRequest(
 data class CreateMoistureSensorRequest(
     val sensorId: String,
     val sensorProperty: String,
+    val accuracy: Double? = null,
 )
 
 data class UpdateMoistureSensorRequest(
     val sensorProperty: String?,
+    val accuracy: Double? = null,
 )
 
 data class CreateNutrientSensorRequest(
     val sensorId: String,
     val sensorProperty: String,
+    val accuracy: Double? = null,
 )
 
 data class UpdateNutrientSensorRequest(
     val sensorProperty: String?,
+    val accuracy: Double? = null,
 )
 
 data class CreateLightSensorRequest(
     val sensorId: String,
     val sensorProperty: String,
+    val accuracy: Double? = null,
 )
 
 data class UpdateLightSensorRequest(
     val sensorProperty: String?,
+    val accuracy: Double? = null,
 )
 
 data class CreateTemperatureHumiditySensorRequest(

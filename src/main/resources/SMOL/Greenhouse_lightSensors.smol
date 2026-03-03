@@ -2,9 +2,10 @@ class LightSensorModel extends BaseModel()
     override Unit adaptAddition()
         List<LightSensor> newLightSensors = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
-            SELECT ?sensorId {
+            SELECT ?sensorId ?accuracy {
                 ?sensor a ast:LightSensor ;
                     ast:sensorId ?sensorId .
+                OPTIONAL { ?sensor ast:accuracy ?accuracy . }
                 FILTER NOT EXISTS {
                     ?x a prog:LightSensor ;
                         prog:LightSensor_sensorId ?sensorId .

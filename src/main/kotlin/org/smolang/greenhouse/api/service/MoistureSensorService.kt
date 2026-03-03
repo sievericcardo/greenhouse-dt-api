@@ -27,12 +27,14 @@ class MoistureSensorService(
 
     fun createSensor(request: CreateMoistureSensorRequest): MoistureSensor? {
         logger.info("createSensor: creating moisture sensor ${request.sensorId}")
+        val accuracyLine = if (request.accuracy != null) ";
+                    ast:accuracy ${request.accuracy}" else ""
         val query = """
             PREFIX ast: <$prefix>
             INSERT DATA {
                 ast:moistureSensor${request.sensorId} a ast:MoistureSensor ;
                     ast:sensorId ${request.sensorId} ;
-                    ast:sensorProperty ${request.sensorProperty} .
+                    ast:sensorProperty ${request.sensorProperty}$accuracyLine .
             }
         """.trimIndent()
 
@@ -42,7 +44,7 @@ class MoistureSensorService(
 
         try {
             updateProcessor.execute()
-            val sensor = MoistureSensor(request.sensorId, request.sensorProperty)
+            val sensor = MoistureSensor(request.sensorId, request.sensorProperty, request.accuracy)
             componentsConfig.addMoistureSensorToCache(sensor)
             logger.info("createSensor: created moisture sensor ${request.sensorId}")
             return sensor
@@ -54,18 +56,23 @@ class MoistureSensorService(
 
     fun updateSensor(sensorId: String, request: UpdateMoistureSensorRequest): MoistureSensor? {
         logger.info("updateSensor: updating moisture sensor $sensorId")
+        val accuracyDelete = if (request.accuracy != null) "?sensor ast:accuracy ?oldAccuracy ." else ""
+        val accuracyInsert = if (request.accuracy != null) "?sensor ast:accuracy ${request.accuracy} ." else ""
         val query = """
             PREFIX ast: <$prefix>
             DELETE {
                 ?sensor ast:sensorProperty ?oldProperty .
+                $accuracyDelete
             }
             INSERT {
                 ?sensor ast:sensorProperty ${request.sensorProperty} .
+                $accuracyInsert
             }
             WHERE {
                 ?sensor a ast:MoistureSensor ;
                     ast:sensorId "$sensorId" ;
                     ast:sensorProperty ?oldProperty .
+                OPTIONAL { ?sensor ast:accuracy ?oldAccuracy . }
             }
         """.trimIndent()
 
@@ -78,10 +85,10 @@ class MoistureSensorService(
             // merge with cache if present
             val cached = componentsConfig.getMoistureSensorById(sensorId)
             val sensor = if (cached == null) {
-                MoistureSensor(sensorId, request.sensorProperty)
+                MoistureSensor(sensorId, request.sensorProperty, request.accuracy)
             } else {
-                // keep cached moisture value, update property
-                MoistureSensor(cached.sensorId, request.sensorProperty ?: cached.sensorProperty, cached.moisture)
+                // keep cached moisture value, update property and optionally accuracy
+                MoistureSensor(cached.sensorId, request.sensorProperty ?: cached.sensorProperty, request.accuracy ?: cached.accuracy, cached.moisture)
             }
             componentsConfig.addMoistureSensorToCache(sensor)
             logger.info("updateSensor: updated moisture sensor $sensorId")
@@ -121,10 +128,11 @@ class MoistureSensorService(
         // Return cached sensor if present
         componentsConfig.getMoistureSensorById(sensorId)?.let { return it }
         val query = """
-            SELECT ?sensorId ?sensorProperty ?moisture WHERE {
+            SELECT ?sensorId ?sensorProperty ?accuracy ?moisture WHERE {
                 ?obj a prog:MoistureSensor ;
                     prog:MoistureSensor_sensorId ?sensorId ;
                     prog:MoistureSensor_sensorProperty ?sensorProperty .
+                OPTIONAL { ?obj prog:MoistureSensor_accuracy ?accuracy }
                 OPTIONAL { ?obj prog:MoistureSensor_moisture ?moisture }
             }
         """.trimIndent()
@@ -138,10 +146,13 @@ class MoistureSensorService(
         val solution = result.next()
         val sensorId = solution.get("?sensorId").asLiteral().toString()
         val sensorProperty = solution.get("?sensorProperty").asLiteral().toString()
+        val accuracy = if (solution.contains("?accuracy")) {
+            solution.get("?accuracy").asLiteral().toString().split("^^")[0].toDouble()
+        } else null
         val moisture = if (solution.contains("?moisture")) {
             solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble()
         } else null
-        val sensor = MoistureSensor(sensorId, sensorProperty, moisture)
+        val sensor = MoistureSensor(sensorId, sensorProperty, accuracy, moisture)
         componentsConfig.addMoistureSensorToCache(sensor)
         logger.debug("getSensor: retrieved moisture sensor $sensorId")
         return sensor
@@ -153,10 +164,11 @@ class MoistureSensorService(
         val cached = componentsConfig.getMoistureSensorCache()
         if (cached.isNotEmpty()) return cached.values.toList()
         val query = """
-            SELECT ?sensorId ?sensorProperty ?moisture WHERE {
+            SELECT ?sensorId ?sensorProperty ?accuracy ?moisture WHERE {
                 ?obj a prog:MoistureSensor ;
                     prog:MoistureSensor_sensorId ?sensorId ;
                     prog:MoistureSensor_sensorProperty ?sensorProperty .
+                OPTIONAL { ?obj prog:MoistureSensor_accuracy ?accuracy }
                 OPTIONAL { ?obj prog:MoistureSensor_moisture ?moisture }
             }
         """.trimIndent()
@@ -168,10 +180,13 @@ class MoistureSensorService(
             val solution = result.next()
             val sensorId = solution.get("?sensorId").asLiteral().toString()
             val sensorProperty = solution.get("?sensorProperty").asLiteral().toString()
+            val accuracy = if (solution.contains("?accuracy")) {
+                solution.get("?accuracy").asLiteral().toString().split("^^")[0].toDouble()
+            } else null
             val moisture = if (solution.contains("?moisture")) {
                 solution.get("?moisture").asLiteral().toString().split("^^")[0].toDouble()
             } else null
-            val sensor = MoistureSensor(sensorId, sensorProperty, moisture)
+            val sensor = MoistureSensor(sensorId, sensorProperty, accuracy, moisture)
             // populate cache
             componentsConfig.addMoistureSensorToCache(sensor)
             sensors.add(sensor)

@@ -27,12 +27,14 @@ class LightSensorService(
 
     fun createSensor(request: CreateLightSensorRequest): LightSensor? {
         logger.info("createSensor: creating light sensor ${request.sensorId}")
+        val accuracyLine = if (request.accuracy != null) ";
+                    ast:accuracy ${request.accuracy}" else ""
         val query = """
             PREFIX ast: <$prefix>
             INSERT DATA {
                 ast:lightSensor${request.sensorId} a :LightSensor ;
                     ast:sensorId ${request.sensorId} ;
-                    ast:sensorProperty ${request.sensorProperty} .
+                    ast:sensorProperty ${request.sensorProperty}$accuracyLine .
             }
         """.trimIndent()
 
@@ -42,7 +44,7 @@ class LightSensorService(
 
         try {
             updateProcessor.execute()
-            val sensor = LightSensor(request.sensorId)
+            val sensor = LightSensor(request.sensorId, request.sensorProperty, request.accuracy)
             componentsConfig.addLightSensorToCache(sensor)
             logger.info("createSensor: created light sensor ${request.sensorId}")
             return sensor
@@ -54,6 +56,7 @@ class LightSensorService(
 
     fun updateSensor(sensorId: String, request: UpdateLightSensorRequest): LightSensor? {
         logger.info("updateSensor: updating light sensor $sensorId")
+        val accuracyLine = if (request.accuracy != null) ";\n                    ast:accuracy ${request.accuracy}" else ""
         val query = """
             PREFIX ast: <$prefix>
             DELETE {
@@ -62,7 +65,7 @@ class LightSensorService(
             INSERT {
                 ast:lightSensor${sensorId} a :LightSensor ;
                     ast:sensorId ${sensorId} ;
-                    ast:sensorProperty ${request.sensorProperty} .
+                    ast:sensorProperty ${request.sensorProperty}$accuracyLine .
             }
             WHERE {
                 ast:lightSensor${sensorId} ?p ?o .
@@ -78,10 +81,9 @@ class LightSensorService(
             // merge with cache if present
             val cached = componentsConfig.getLightSensorById(sensorId)
             val sensor = if (cached == null) {
-                LightSensor(sensorId)
+                LightSensor(sensorId, request.sensorProperty, request.accuracy)
             } else {
-                // create new instance merging known fields (sensorProperty is not used on LightSensor class currently)
-                LightSensor(sensorId)
+                LightSensor(cached.sensorId, request.sensorProperty ?: cached.sensorProperty, request.accuracy ?: cached.accuracy, cached.lightIntensity)
             }
             componentsConfig.addLightSensorToCache(sensor)
             logger.info("updateSensor: updated light sensor $sensorId")
@@ -124,10 +126,11 @@ class LightSensorService(
         // Return cached sensor if available
         componentsConfig.getLightSensorById(sensorId)?.let { return it }
         val query = """
-            SELECT ?sensorId ?sensorProperty ?lightLevel WHERE {
+            SELECT ?sensorId ?sensorProperty ?accuracy ?lightLevel WHERE {
                 ?obj a prog:LightSensor ;
                     prog:LightSensor_sensorId ?sensorId ;
                     prog:LightSensor_sensorProperty ?sensorProperty .
+                OPTIONAL { ?obj prog:LightSensor_accuracy ?accuracy }
                 OPTIONAL { ?obj prog:LightSensor_lightLevel ?lightLevel }
             }
         """.trimIndent()
@@ -141,10 +144,13 @@ class LightSensorService(
         val solution = result.next()
         val retrievedSensorId = solution.get("?sensorId").asLiteral().toString()
         val sensorProperty = solution.get("?sensorProperty").asLiteral().toString()
+        val accuracy = if (solution.contains("?accuracy")) {
+            solution.get("?accuracy").asLiteral().toString().split("^^")[0].toDouble()
+        } else null
         val lightLevel = if (solution.contains("?lightLevel")) {
             solution.get("?lightLevel").asLiteral().toString().split("^^")[0].toDouble()
         } else null
-        val sensor = LightSensor(retrievedSensorId, sensorProperty, lightLevel)
+        val sensor = LightSensor(retrievedSensorId, sensorProperty, accuracy, lightLevel)
         componentsConfig.addLightSensorToCache(sensor)
         logger.debug("getSensor: retrieved light sensor $sensorId")
         return sensor
@@ -156,10 +162,11 @@ class LightSensorService(
         val cached = componentsConfig.getLightSensorCache()
         if (cached.isNotEmpty()) return cached.values.toList()
         val query = """
-            SELECT ?sensorId ?sensorProperty ?lightLevel WHERE {
+            SELECT ?sensorId ?sensorProperty ?accuracy ?lightLevel WHERE {
                 ?obj a prog:LightSensor ;
                     prog:LightSensor_sensorId ?sensorId ;
                     prog:LightSensor_sensorProperty ?sensorProperty .
+                OPTIONAL { ?obj prog:LightSensor_accuracy ?accuracy }
                 OPTIONAL { ?obj prog:LightSensor_lightLevel ?lightLevel }
             }
         """.trimIndent()
@@ -171,10 +178,13 @@ class LightSensorService(
             val solution = result.next()
             val sensorId = solution.get("?sensorId").asLiteral().toString()
             val sensorProperty = solution.get("?sensorProperty").asLiteral().toString()
+            val accuracy = if (solution.contains("?accuracy")) {
+                solution.get("?accuracy").asLiteral().toString().split("^^")[0].toDouble()
+            } else null
             val lightLevel = if (solution.contains("?lightLevel")) {
                 solution.get("?lightLevel").asLiteral().toString().split("^^")[0].toDouble()
             } else null
-            val sensor = LightSensor(sensorId, sensorProperty, lightLevel)
+            val sensor = LightSensor(sensorId, sensorProperty, accuracy, lightLevel)
             // populate cache
             componentsConfig.addLightSensorToCache(sensor)
             sensors.add(sensor)

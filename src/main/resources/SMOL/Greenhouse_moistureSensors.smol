@@ -2,9 +2,10 @@ class MoistureSensorModel extends BaseModel()
     override Unit adaptAddition()
         List<MoistureSensor> newMoistureSensors = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
-            SELECT ?sensorId {
+            SELECT ?sensorId ?accuracy {
                 ?sensor a ast:MoistureSensor ;
                     ast:sensorId ?sensorId .
+                OPTIONAL { ?sensor ast:accuracy ?accuracy . }
                 FILTER NOT EXISTS {
                     ?x a prog:MoistureSensor ;
                         prog:MoistureSensor_sensorId ?sensorId .

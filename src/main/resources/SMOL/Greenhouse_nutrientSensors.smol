@@ -2,9 +2,10 @@ class NutrientSensorModel extends BaseModel()
     override Unit adaptAddition()
         List<NutrientSensor> newNutrientSensors = construct("
             PREFIX ast: <http://www.smolang.org/greenhouseDT#>
-            SELECT ?sensorId {
+            SELECT ?sensorId ?accuracy {
                 ?sensor a ast:NutrientSensor ;
                     ast:sensorId ?sensorId .
+                OPTIONAL { ?sensor ast:accuracy ?accuracy . }
                 FILTER NOT EXISTS {
                     ?x a prog:NutrientSensor ;
                         prog:NutrientSensor_sensorId ?sensorId .

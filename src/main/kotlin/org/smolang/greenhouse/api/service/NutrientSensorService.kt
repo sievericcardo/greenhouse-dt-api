@@ -28,12 +28,14 @@ class NutrientSensorService(
 
     fun createSensor(request: CreateNutrientSensorRequest): NutrientSensor? {
         logger.info("createSensor: creating nutrient sensor ${request.sensorId}")
+        val accuracyLine = if (request.accuracy != null) ";
+                    ast:accuracy ${request.accuracy}" else ""
         val query = """
             PREFIX ast: <$prefix>
             INSERT DATA {
                 ast:nutrientSensor${request.sensorId} a :NutrientSensor ;
                     ast:sensorId ${request.sensorId} ;
-                    ast:sensorProperty ${request.sensorProperty} .
+                    ast:sensorProperty ${request.sensorProperty}$accuracyLine .
             }
         """.trimIndent()
 
@@ -43,7 +45,7 @@ class NutrientSensorService(
 
         try {
             updateProcessor.execute()
-            val sensor = NutrientSensor(request.sensorId, request.sensorProperty)
+            val sensor = NutrientSensor(request.sensorId, request.sensorProperty, request.accuracy)
             componentsConfig.addNutrientSensorToCache(sensor)
             logger.info("createSensor: created nutrient sensor ${request.sensorId}")
             return sensor
@@ -55,19 +57,24 @@ class NutrientSensorService(
 
     fun updateSensor(sensorId: String, request: UpdateNutrientSensorRequest): NutrientSensor? {
         logger.info("updateSensor: updating nutrient sensor $sensorId")
+        val accuracyDelete = if (request.accuracy != null) "?sensor ast:accuracy ?oldAccuracy ." else ""
+        val accuracyInsert = if (request.accuracy != null) "?sensor ast:accuracy ${request.accuracy} ." else ""
         val query = """
             PREFIX ast: <$prefix>
 
             DELETE {
                 ?sensor ast:sensorProperty ?oldProperty .
+                $accuracyDelete
             }
             INSERT {
                 ?sensor ast:sensorProperty ${request.sensorProperty} .
+                $accuracyInsert
             }
             WHERE {
                 ?sensor a ast:NutrientSensor ;
                     ast:sensorId "$sensorId" ;
                     ast:sensorProperty ?oldProperty .
+                OPTIONAL { ?sensor ast:accuracy ?oldAccuracy . }
             }
         """.trimIndent()
 
@@ -80,9 +87,9 @@ class NutrientSensorService(
             // merge with cache if present
             val cached = componentsConfig.getNutrientSensorById(sensorId)
             val sensor = if (cached == null) {
-                NutrientSensor(sensorId, request.sensorProperty)
+                NutrientSensor(sensorId, request.sensorProperty, request.accuracy)
             } else {
-                NutrientSensor(cached.sensorId, request.sensorProperty ?: cached.sensorProperty, cached.nutrient)
+                NutrientSensor(cached.sensorId, request.sensorProperty ?: cached.sensorProperty, request.accuracy ?: cached.accuracy, cached.nutrient)
             }
             componentsConfig.addNutrientSensorToCache(sensor)
             logger.info("updateSensor: updated nutrient sensor $sensorId")
@@ -124,10 +131,11 @@ class NutrientSensorService(
         componentsConfig.getNutrientSensorById(sensorId)?.let { return it }
         // Restrict query to the requested sensorId to avoid returning an unrelated sensor
         val query = """
-            SELECT ?sensorId ?sensorProperty ?nutrient WHERE {
+            SELECT ?sensorId ?sensorProperty ?accuracy ?nutrient WHERE {
                 ?obj a prog:NutrientSensor ;
                     prog:NutrientSensor_sensorId "$sensorId" ;
                     prog:NutrientSensor_sensorProperty ?sensorProperty .
+                OPTIONAL { ?obj prog:NutrientSensor_accuracy ?accuracy }
                 OPTIONAL { ?obj prog:NutrientSensor_nutrient ?nutrient }
                 BIND("$sensorId" AS ?sensorId)
             }
@@ -142,10 +150,13 @@ class NutrientSensorService(
         val solution = result.next()
         val sensorId = solution.get("?sensorId").asLiteral().toString()
         val sensorProperty = solution.get("?sensorProperty").asLiteral().toString()
+        val accuracy = if (solution.contains("?accuracy")) {
+            solution.get("?accuracy").asLiteral().toString().split("^^")[0].toDouble()
+        } else null
         val nutrient = if (solution.contains("?nutrient")) {
             solution.get("?nutrient").asLiteral().toString().split("^^")[0].toDouble()
         } else null
-        val sensor = NutrientSensor(sensorId, sensorProperty, nutrient)
+        val sensor = NutrientSensor(sensorId, sensorProperty, accuracy, nutrient)
         componentsConfig.addNutrientSensorToCache(sensor)
         logger.debug("getSensor: retrieved nutrient sensor $sensorId")
         return sensor
@@ -157,10 +168,11 @@ class NutrientSensorService(
         val cached = componentsConfig.getNutrientSensorCache()
         if (cached.isNotEmpty()) return cached.values.toList()
         val query = """
-            SELECT ?sensorId ?sensorProperty ?nutrient WHERE {
+            SELECT ?sensorId ?sensorProperty ?accuracy ?nutrient WHERE {
                 ?obj a prog:NutrientSensor ;
                     prog:NutrientSensor_sensorId ?sensorId ;
                     prog:NutrientSensor_sensorProperty ?sensorProperty .
+                OPTIONAL { ?obj prog:NutrientSensor_accuracy ?accuracy }
                 OPTIONAL { ?obj prog:NutrientSensor_nutrient ?nutrient }
             }
         """.trimIndent()
@@ -176,10 +188,13 @@ class NutrientSensorService(
             val solution = result.next()
             val sensorId = solution.get("?sensorId").asLiteral().toString()
             val sensorProperty = solution.get("?sensorProperty").asLiteral().toString()
+            val accuracy = if (solution.contains("?accuracy")) {
+                solution.get("?accuracy").asLiteral().toString().split("^^")[0].toDouble()
+            } else null
             val nutrient = if (solution.contains("?nutrient")) {
                 solution.get("?nutrient").asLiteral().toString().split("^^")[0].toDouble()
             } else null
-            val sensor = NutrientSensor(sensorId, sensorProperty, nutrient)
+            val sensor = NutrientSensor(sensorId, sensorProperty, accuracy, nutrient)
             // populate cache
             componentsConfig.addNutrientSensorToCache(sensor)
             sensors.add(sensor)
