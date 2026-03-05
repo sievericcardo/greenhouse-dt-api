@@ -28,8 +28,7 @@ class NutrientSensorService(
 
     fun createSensor(request: CreateNutrientSensorRequest): NutrientSensor? {
         logger.info("createSensor: creating nutrient sensor ${request.sensorId}")
-        val accuracyLine = if (request.accuracy != null) ";
-                    ast:accuracy ${request.accuracy}" else ""
+        val accuracyLine = if (request.accuracy != null) ";\n                    ast:accuracy ${request.accuracy}" else ""
         val query = """
             PREFIX ast: <$prefix>
             INSERT DATA {

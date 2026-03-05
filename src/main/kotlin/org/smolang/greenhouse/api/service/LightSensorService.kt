@@ -27,8 +27,7 @@ class LightSensorService(
 
     fun createSensor(request: CreateLightSensorRequest): LightSensor? {
         logger.info("createSensor: creating light sensor ${request.sensorId}")
-        val accuracyLine = if (request.accuracy != null) ";
-                    ast:accuracy ${request.accuracy}" else ""
+        val accuracyLine = if (request.accuracy != null) ";\n                    ast:accuracy ${request.accuracy}" else ""
         val query = """
             PREFIX ast: <$prefix>
             INSERT DATA {
