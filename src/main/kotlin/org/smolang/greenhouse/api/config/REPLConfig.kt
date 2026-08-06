@@ -38,16 +38,14 @@ open class REPLConfig {
         val tripleStoreHost = System.getenv("TRIPLESTORE_URL") ?: "localhost"
         val tripleStoreDataset = System.getenv("TRIPLESTORE_DATASET") ?: "ds"
         val odrlTripleStoreDataset = System.getenv("ODRL_TRIPLESTORE_DATASET") ?: "odrl"
-        val tripleStores = odrlTripleStoreDataset.split(";").map { "http://$tripleStoreHost:3030/$it" }
-        // Add the tripleStoreDataset to the list of triple stores if it's not already included
-        if (!tripleStores.contains("http://$tripleStoreHost:3030/$tripleStoreDataset")) {
-            tripleStores.plus("http://$tripleStoreHost:3030/$tripleStoreDataset")
-        }
+        val tripleStores = (odrlTripleStoreDataset.split(";") + tripleStoreDataset).distinct()
+            .map { "http://$tripleStoreHost:3030/$it/query" }
         val domainPrefixUri = System.getenv("DOMAIN_PREFIX_URI") ?: ""
         val reasoner = ReasonerMode.off
-        val features = mutableMapOf(
-            "odrl" to true
-        )
+//        val features = mutableMapOf(
+//            "odrl" to true
+//        )
+        val features = mutableMapOf<String, Boolean>()
 
         if (System.getenv("EXTRA_PREFIXES") != null) {
             val prefixes = System.getenv("EXTRA_PREFIXES")!!.split(";")
@@ -57,8 +55,10 @@ open class REPLConfig {
             }
         }
 
+        logger.info("Initializing REPL with the following triplestores: $tripleStores")
+
         val settings = Settings(
-            verbose,
+            verbose = false,
             materialize,
             liftedStateOutputPath,
             tripleStores,
@@ -86,22 +86,14 @@ open class REPLConfig {
         }
     }
 
-    private fun validatePolicies(): Boolean {
-        val tripleStoreHost = System.getenv("TRIPLESTORE_URL") ?: "localhost"
-        val odrlTripleStoreDataset = System.getenv("ODRL_TRIPLESTORE_DATASET") ?: "odrl"
-        val odrlEndpoint = System.getenv("ODRL_URL") ?: "localhost"
-        val odrlPort = System.getenv("ODRL_PORT") ?: "3000"
-        val odrlToken = System.getenv("ODRL_TOKEN") ?: ""
-
-        val policyUrl = "http://$tripleStoreHost:3030/policies/data"
-        val requestUrl = "http://$tripleStoreHost:3030/requests/data"
-        val sotwUrl = "http://$tripleStoreHost:3030/sotw/data"
-
-        // Make basic get requests to the above urls and get the content as string. Don't use khttp
-        val policyString = java.net.URI(policyUrl).toURL().readText()
-        val requestString = java.net.URI(requestUrl).toURL().readText()
-        val sotwString = java.net.URI(sotwUrl).toURL().readText()
-
+    fun evaluatePolicies(
+        odrlEndpoint: String,
+        odrlPort: String,
+        odrlToken: String,
+        policyString: String,
+        requestString: String,
+        sotwString: String
+    ): Boolean {
         val evaluateUrl = "http://$odrlEndpoint:$odrlPort/evaluate"
         logger.info("Evaluating ODRL policies at $evaluateUrl")
         logger.info("Authorization token: $odrlToken")
@@ -129,11 +121,30 @@ open class REPLConfig {
         if (responseCode != 200) {
             val errorStream = connection.errorStream
             val errorMessage = errorStream?.bufferedReader()?.use { it.readText() } ?: "Unknown error"
-            println("Error evaluating ODRL: $errorMessage")
+            logger.error("Error evaluating ODRL: $errorMessage")
             return false
         }
 
         return true
+    }
+
+    private fun validatePolicies(): Boolean {
+        val tripleStoreHost = System.getenv("TRIPLESTORE_URL") ?: "localhost"
+        val odrlTripleStoreDataset = System.getenv("ODRL_TRIPLESTORE_DATASET") ?: "odrl"
+        val odrlEndpoint = System.getenv("ODRL_URL") ?: "localhost"
+        val odrlPort = System.getenv("ODRL_PORT") ?: "3000"
+        val odrlToken = System.getenv("ODRL_TOKEN") ?: ""
+
+        val policyUrl = "http://$tripleStoreHost:3030/policies/data"
+        val requestUrl = "http://$tripleStoreHost:3030/requests/data"
+        val sotwUrl = "http://$tripleStoreHost:3030/sotw/data"
+
+        // Make basic get requests to the above urls and get the content as string. Don't use khttp
+        val policyString = java.net.URI(policyUrl).toURL().readText()
+        val requestString = java.net.URI(requestUrl).toURL().readText()
+        val sotwString = java.net.URI(sotwUrl).toURL().readText()
+
+        return evaluatePolicies(odrlEndpoint, odrlPort, odrlToken, policyString, requestString, sotwString)
     }
 
     @Bean

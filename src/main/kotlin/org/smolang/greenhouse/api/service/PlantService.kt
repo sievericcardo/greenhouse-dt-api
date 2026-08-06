@@ -28,6 +28,16 @@ class PlantService(
     private val ttlPrefix = triplestoreProperties.ttlPrefix
     private val repl = replConfig.repl()
 
+    fun odrlQuery(
+        userId: String,
+        subjectId: String,
+        actionType: String,
+        purposeName: String,
+        attributes: List<String>
+    ): Pair<Boolean, Double> {
+        return repl.interpreter!!.odrlQuery(userId, subjectId, actionType, purposeName, attributes)
+    }
+
     fun createPlant(plant: Plant): Boolean {
         logger.info("createPlant: creating plant ${plant.plantId}")
         val query = """
@@ -60,8 +70,8 @@ class PlantService(
     fun getAllPlants(): List<Plant>? {
         logger.debug("getAllPlants: retrieving all plants")
         // Return cached plants if available
-       val cached = componentsConfig.getPlantCache()
-       if (cached.isNotEmpty()) return cached.values.toList()
+        val cached = componentsConfig.getPlantCache()
+        if (cached.isNotEmpty()) return cached.values.toList()
         val plants =
             """
              SELECT ?plantId ?familyName ?potId ?moisture ?healthState ?status ?moistureState WHERE {
@@ -212,7 +222,7 @@ class PlantService(
     fun getPlantByPlantId(plantId: String): Plant? {
         logger.debug("getPlantByPlantId: retrieving plant $plantId")
         // Return cached plant if present
-       componentsConfig.getPlantById(plantId)?.let { return it }
+        componentsConfig.getPlantById(plantId)?.let { return it }
         val query = """
             SELECT DISTINCT ?familyName ?potId ?moisture ?healthState ?status ?moistureState WHERE {
                 {

@@ -17,6 +17,7 @@ import org.smolang.greenhouse.api.types.PlantMoistureState
 import org.smolang.greenhouse.api.types.UpdatePlantRequest
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 import io.swagger.v3.oas.annotations.parameters.RequestBody as SwaggerRequestBody
 
 @RestController
@@ -119,6 +120,156 @@ class PlantController(
         log.info("Plant: $plant")
 
         return ResponseEntity.ok(plant)
+    }
+
+    @Operation(summary = "Retrieve a plant with static ODRL access control")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Successfully retrieved the plant"),
+            ApiResponse(responseCode = "403", description = "The requested resource cannot be accessed"),
+            ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
+        ]
+    )
+    @PostMapping("/static-odrl", produces = ["application/json"])
+    fun getPlantWithStaticOdrl(
+        @SwaggerRequestBody(description = "ODRL request file") @Valid @RequestPart("requestFile") requestFile: MultipartFile,
+        @SwaggerRequestBody(description = "Plant id") @RequestPart("plantId") plantId: String
+    ): ResponseEntity<Map<String, Any>> {
+        log.info("Static ODRL plant request received")
+
+        val tripleStoreHost = System.getenv("TRIPLESTORE_URL") ?: "localhost"
+        val odrlEndpoint = System.getenv("ODRL_URL") ?: "localhost"
+        val odrlPort = System.getenv("ODRL_PORT") ?: "3000"
+        val odrlToken = System.getenv("ODRL_TOKEN") ?: ""
+
+        val policyUrl = "http://$tripleStoreHost:3030/policies/data"
+        val sotwUrl = "http://$tripleStoreHost:3030/sotw/data"
+
+        // Make basic get requests to the above urls and get the content as string. Don't use khttp
+        val policyString = java.net.URI(policyUrl).toURL().readText()
+        val sotwString = java.net.URI(sotwUrl).toURL().readText()
+
+        val startTime = System.currentTimeMillis()
+        val allowed = replConfig.evaluatePolicies(
+            odrlEndpoint,
+            odrlPort,
+            odrlToken,
+            policyString,
+            requestFile.inputStream.bufferedReader().use { it.readText() },
+            sotwString
+        )
+        val endTime = System.currentTimeMillis()
+        val policyTime = endTime - startTime
+
+        if (!allowed) {
+            return ResponseEntity.status(403).body(
+                mapOf(
+                    "allowed" to allowed,
+                    "time" to policyTime,
+                    "message" to "Access to plant with ID '$plantId' is forbidden."
+                )
+            )
+        }
+
+        val plant = plantService.getPlantByPlantId(plantId)
+        if (plant == null) {
+            log.warn("Plant with ID '$plantId' not found.")
+            return ResponseEntity.status(404).body(
+                mapOf(
+                    "allowed" to allowed,
+                    "time" to policyTime,
+                    "message" to "Plant with ID '$plantId' not found."
+                )
+            )
+        }
+
+        return ResponseEntity.ok(
+            mapOf(
+                "allowed" to true,
+                "time" to policyTime,
+                "message" to "Access to plant with ID '$plantId' is allowed.",
+                "plant" to plant
+            )
+        )
+    }
+
+    @Operation(summary = "Retrieve a plant with ODRL access control")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Successfully retrieved the plant"),
+            ApiResponse(responseCode = "403", description = "The requested resource cannot be accessed"),
+            ApiResponse(responseCode = "404", description = "The resource you were trying to reach is not found")
+        ]
+    )
+    @GetMapping("/odrl/{userId}/{subjectId}/{actionType}/{purposeName}", produces = ["application/json"])
+    fun getPlantWithOdrl(
+        @ApiParam(value = "User ID", required = true) @PathVariable userId: String,
+        @ApiParam(value = "Subject ID (Plant ID)", required = true) @PathVariable subjectId: String,
+        @ApiParam(value = "Action Type", required = true) @PathVariable actionType: String,
+        @ApiParam(value = "Purpose Name", required = true) @PathVariable purposeName: String
+    ): ResponseEntity<Map<String, Any>> {
+        log.info("ODRL plant request userId=$userId subjectId=$subjectId actionType=$actionType purposeName=$purposeName")
+
+        return ResponseEntity.ok(
+            mapOf(
+                "allowed" to true,
+                "time" to 0
+            )
+        )
+
+//        val attributes = listOf(
+//            "plantId",
+//            "familyName",
+//            "potId",
+//            "moisture",
+//            "healthState",
+//            "status",
+//            "moistureState"
+//        )
+        val attributes = listOf(
+            "plantId",
+            "idealMoisture",
+            "potId",
+            "hasMoisture"
+        )
+
+        val (isAllowed, timeValue) = plantService.odrlQuery(
+            userId,
+            subjectId,
+            actionType,
+            purposeName,
+            attributes
+        )
+
+        if (!isAllowed) {
+            val message =
+                "Resource '$subjectId' cannot be accessed for action '$actionType' and purpose '$purposeName'."
+            log.warn("ODRL denied access for subject $subjectId")
+            return ResponseEntity.status(403).body(
+                mapOf(
+                    "allowed" to false,
+                    "time" to timeValue,
+                    "message" to message
+                )
+            )
+        }
+
+        val plant = plantService.getPlantByPlantId(subjectId)
+            ?: return ResponseEntity.status(404).body(
+                mapOf(
+                    "allowed" to true,
+                    "time" to timeValue,
+                    "message" to "Plant with ID '$subjectId' not found."
+                )
+            )
+
+        return ResponseEntity.ok(
+            mapOf(
+                "allowed" to true,
+                "time" to timeValue,
+                "plant" to plant
+            )
+        )
     }
 
     @Operation(summary = "Update a plant")
