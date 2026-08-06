@@ -156,7 +156,8 @@ class PlantController(
             odrlToken,
             policyString,
             requestFile.inputStream.bufferedReader().use { it.readText() },
-            sotwString
+            sotwString,
+            true
         )
         val endTime = System.currentTimeMillis()
         val policyTime = endTime - startTime

@@ -92,9 +92,11 @@ open class REPLConfig {
         odrlToken: String,
         policyString: String,
         requestString: String,
-        sotwString: String
+        sotwString: String,
+        static: Boolean = false
     ): Boolean {
-        val evaluateUrl = "http://$odrlEndpoint:$odrlPort/evaluate"
+        val evaluateUrl =
+            if (static) "http://$odrlEndpoint:$odrlPort/evaluate-static" else "http://$odrlEndpoint:$odrlPort/evaluate"
         logger.info("Evaluating ODRL policies at $evaluateUrl")
         logger.info("Authorization token: $odrlToken")
 
