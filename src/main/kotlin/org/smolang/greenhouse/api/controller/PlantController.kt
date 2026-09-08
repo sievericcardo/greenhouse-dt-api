@@ -150,7 +150,12 @@ class PlantController(
         val sotwString = java.net.URI(sotwUrl).toURL().readText()
 
         val startTime = System.currentTimeMillis()
-        val allowed = replConfig.evaluatePolicies(
+        /*
+         * Evaluate the ODRL policies using the REPLConfig's evaluatePolicies method.
+         * The method is use to validate the data protection policies and determine if the request is allowed or not.
+         * It is used for the Section 5 in the Data Protection for Semantically Reflected Digital Twins article.
+         */
+        val (allowed, evalMs) = replConfig.evaluatePolicies(
             odrlEndpoint,
             odrlPort,
             odrlToken,
@@ -167,6 +172,7 @@ class PlantController(
                 mapOf(
                     "allowed" to allowed,
                     "time" to policyTime,
+                    "evalTime" to evalMs,
                     "message" to "Access to plant with ID '$plantId' is forbidden."
                 )
             )
@@ -179,6 +185,7 @@ class PlantController(
                 mapOf(
                     "allowed" to allowed,
                     "time" to policyTime,
+                    "evalTime" to evalMs,
                     "message" to "Plant with ID '$plantId' not found."
                 )
             )
@@ -188,6 +195,7 @@ class PlantController(
             mapOf(
                 "allowed" to true,
                 "time" to policyTime,
+                "evalTime" to evalMs,
                 "message" to "Access to plant with ID '$plantId' is allowed.",
                 "plant" to plant
             )

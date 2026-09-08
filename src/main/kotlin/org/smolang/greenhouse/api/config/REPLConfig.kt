@@ -86,6 +86,21 @@ open class REPLConfig {
         }
     }
 
+    /**
+     * Evaluate ODRL policies by sending a POST request to the ODRL endpoint with the given policy, request, and SOTW strings.
+     *
+     * This follows the ODRL evaluation process, where the policy and request are evaluated against the SOTW (State of the World) to determine if access is granted or denied.
+     * It follows section 5 of the Data Protection for Semantically Reflected Digital Twins article.
+     *
+     * @param odrlEndpoint The ODRL endpoint URL.
+     * @param odrlPort The ODRL endpoint port.
+     * @param odrlToken The ODRL authorization token.
+     * @param policyString The ODRL policy string.
+     * @param requestString The ODRL request string.
+     * @param sotwString The ODRL SOTW string.
+     * @param static Whether to use the static evaluation endpoint.
+     * @return A pair containing a boolean indicating whether the evaluation was successful and a double representing the evaluation time in milliseconds (or -1.0 if not applicable).
+     */
     fun evaluatePolicies(
         odrlEndpoint: String,
         odrlPort: String,
@@ -94,7 +109,7 @@ open class REPLConfig {
         requestString: String,
         sotwString: String,
         static: Boolean = false
-    ): Boolean {
+    ): Pair<Boolean, Double> {
         val evaluateUrl =
             if (static) "http://$odrlEndpoint:$odrlPort/evaluate-static" else "http://$odrlEndpoint:$odrlPort/evaluate"
         logger.info("Evaluating ODRL policies at $evaluateUrl")
@@ -124,10 +139,17 @@ open class REPLConfig {
             val errorStream = connection.errorStream
             val errorMessage = errorStream?.bufferedReader()?.use { it.readText() } ?: "Unknown error"
             logger.error("Error evaluating ODRL: $errorMessage")
-            return false
+            return Pair(false, -1.0)
         }
-
-        return true
+        if (static) {
+            val responseBody = connection.inputStream.bufferedReader().use { it.readText() }
+            val tree = objectMapper.readTree(responseBody)
+            val granted = tree.get("granted")?.asBoolean() ?: false
+            val evalMs = tree.get("evalMs")?.asDouble() ?: -1.0
+            logger.info("ODRL static verdict: granted=$granted evalMs=$evalMs")
+            return Pair(granted, evalMs)
+        }
+        return Pair(true, -1.0)
     }
 
     private fun validatePolicies(): Boolean {
@@ -146,7 +168,7 @@ open class REPLConfig {
         val requestString = java.net.URI(requestUrl).toURL().readText()
         val sotwString = java.net.URI(sotwUrl).toURL().readText()
 
-        return evaluatePolicies(odrlEndpoint, odrlPort, odrlToken, policyString, requestString, sotwString)
+        return evaluatePolicies(odrlEndpoint, odrlPort, odrlToken, policyString, requestString, sotwString).first
     }
 
     @Bean
